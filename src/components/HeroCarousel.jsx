@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HeroCarousel() {
-  // Start from a different slide: index 2 (Tissue Silk Kasavu Saree banner)
+  // Start from index 2 (Traditional Weaves banner)
   const [currentSlide, setCurrentSlide] = useState(2);
+
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
 
   const slides = [
     {
@@ -26,8 +31,8 @@ export default function HeroCarousel() {
       id: 3,
       image: "https://i.ibb.co/Xr8k8s2H/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png",
       title: "Style That Defines You",
-      subtitle: "Timeless Traditional Weaves",
-      desc: "Discover premium Tissue Silk Kasavu sarees shimmering with heritage zari details, perfect for celebration days.",
+      subtitle: "Timeless Traditional Styles",
+      desc: "Discover premium traditional ensembles shimmering with heritage gold details, perfect for celebration days.",
       aspectRatio: 1.7768
     },
     {
@@ -56,32 +61,77 @@ export default function HeroCarousel() {
     }
   ];
 
-  // Non-looping Autoplay functionality: Stops permanently at the final slide
-  useEffect(() => {
-    if (currentSlide >= slides.length - 1) {
-      return; // Do not schedule any autoplay once final slide is active
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => {
+      if (prev >= slides.length - 1) {
+        return prev; // Stop permanently on the final slide
+      }
+      return prev + 1;
+    });
+  };
+
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => {
+      if (prev <= 0) {
+        return prev;
+      }
+      return prev - 1;
+    });
+  };
+
+  // Mobile touch swiping
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStart - touchEnd;
+    if (diff > 50) {
+      handleNextSlide();
+    } else if (diff < -50) {
+      handlePrevSlide();
     }
+  };
 
-    const play = () => {
-      setCurrentSlide((prev) => {
-        if (prev >= slides.length - 1) {
-          return prev;
-        }
-        return prev + 1;
-      });
-    };
+  // Desktop click & drag/swipe
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setDragStartX(e.clientX);
+  };
 
-    const interval = setInterval(play, 6000); // 6 seconds duration
-    return () => clearInterval(interval);
-  }, [currentSlide, slides.length]);
+  const handleMouseUp = (e) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const diff = dragStartX - e.clientX;
+    if (diff > 50) {
+      handleNextSlide();
+    } else if (diff < -50) {
+      handlePrevSlide();
+    } else {
+      // Simple click advances to the next slide
+      handleNextSlide();
+    }
+  };
 
   return (
     <div 
       className="hero-carousel-container"
       style={{
         aspectRatio: slides[currentSlide].aspectRatio,
-        transition: 'aspect-ratio 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        transition: 'aspect-ratio 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        cursor: 'grab'
       }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={() => setIsDragging(false)}
     >
       {/* Slider Track for Horizontal Movement */}
       <div 
@@ -110,12 +160,13 @@ export default function HeroCarousel() {
               src={slide.image} 
               alt={slide.title} 
               className="hero-slide-img" 
+              draggable="false"
             />
             
             {/* Subtle overlay for text contrast without blocking fashion details */}
             <div className="hero-slide-overlay"></div>
 
-            {/* Elegant Content Box - Removed container class to allow exact left margin alignment */}
+            {/* Elegant Content Box */}
             <div className="hero-slide-content">
               <div className="hero-text-block animate-slide-up">
                 <span className="hero-subtitle">{slide.subtitle}</span>
@@ -123,10 +174,10 @@ export default function HeroCarousel() {
                 <p className="hero-desc">{slide.desc}</p>
                 
                 <div className="hero-buttons">
-                  <Link to="/shop" className="btn btn-secondary hero-btn">
+                  <Link to="/shop" className="btn btn-secondary hero-btn" onClick={(e) => e.stopPropagation()}>
                     SHOP NOW
                   </Link>
-                  <Link to="/shop?filter=new" className="btn btn-outline hero-btn hero-btn-outline">
+                  <Link to="/shop?filter=new" className="btn btn-outline hero-btn hero-btn-outline" onClick={(e) => e.stopPropagation()}>
                     EXPLORE COLLECTION
                   </Link>
                 </div>

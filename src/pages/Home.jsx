@@ -113,12 +113,12 @@ export default function Home() {
         <div className="promo-banner-overlay"></div>
         <div className="container promo-banner-content text-center">
           <span className="promo-tag text-uppercase">Boutique Spotlight</span>
-          <h2 className="promo-heading">Tissue Silk Kasavu Sarees</h2>
+          <h2 className="promo-heading">Petals Ethnic Collection</h2>
           <p className="promo-desc">
-            Experience traditional golden Kasavu borders combined with the shimmering grace of tissue silk. Perfect for festive celebrations.
+            Experience the elegant grace of our premium handcrafted ethnic wear, designed to blend timeless tradition with contemporary comfort.
           </p>
-          <Link to="/category/tissue-silk-kasavu" className="btn btn-secondary">
-            Explore Sarees
+          <Link to="/shop" className="btn btn-secondary">
+            Explore Collection
           </Link>
         </div>
       </section>
@@ -214,7 +214,6 @@ export default function Home() {
                   src={photo.image} 
                   alt={photo.text} 
                   className="insta-img" 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 <div className="insta-hover-overlay">
                   <div className="insta-overlay-icons">

@@ -43,7 +43,7 @@ export default function About() {
               {aboutText}
             </p>
             <p style={{ color: 'var(--color-neutral-muted)', marginBottom: '30px' }}>
-              At Petals Ethnic, we believe in celebrating the unique grace of Indian silhouettes. Every piece in our collection—from flowing Aline midi dresses to traditional Tissue Silk Kasavu sarees—is curated with the utmost care, ensuring the perfect balance between heritage weaves and contemporary trends.
+              At Petals Ethnic, we believe in celebrating the unique grace of Indian silhouettes. Every piece in our collection—from flowing Aline midi dresses to elegant ethnic outfits and coordinated sets—is curated with the utmost care, ensuring the perfect balance between heritage weaves and contemporary trends.
             </p>
             <Link to="/shop" className="btn btn-primary">
               Explore Our Collection
@@ -79,7 +79,7 @@ export default function About() {
               </div>
               <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', marginBottom: '15px' }}>Premium Fabrics Only</h3>
               <p style={{ fontSize: '0.95rem', color: 'var(--color-neutral-muted)' }}>
-                From rich cotton modal to shimmering tissue silk, we make no compromises. We source breathable, durable fabrics that feel soft against the skin.
+                From rich cotton modal to premium silk blends, we make no compromises. We source breathable, durable fabrics that feel soft against the skin.
               </p>
             </div>
 

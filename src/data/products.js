@@ -166,37 +166,5 @@ export const products = [
     isFeatured: false,
     isNewArrival: false,
     isActive: true
-  },
-
-  // Tissue Silk Kasavu (cat_6)
-  {
-    id: "prod_11",
-    name: "Golden Tissue Silk Kasavu Saree",
-    categorySlug: "tissue-silk-kasavu",
-    price: 5499,
-    salePrice: 4799,
-    images: [img5, img6, img2],
-    description: "A heritage masterpiece for your collection. Woven by master weavers, this premium Tissue Silk Kasavu saree features a gorgeous shimmering texture, a broad 10cm pure zari golden border, and intricate temple border patterns. Perfect for weddings and traditional celebrations.",
-    sizes: ["One Size"],
-    colors: ["Traditional Cream & Gold"],
-    stockCount: 3,
-    isFeatured: true,
-    isNewArrival: true,
-    isActive: true
-  },
-  {
-    id: "prod_12",
-    name: "Premium Rose Gold Tissue Saree",
-    categorySlug: "tissue-silk-kasavu",
-    price: 5999,
-    salePrice: null,
-    images: [img6, img5, img2],
-    description: "A modern variation of the classic Kasavu. Crafted in fine tissue silk with rose-gold metallic warp threads, this saree offers an unmatched drape and a soft, feminine luster that shimmers beautifully under evening lighting.",
-    sizes: ["One Size"],
-    colors: ["Rose Gold Cream"],
-    stockCount: 6,
-    isFeatured: false,
-    isNewArrival: true,
-    isActive: true
   }
 ];

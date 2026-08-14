@@ -938,11 +938,11 @@ button, .btn {
 }
 
 .card-selector-label {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  width: 65px;
+  width: 75px;
   color: var(--color-neutral-dark);
 }
 
@@ -953,14 +953,19 @@ button, .btn {
 }
 
 .card-size-btn {
-  background: var(--color-neutral-bg);
+  background: var(--color-white);
   border: 1px solid var(--color-border);
   color: var(--color-neutral-dark);
-  padding: 4px 10px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 0.725rem;
+  font-weight: 700;
   cursor: pointer;
-  border-radius: var(--border-radius-xs);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all var(--transition-fast);
 }
 
@@ -979,19 +984,19 @@ button, .btn {
   display: flex;
   align-items: center;
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-xs);
+  border-radius: 4px;
   overflow: hidden;
-  background: var(--color-neutral-bg);
+  background: var(--color-white);
 }
 
 .card-qty-btn {
   background: transparent;
   border: none;
   color: var(--color-neutral-dark);
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1009,10 +1014,11 @@ button, .btn {
 }
 
 .card-qty-value {
-  font-size: 0.85rem;
-  font-weight: 600;
-  width: 32px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  width: 28px;
   text-align: center;
+  color: var(--color-neutral-dark);
 }
 
 .card-actions-row {
@@ -1031,7 +1037,7 @@ button, .btn {
   font-weight: 700;
   letter-spacing: 1px;
   cursor: pointer;
-  border-radius: var(--border-radius-xs);
+  border-radius: 4px;
   transition: all var(--transition-fast);
 }
 
@@ -1050,22 +1056,22 @@ button, .btn {
 }
 
 .card-btn-wishlist {
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  width: 38px;
-  height: 38px;
+  background: var(--color-primary-light);
+  border: none;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: var(--border-radius-xs);
+  border-radius: 4px;
   transition: all var(--transition-fast);
   color: var(--color-rose);
 }
 
 .card-btn-wishlist:hover {
-  border-color: var(--color-rose);
-  background: var(--color-primary-light);
+  background: rgba(201, 111, 130, 0.15);
+  transform: scale(1.05);
 }
 
 .card-toast-feedback {
@@ -1084,7 +1090,7 @@ button, .btn {
 ------------------------------------------------------------- */
 .promo-banner-section {
   position: relative;
-  background-image: url('https://i.ibb.co/xt96ws2F/Whats-App-Image-2026-08-13-at-12-30-50-PM.jpg');
+  background-image: url('https://i.ibb.co/XZF0w4jR/Whats-App-Image-2026-08-13-at-12-31-10-PM-2.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1225,26 +1231,29 @@ button, .btn {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(31, 26, 27, 0.45);
+  background: rgba(31, 26, 27, 0.55);
   z-index: 1;
 }
 
 .about-box-content {
   position: relative;
   z-index: 2;
-  color: var(--color-white);
+  color: #FFFFFF;
 }
 
 .about-box-content h3 {
   font-size: 1.8rem;
   margin-bottom: 10px;
+  color: #FFFFFF;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .about-box-content span {
   font-size: 0.8rem;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--color-primary);
+  color: #FFF8F8 !important;
+  font-weight: 700;
 }
 
 .about-img-box.img-2 {
@@ -1303,6 +1312,13 @@ button, .btn {
   position: relative;
   background-color: var(--color-white);
   border: 1px solid var(--color-border);
+}
+
+.insta-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .insta-placeholder-card {

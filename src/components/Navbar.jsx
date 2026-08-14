@@ -135,7 +135,7 @@ export default function Navbar() {
             <p className="search-quick-links">
               Try searching: <span onClick={() => { setSearchQuery('Kurti'); navigate('/search?q=Kurti'); setIsSearchOpen(false); }}>Kurti</span>,{' '}
               <span onClick={() => { setSearchQuery('Anarkali'); navigate('/search?q=Anarkali'); setIsSearchOpen(false); }}>Anarkali</span>,{' '}
-              <span onClick={() => { setSearchQuery('Saree'); navigate('/search?q=Saree'); setIsSearchOpen(false); }}>Saree</span>
+              <span onClick={() => { setSearchQuery('Codeset'); navigate('/search?q=Codeset'); setIsSearchOpen(false); }}>Codeset</span>
             </p>
           </div>
         </div>

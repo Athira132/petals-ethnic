@@ -40,13 +40,5 @@ export const categories = [
     image: "https://i.ibb.co/HpfR01b2/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg",
     description: "Chic and modern coordinated ethnic sets combining style, premium fit, and unmatched comfort.",
     isActive: true
-  },
-  {
-    id: "cat_6",
-    name: "Tissue Silk Kasavu",
-    slug: "tissue-silk-kasavu",
-    image: "https://i.ibb.co/xt96ws2F/Whats-App-Image-2026-08-13-at-12-30-50-PM.jpg",
-    description: "Traditional golden Kasavu designs woven in shimmering, premium tissue silk fabrics.",
-    isActive: true
   }
 ];

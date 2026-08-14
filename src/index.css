@@ -2,6 +2,8 @@
 
 :root {
   /* Brand Color Palette */
+  --color-rose: #C96F82;
+  --color-rose-dark: #A94E61;
   --color-primary: #F8C0C8;        /* Elegant Baby Pink */
   --color-primary-dark: #E6A2AE;   /* Darker Pink for Hover */
   --color-primary-light: #FDF2F4;  /* Soft Blush background */
@@ -349,8 +351,12 @@ button, .btn {
 
 .navbar-logo {
   height: 48px;
-  width: auto;
+  width: 48px;
+  border-radius: 50%;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
   object-fit: contain;
+  padding: 3px;
   transition: all var(--transition-normal);
 }
 
@@ -358,7 +364,7 @@ button, .btn {
   font-family: var(--font-serif);
   font-size: 1.4rem;
   font-weight: 600;
-  color: var(--color-neutral-dark);
+  color: var(--color-rose);
   letter-spacing: 0.5px;
 }
 
@@ -378,13 +384,13 @@ button, .btn {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--color-neutral-dark);
+  color: var(--color-rose);
   padding: 10px 0;
   border-bottom: 1px solid transparent;
 }
 
 .nav-links a:hover {
-  color: var(--color-gold);
+  color: var(--color-rose-dark);
 }
 
 /* Nav Dropdown */
@@ -398,7 +404,7 @@ button, .btn {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--color-neutral-dark);
+  color: var(--color-rose);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -441,11 +447,12 @@ button, .btn {
   font-size: 0.8rem;
   text-transform: capitalize;
   border-bottom: none;
+  color: var(--color-rose);
 }
 
 .dropdown-menu li a:hover {
   background: var(--color-primary-light);
-  color: var(--color-neutral-dark);
+  color: var(--color-rose-dark);
 }
 
 .navbar-actions {
@@ -459,13 +466,13 @@ button, .btn {
   border: none;
   cursor: pointer;
   position: relative;
-  color: var(--color-neutral-dark);
+  color: var(--color-rose);
   padding: 6px;
   transition: color var(--transition-fast);
 }
 
 .action-icon-btn:hover {
-  color: var(--color-gold);
+  color: var(--color-rose-dark);
 }
 
 .action-badge {
@@ -489,7 +496,12 @@ button, .btn {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: var(--color-neutral-dark);
+  color: var(--color-rose);
+  transition: color var(--transition-fast);
+}
+
+.mobile-nav-toggle:hover {
+  color: var(--color-rose-dark);
 }
 
 @media (max-width: 1024px) {
@@ -504,9 +516,17 @@ button, .btn {
 .hero-carousel-container {
   width: 100%;
   height: 90vh;
+  margin-top: calc(-1 * var(--header-height));
   position: relative;
   overflow: hidden;
   background-color: var(--color-neutral-dark);
+}
+
+@media (max-width: 1024px) {
+  .hero-carousel-container {
+    margin-top: calc(-1 * var(--header-height-mobile));
+    height: 75vh;
+  }
 }
 
 .hero-slide {
@@ -822,7 +842,8 @@ button, .btn {
 .product-card-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: var(--color-neutral-bg);
 }
 
 .product-card-badges {
@@ -1333,9 +1354,12 @@ button, .btn {
 
 .footer-logo {
   height: 44px;
-  width: auto;
+  width: 44px;
+  border-radius: 50%;
+  background-color: var(--color-white);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   object-fit: contain;
-  border: none;
+  padding: 3px;
 }
 
 .footer-brand-name {
@@ -2131,7 +2155,8 @@ button, .btn {
 .main-display-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: var(--color-neutral-bg);
 }
 
 .detail-sale-badge {
@@ -2601,7 +2626,8 @@ button, .btn {
 .quickview-main-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: var(--color-neutral-bg);
 }
 
 .quickview-details {
@@ -3027,18 +3053,7 @@ button, .btn {
   to { width: 100%; }
 }
 
-/* Transparent Header Text Color Toggle */
-.navbar-header:not(.scrolled) .nav-links a,
-.navbar-header:not(.scrolled) .nav-dropdown-trigger,
-.navbar-header:not(.scrolled) .navbar-logo-text,
-.navbar-header:not(.scrolled) .action-icon-btn,
-.navbar-header:not(.scrolled) .mobile-nav-toggle {
-  color: var(--color-white);
-}
 
-.navbar-header:not(.scrolled) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-}
 
 /* Transition improvements for smooth cinematic look */
 .hero-slide {

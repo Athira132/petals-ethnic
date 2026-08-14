@@ -316,7 +316,7 @@ button, .btn {
    STICKY NAVBAR STYLING
 ------------------------------------------------------------- */
 .navbar-header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   width: 100%;
@@ -3018,12 +3018,12 @@ button, .btn {
 
 .main-viewport-content {
   flex: 1;
-  padding-top: var(--header-height);
+  padding-top: 0;
 }
 
 @media (max-width: 1024px) {
   .main-viewport-content {
-    padding-top: var(--header-height-mobile);
+    padding-top: 0;
   }
 }
 

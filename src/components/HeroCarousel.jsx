@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(true);
 
   const slides = [
     {
@@ -55,41 +56,58 @@ export default function HeroCarousel() {
     }
   ];
 
-  // Looping Autoplay: slides automatically change every 1 second (1000ms)
+  // Append clone of the first slide to allow smooth continuous circular sliding
+  const extendedSlides = [...slides, slides[0]];
+
+  // Looping Autoplay: slides automatically change every 3 seconds
   useEffect(() => {
     const play = () => {
-      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+      setIsTransitioning(true);
+      setCurrentSlide((prev) => prev + 1);
     };
-    const interval = setInterval(play, 1000);
+
+    const interval = setInterval(play, 3000); // 3 seconds visible duration
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, []);
+
+  // Handle seamless silent reset back to first slide on transition end
+  const handleTransitionEnd = () => {
+    if (currentSlide === extendedSlides.length - 1) {
+      setIsTransitioning(false);
+      setCurrentSlide(0);
+    }
+  };
+
+  // Determine visual index for header aspect ratios and progress bar mounts
+  const visualIndex = currentSlide === extendedSlides.length - 1 ? 0 : currentSlide;
 
   return (
     <div 
       className="hero-carousel-container"
       style={{
-        aspectRatio: slides[currentSlide].aspectRatio,
+        aspectRatio: extendedSlides[visualIndex].aspectRatio,
         transition: 'aspect-ratio 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
       }}
     >
       {/* Slider Track for Horizontal Movement */}
       <div 
         className="hero-slider-track"
+        onTransitionEnd={handleTransitionEnd}
         style={{
           display: 'flex',
-          width: `${slides.length * 100}%`,
-          transform: `translateX(-${(currentSlide * 100) / slides.length}%)`,
-          transition: 'transform 450ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          width: `${extendedSlides.length * 100}%`,
+          transform: `translateX(-${(currentSlide * 100) / extendedSlides.length}%)`,
+          transition: isTransitioning ? 'transform 750ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none',
           height: '100%'
         }}
       >
         {/* Slides mapping */}
-        {slides.map((slide, idx) => (
+        {extendedSlides.map((slide, idx) => (
           <div 
-            key={slide.id} 
-            className={`hero-slide ${idx === currentSlide ? 'active' : ''}`}
+            key={`${slide.id}-${idx}`} 
+            className="hero-slide"
             style={{
-              width: `${100 / slides.length}%`,
+              width: `${100 / extendedSlides.length}%`,
               height: '100%',
               position: 'relative'
             }}
@@ -126,9 +144,9 @@ export default function HeroCarousel() {
         ))}
       </div>
 
-      {/* Cinematic Linear Progress Indicator */}
+      {/* Cinematic Linear Progress Indicator - Tied to visualIndex to prevent double resetting */}
       <div className="hero-progress-bar-container">
-        <div key={currentSlide} className="hero-progress-bar-fill" style={{ animationDuration: '1000ms' }} />
+        <div key={visualIndex} className="hero-progress-bar-fill" style={{ animationDuration: '3000ms' }} />
       </div>
     </div>
   );

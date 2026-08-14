@@ -1,9 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function WhatsAppButton() {
+  const [showButton, setShowButton] = useState(false);
   const phoneNumber = "918113899319";
   const message = encodeURIComponent("Hello Petals Ethnic! I am looking for some premium ethnic outfits. Can you help me find the best choice?");
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Hide button when scroll position is less than 400px (i.e. when viewing the hero banner)
+      if (window.scrollY > 400) {
+        setShowButton(true);
+      } else {
+        setShowButton(false);
+      }
+    };
+    
+    // Run once on load
+    handleScroll();
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  if (!showButton) return null;
 
   return (
     <a 

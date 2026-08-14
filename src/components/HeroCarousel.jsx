@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HeroCarousel() {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  // Start from a different slide: index 2 (Tissue Silk Kasavu Saree banner)
+  const [currentSlide, setCurrentSlide] = useState(2);
   const autoPlayRef = useRef();
 
   const slides = [
@@ -81,41 +82,58 @@ export default function HeroCarousel() {
         transition: 'aspect-ratio 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
       }}
     >
-      {/* Slides mapping */}
-      {slides.map((slide, idx) => (
-        <div 
-          key={slide.id} 
-          className={`hero-slide ${idx === currentSlide ? 'active' : ''}`}
-        >
-          {/* Main Slide Image */}
-          <img 
-            src={slide.image} 
-            alt={slide.title} 
-            className="hero-slide-img" 
-          />
-          
-          {/* Subtle overlay for text contrast without blocking fashion details */}
-          <div className="hero-slide-overlay"></div>
+      {/* Slider Track for Horizontal Movement */}
+      <div 
+        className="hero-slider-track"
+        style={{
+          display: 'flex',
+          width: `${slides.length * 100}%`,
+          transform: `translateX(-${(currentSlide * 100) / slides.length}%)`,
+          transition: 'transform 750ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          height: '100%'
+        }}
+      >
+        {/* Slides mapping */}
+        {slides.map((slide, idx) => (
+          <div 
+            key={slide.id} 
+            className={`hero-slide ${idx === currentSlide ? 'active' : ''}`}
+            style={{
+              width: `${100 / slides.length}%`,
+              height: '100%',
+              position: 'relative'
+            }}
+          >
+            {/* Main Slide Image */}
+            <img 
+              src={slide.image} 
+              alt={slide.title} 
+              className="hero-slide-img" 
+            />
+            
+            {/* Subtle overlay for text contrast without blocking fashion details */}
+            <div className="hero-slide-overlay"></div>
 
-          {/* Elegant Content Box */}
-          <div className="hero-slide-content container">
-            <div className="hero-text-block animate-slide-up">
-              <span className="hero-subtitle">{slide.subtitle}</span>
-              <h1 className="hero-title">{slide.title}</h1>
-              <p className="hero-desc">{slide.desc}</p>
-              
-              <div className="hero-buttons">
-                <Link to="/shop" className="btn btn-secondary hero-btn">
-                  SHOP NOW
-                </Link>
-                <Link to="/shop?filter=new" className="btn btn-outline hero-btn hero-btn-outline">
-                  EXPLORE COLLECTION
-                </Link>
+            {/* Elegant Content Box - Removed container class to allow exact left margin alignment */}
+            <div className="hero-slide-content">
+              <div className="hero-text-block animate-slide-up">
+                <span className="hero-subtitle">{slide.subtitle}</span>
+                <h1 className="hero-title">{slide.title}</h1>
+                <p className="hero-desc">{slide.desc}</p>
+                
+                <div className="hero-buttons">
+                  <Link to="/shop" className="btn btn-secondary hero-btn">
+                    SHOP NOW
+                  </Link>
+                  <Link to="/shop?filter=new" className="btn btn-outline hero-btn hero-btn-outline">
+                    EXPLORE COLLECTION
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {/* Cinematic Linear Progress Indicator */}
       <div className="hero-progress-bar-container">

@@ -31,14 +31,14 @@ export default function Home() {
   // Static brand statement
   const brandStatement = "Welcome to Petals Ethnic! Step up your style with our latest fashion collection. We offer premium quality fabrics and trendy designs that fit every occasion. Let us know what you are looking for, and we'll be happy to help you find the best outfit!";
 
-  // 6 Instagram mock feeds using the placeholder SVG concept or direct clean icons
+  // 6 Instagram mock feeds using real fashion images
   const instagramMockPhotos = [
-    { id: 1, text: "Festive Vibes" },
-    { id: 2, text: "Linen Comforts" },
-    { id: 3, text: "Tissue Silk Zari" },
-    { id: 4, text: "Aline Midi Elegance" },
-    { id: 5, text: "Co-ord Sets Daily" },
-    { id: 6, text: "Summer Drapes" }
+    { id: 1, text: "Festive Vibes", image: "https://i.ibb.co/1fFmfKNH/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" },
+    { id: 2, text: "Linen Comforts", image: "https://i.ibb.co/v4qWB2YQ/IMG-20260805-WA0017.jpg" },
+    { id: 3, text: "Tissue Silk Zari", image: "https://i.ibb.co/RkKyZV0d/IMG-20260805-WA0011.jpg" },
+    { id: 4, text: "Aline Midi Elegance", image: "https://i.ibb.co/XZF0w4jR/Whats-App-Image-2026-08-13-at-12-31-10-PM-2.jpg" },
+    { id: 5, text: "Co-ord Sets Daily", image: "https://i.ibb.co/HpfR01b2/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg" },
+    { id: 6, text: "Summer Drapes", image: "https://i.ibb.co/xt96ws2F/Whats-App-Image-2026-08-13-at-12-30-50-PM.jpg" }
   ];
 
   return (
@@ -210,9 +210,12 @@ export default function Home() {
             {instagramMockPhotos.map((photo) => (
               <div key={photo.id} className="insta-grid-item img-zoom-container">
                 {/* Clean placeholder block with Instagram icon on hover */}
-                <div className="insta-placeholder-card">
-                  <span>{photo.text}</span>
-                </div>
+                <img 
+                  src={photo.image} 
+                  alt={photo.text} 
+                  className="insta-img" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
                 <div className="insta-hover-overlay">
                   <div className="insta-overlay-icons">
                     <Heart size={20} fill="#fff" />

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -9,38 +8,45 @@ export default function HeroCarousel() {
   const slides = [
     {
       id: 1,
-      image: "https://i.ibb.co/rRmP6F3v/e91f0610-216c-48ca-beea-0978643cb1f4.png",
+      image: "https://i.ibb.co/nTMWnkp/Gemini-Generated-Image-39gh9039gh9039gh.png",
       title: "Style That Defines You",
-      subtitle: "Unveiling Our New Festive Collection",
-      desc: "Handcrafted silhouettes featuring premium fabrics and traditional elegance, reimagined for the modern Indian woman."
+      subtitle: "The Signature Festive Collection",
+      desc: "Experience the pure elegance of our premium drapes, designed to bring out your natural grace and modern confidence."
     },
     {
       id: 2,
-      image: "https://i.ibb.co/FL302jG8/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png",
-      title: "Grace in Every Thread",
-      subtitle: "Traditional Meets Contemporary",
-      desc: "Step into effortless beauty with our latest line of designer Kurtis, Anarkalis, and signature midi dresses."
+      image: "https://i.ibb.co/5WCD8XX8/Chat-GPT-Image-Aug-13-2026-01-28-00-PM.png",
+      title: "Style That Defines You",
+      subtitle: "Premium Daily Silhouettes",
+      desc: "Delight in soft cotton A-line kurtis and coordinated sets crafted with meticulous attention to comfort and modern detail."
     },
     {
       id: 3,
-      image: "https://i.ibb.co/d45MpPN7/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png",
-      title: "Timeless Heritage",
-      subtitle: "Tissue Silk Kasavu Saree Collection",
-      desc: "Woven in shimmering tissue silk with pure golden zari work, paying homage to Kerala's rich weaving legacy."
+      image: "https://i.ibb.co/Xr8k8s2H/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png",
+      title: "Style That Defines You",
+      subtitle: "Timeless Traditional Weaves",
+      desc: "Discover premium Tissue Silk Kasavu sarees shimmering with heritage zari details, perfect for celebration days."
     },
     {
       id: 4,
-      image: "https://i.ibb.co/LdXYKVZh/Chat-GPT-Image-Aug-13-2026-01-28-00-PM.png",
-      title: "Chic & Coordinated",
-      subtitle: "Premium Modal Codesets",
-      desc: "Indulge in matched luxury sets combining soft breathability, designer details, and custom daily comfort."
+      image: "https://i.ibb.co/tTz1RQFy/Chat-GPT-Image-Aug-13-2026-12-06-28-PM.png",
+      title: "Style That Defines You",
+      subtitle: "Anarkali Royal Drapes",
+      desc: "Feel majestic in our heavy flared Anarkali suits embellished with classic borders and premium handwork."
     },
     {
       id: 5,
-      image: "https://i.ibb.co/PzZTfH9W/Gemini-Generated-Image-39gh9039gh9039gh.png",
-      title: "Effortless Midi Silhouettes",
-      subtitle: "The Perfect Daily Silhouette",
-      desc: "Lightweight, comfortable A-line midi dresses featuring modern drapes and soft pastel branding hues."
+      image: "https://i.ibb.co/KcPY5WLJ/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png",
+      title: "Style That Defines You",
+      subtitle: "Boutique Co-ord Sets",
+      desc: "Elevate your style with contemporary modal ethnic co-ords that blend classic comfort with chic patterns."
+    },
+    {
+      id: 6,
+      image: "https://i.ibb.co/jCTdCQW/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png",
+      title: "Style That Defines You",
+      subtitle: "Aline Midi Collection",
+      desc: "Elegantly tailored midi dresses flowing with clean lines, soft textures, and subtle watercolor details."
     }
   ];
 
@@ -48,11 +54,7 @@ export default function HeroCarousel() {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  };
-
-  // Autoplay function
+  // Autoplay functionality
   useEffect(() => {
     autoPlayRef.current = nextSlide;
   });
@@ -61,7 +63,7 @@ export default function HeroCarousel() {
     const play = () => {
       autoPlayRef.current();
     };
-    const interval = setInterval(play, 6000); // 6s duration
+    const interval = setInterval(play, 6000); // 6 seconds duration
     return () => clearInterval(interval);
   }, []);
 
@@ -92,10 +94,10 @@ export default function HeroCarousel() {
               
               <div className="hero-buttons">
                 <Link to="/shop" className="btn btn-secondary hero-btn">
-                  Shop Now
+                  SHOP NOW
                 </Link>
                 <Link to="/shop?filter=new" className="btn btn-outline hero-btn hero-btn-outline">
-                  Explore Collection
+                  EXPLORE COLLECTION
                 </Link>
               </div>
             </div>
@@ -103,24 +105,9 @@ export default function HeroCarousel() {
         </div>
       ))}
 
-      {/* Navigation Arrows */}
-      <button className="carousel-arrow arrow-left" onClick={prevSlide} aria-label="Previous banner">
-        <ChevronLeft size={24} />
-      </button>
-      <button className="carousel-arrow arrow-right" onClick={nextSlide} aria-label="Next banner">
-        <ChevronRight size={24} />
-      </button>
-
-      {/* Indicator Dots */}
-      <div className="carousel-indicators">
-        {slides.map((_, idx) => (
-          <button
-            key={idx}
-            className={`indicator-dot ${idx === currentSlide ? 'active' : ''}`}
-            onClick={() => setCurrentSlide(idx)}
-            aria-label={`Go to slide ${idx + 1}`}
-          ></button>
-        ))}
+      {/* Cinematic Linear Progress Indicator */}
+      <div className="hero-progress-bar-container">
+        <div key={currentSlide} className="hero-progress-bar-fill" />
       </div>
     </div>
   );

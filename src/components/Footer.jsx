@@ -19,7 +19,7 @@ const FacebookIcon = ({ size = 20, className = "" }) => (
 );
 
 export default function Footer() {
-  const logoUrl = "https://i.ibb.co/bgSp68jM/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg";
+  const logoUrl = "https://i.ibb.co/YFSVjCPP/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg";
 
   return (
     <footer className="footer-wrapper">

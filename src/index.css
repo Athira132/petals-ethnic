@@ -348,12 +348,10 @@ button, .btn {
 }
 
 .navbar-logo {
-  height: 50px;
-  width: 50px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-white);
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  transition: all var(--transition-normal);
 }
 
 .navbar-logo-text {
@@ -960,7 +958,7 @@ button, .btn {
 ------------------------------------------------------------- */
 .promo-banner-section {
   position: relative;
-  background-image: url('https://i.ibb.co/d45MpPN7/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png');
+  background-image: url('https://i.ibb.co/xt96ws2F/Whats-App-Image-2026-08-13-at-12-30-50-PM.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1335,10 +1333,9 @@ button, .btn {
 
 .footer-logo {
   height: 44px;
-  width: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: auto;
+  object-fit: contain;
+  border: none;
 }
 
 .footer-brand-name {
@@ -3005,4 +3002,45 @@ button, .btn {
   .main-viewport-content {
     padding-top: var(--header-height-mobile);
   }
+}
+
+/* Linear Progress Bar for Hero Carousel */
+.hero-progress-bar-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.2);
+  z-index: 10;
+}
+
+.hero-progress-bar-fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  width: 0%;
+  animation: heroProgress 6s linear forwards;
+}
+
+@keyframes heroProgress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* Transparent Header Text Color Toggle */
+.navbar-header:not(.scrolled) .nav-links a,
+.navbar-header:not(.scrolled) .nav-dropdown-trigger,
+.navbar-header:not(.scrolled) .navbar-logo-text,
+.navbar-header:not(.scrolled) .action-icon-btn,
+.navbar-header:not(.scrolled) .mobile-nav-toggle {
+  color: var(--color-white);
+}
+
+.navbar-header:not(.scrolled) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Transition improvements for smooth cinematic look */
+.hero-slide {
+  transition: opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 1.5s !important;
 }

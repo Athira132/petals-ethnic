@@ -18,7 +18,7 @@ export default function Navbar() {
   const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false);
 
   // Logo URL extracted from ibb.co page
-  const logoUrl = "https://i.ibb.co/bgSp68jM/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg";
+  const logoUrl = "https://i.ibb.co/YFSVjCPP/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg";
 
   // Check scroll position to make navbar sticky with background
   useEffect(() => {

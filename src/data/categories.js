@@ -1,24 +1,11 @@
 // Categories Database for Petals Ethnic
 
-// Tasteful neutral SVG placeholder with elegant styling
-const createPlaceholderSvg = (text) => {
-  const width = 600;
-  const height = 800;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-    <rect width="100%" height="100%" fill="#FAF7F5"/>
-    <rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="none" stroke="#EAE3DF" stroke-width="1"/>
-    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="'Playfair Display', serif" font-size="24px" fill="#6B6263" font-style="italic">${text}</text>
-    <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12px" fill="#A09692" letter-spacing="2px">PETALS ETHNIC</text>
-  </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-};
-
 export const categories = [
   {
     id: "cat_1",
     name: "Aline Midi Dress",
     slug: "aline-midi-dress",
-    image: createPlaceholderSvg("Aline Midi Dress"),
+    image: "https://i.ibb.co/1fFmfKNH/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg",
     description: "Premium midi dresses tailored with soft, breathable fabrics and elegant modern drapes.",
     isActive: true
   },
@@ -26,7 +13,7 @@ export const categories = [
     id: "cat_2",
     name: "Aline Kurti with Floral Print",
     slug: "aline-kurti-floral-print",
-    image: createPlaceholderSvg("Floral Aline Kurti"),
+    image: "https://i.ibb.co/v4qWB2YQ/IMG-20260805-WA0017.jpg",
     description: "Beautiful A-line Kurtis adorned with soft watercolor florals and intricate prints.",
     isActive: true
   },
@@ -34,7 +21,7 @@ export const categories = [
     id: "cat_3",
     name: "Aline Kurti",
     slug: "aline-kurti",
-    image: createPlaceholderSvg("Aline Kurti"),
+    image: "https://i.ibb.co/RkKyZV0d/IMG-20260805-WA0011.jpg",
     description: "Classic A-line silhouettes that bring effortless elegance to your daily and festive wear.",
     isActive: true
   },
@@ -42,7 +29,7 @@ export const categories = [
     id: "cat_4",
     name: "Anarkali",
     slug: "anarkali",
-    image: createPlaceholderSvg("Anarkali Suit"),
+    image: "https://i.ibb.co/XZF0w4jR/Whats-App-Image-2026-08-13-at-12-31-10-PM-2.jpg",
     description: "Royal flair and majestic silhouettes crafted for celebratory occasions and festivals.",
     isActive: true
   },
@@ -50,7 +37,7 @@ export const categories = [
     id: "cat_5",
     name: "Codeset",
     slug: "codeset",
-    image: createPlaceholderSvg("Codeset"),
+    image: "https://i.ibb.co/HpfR01b2/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg",
     description: "Chic and modern coordinated ethnic sets combining style, premium fit, and unmatched comfort.",
     isActive: true
   },
@@ -58,7 +45,7 @@ export const categories = [
     id: "cat_6",
     name: "Tissue Silk Kasavu",
     slug: "tissue-silk-kasavu",
-    image: createPlaceholderSvg("Tissue Silk Kasavu"),
+    image: "https://i.ibb.co/xt96ws2F/Whats-App-Image-2026-08-13-at-12-30-50-PM.jpg",
     description: "Traditional golden Kasavu designs woven in shimmering, premium tissue silk fabrics.",
     isActive: true
   }

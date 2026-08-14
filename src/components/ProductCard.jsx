@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Eye, X, Check } from 'lucide-react';
+import { Heart, X, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 
@@ -10,7 +10,7 @@ export default function ProductCard({ product }) {
 
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState(product.sizes ? product.sizes[0] : 'M');
-  const [selectedColor, setSelectedColor] = useState(product.colors ? product.colors[0] : '');
+  const [selectedColor] = useState(product.colors ? product.colors[0] : '');
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState(false);
 
@@ -23,10 +23,10 @@ export default function ProductCard({ product }) {
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
 
-  const handleDirectAddToCart = (e) => {
+  const handleAddToCartClick = (e) => {
     e.preventDefault();
     if (isOutOfStock) return;
-    addToCart(product, 1, selectedSize, selectedColor);
+    addToCart(product, quantity, selectedSize, selectedColor);
     setAddedMessage(true);
     setTimeout(() => setAddedMessage(false), 2000);
   };
@@ -41,8 +41,8 @@ export default function ProductCard({ product }) {
   return (
     <>
       <div className="product-card-container">
+        {/* Unobstructed Image Media Wrapper */}
         <div className="product-card-media img-zoom-container">
-          {/* Link wraps the image */}
           <Link to={`/product/${product.id}`} className="product-card-img-link">
             <img 
               src={product.images[0]} 
@@ -61,53 +61,20 @@ export default function ProductCard({ product }) {
               <span className="badge badge-sale">{discountPercent}% Off</span>
             )}
           </div>
-
-          {/* Quick Action Icons overlay on Hover */}
-          <div className="product-card-actions">
-            <button 
-              className="card-action-btn" 
-              onClick={() => setIsQuickViewOpen(true)}
-              title="Quick View"
-              aria-label="Quick view product"
-            >
-              <Eye size={18} />
-            </button>
-            <button 
-              className={`card-action-btn ${favorited ? 'favorited' : ''}`} 
-              onClick={() => toggleWishlist(product)}
-              title={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
-              aria-label="Toggle wishlist"
-            >
-              <Heart size={18} fill={favorited ? "var(--color-primary-dark)" : "none"} />
-            </button>
-          </div>
-
-          {/* Direct Add to Cart Button */}
-          {!isOutOfStock && (
-            <button 
-              className={`card-add-to-cart-btn ${addedMessage ? 'success' : ''}`}
-              onClick={handleDirectAddToCart}
-              disabled={isOutOfStock}
-            >
-              {addedMessage ? (
-                <>
-                  <Check size={16} /> Added
-                </>
-              ) : (
-                <>
-                  <ShoppingBag size={16} /> Add to Cart
-                </>
-              )}
-            </button>
-          )}
         </div>
 
-        {/* Product Details Info */}
+        {/* Restructured Info & Controls Area (Completely below image) */}
         <div className="product-card-info">
           <span className="product-card-category">{product.categorySlug.replace(/-/g, ' ')}</span>
           <h3 className="product-card-title">
             <Link to={`/product/${product.id}`}>{product.name}</Link>
           </h3>
+          
+          {/* Brand description extraction */}
+          <p className="product-card-desc">
+            {product.description.split('.')[0]}.
+          </p>
+
           <div className="product-card-price-container">
             {onSale ? (
               <>
@@ -118,6 +85,84 @@ export default function ProductCard({ product }) {
               <span className="price-regular">₹{product.price}</span>
             )}
           </div>
+
+          {/* Reusable, Dynamic Size Selection Option */}
+          {product.sizes && product.sizes.length > 0 && (
+            <div className="card-selector-group">
+              <span className="card-selector-label">Size:</span>
+              <div className="card-size-buttons">
+                {product.sizes.map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    className={`card-size-btn ${selectedSize === size ? 'selected' : ''}`}
+                    onClick={() => setSelectedSize(size)}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quantity Selector */}
+          <div className="card-selector-group">
+            <span className="card-selector-label">Quantity:</span>
+            <div className="card-qty-adjuster">
+              <button 
+                type="button" 
+                className="card-qty-btn" 
+                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                disabled={isOutOfStock}
+                aria-label="Decrease quantity"
+              >
+                −
+              </button>
+              <span className="card-qty-value">{quantity}</span>
+              <button 
+                type="button" 
+                className="card-qty-btn" 
+                onClick={() => setQuantity(q => q + 1)}
+                disabled={isOutOfStock}
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* Actions Row */}
+          <div className="card-actions-row">
+            <button
+              type="button"
+              className={`card-btn-add-to-cart ${addedMessage ? 'success' : ''}`}
+              onClick={handleAddToCartClick}
+              disabled={isOutOfStock}
+            >
+              {addedMessage ? 'ADDED!' : isOutOfStock ? 'SOLD OUT' : 'ADD TO CART'}
+            </button>
+            
+            <button
+              type="button"
+              className={`card-btn-wishlist ${favorited ? 'favorited' : ''}`}
+              onClick={() => toggleWishlist(product)}
+              title={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
+              aria-label="Toggle wishlist"
+            >
+              {favorited ? (
+                <Heart size={20} fill="var(--color-rose)" stroke="var(--color-rose)" />
+              ) : (
+                <Heart size={20} stroke="var(--color-rose)" />
+              )}
+            </button>
+          </div>
+
+          {/* Toast Notification/Confirmation popup */}
+          {addedMessage && (
+            <div className="card-toast-feedback animate-fade-in">
+              <CheckCircle size={14} className="toast-icon" /> Size {selectedSize} added
+            </div>
+          )}
         </div>
       </div>
 
@@ -131,17 +176,14 @@ export default function ProductCard({ product }) {
             </button>
 
             <div className="quickview-content-grid">
-              {/* Product Gallery */}
               <div className="quickview-gallery">
                 <img src={product.images[0]} alt={product.name} className="quickview-main-img" />
               </div>
 
-              {/* Product Details Form */}
               <div className="quickview-details">
                 <span className="quickview-category">{product.categorySlug.replace(/-/g, ' ')}</span>
                 <h2 className="quickview-title">{product.name}</h2>
                 
-                {/* Price block */}
                 <div className="quickview-price-container">
                   {onSale ? (
                     <>
@@ -156,7 +198,6 @@ export default function ProductCard({ product }) {
 
                 <p className="quickview-desc">{product.description}</p>
 
-                {/* Sizing selection */}
                 {product.sizes && product.sizes.length > 0 && (
                   <div className="quickview-option-group">
                     <span className="option-label">Select Size</span>
@@ -174,25 +215,6 @@ export default function ProductCard({ product }) {
                   </div>
                 )}
 
-                {/* Color selection */}
-                {product.colors && product.colors.length > 0 && (
-                  <div className="quickview-option-group">
-                    <span className="option-label">Color: {selectedColor}</span>
-                    <div className="option-selectors">
-                      {product.colors.map((color) => (
-                        <button
-                          key={color}
-                          className={`color-btn ${selectedColor === color ? 'selected' : ''}`}
-                          onClick={() => setSelectedColor(color)}
-                        >
-                          {color}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Quantity & Cart Action */}
                 <div className="quickview-purchase-actions">
                   <div className="qty-selector-container">
                     <button 
@@ -222,7 +244,6 @@ export default function ProductCard({ product }) {
                   </button>
                 </div>
 
-                {/* Stock status indicator */}
                 <p className="quickview-stock-indicator">
                   {isOutOfStock ? (
                     <span className="out-of-stock-text">Out of stock</span>

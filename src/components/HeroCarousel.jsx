@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HeroCarousel() {
   // Start from a different slide: index 2 (Tissue Silk Kasavu Saree banner)
   const [currentSlide, setCurrentSlide] = useState(2);
-  const autoPlayRef = useRef();
 
   const slides = [
     {
@@ -57,22 +56,24 @@ export default function HeroCarousel() {
     }
   ];
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-  };
-
-  // Autoplay functionality
+  // Non-looping Autoplay functionality: Stops permanently at the final slide
   useEffect(() => {
-    autoPlayRef.current = nextSlide;
-  });
+    if (currentSlide >= slides.length - 1) {
+      return; // Do not schedule any autoplay once final slide is active
+    }
 
-  useEffect(() => {
     const play = () => {
-      autoPlayRef.current();
+      setCurrentSlide((prev) => {
+        if (prev >= slides.length - 1) {
+          return prev;
+        }
+        return prev + 1;
+      });
     };
+
     const interval = setInterval(play, 6000); // 6 seconds duration
     return () => clearInterval(interval);
-  }, []);
+  }, [currentSlide, slides.length]);
 
   return (
     <div 
@@ -135,10 +136,12 @@ export default function HeroCarousel() {
         ))}
       </div>
 
-      {/* Cinematic Linear Progress Indicator */}
-      <div className="hero-progress-bar-container">
-        <div key={currentSlide} className="hero-progress-bar-fill" />
-      </div>
+      {/* Cinematic Linear Progress Indicator - Hidden on final slide */}
+      {currentSlide < slides.length - 1 && (
+        <div className="hero-progress-bar-container">
+          <div key={currentSlide} className="hero-progress-bar-fill" />
+        </div>
+      )}
     </div>
   );
 }

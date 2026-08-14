@@ -8,7 +8,6 @@ import { WishlistProvider } from './context/WishlistContext';
 // Core Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import WhatsAppButton from './components/WhatsAppButton';
 
 // Pages
 import Home from './pages/Home';
@@ -46,9 +45,6 @@ export default function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
-
-            {/* Floating Support Channels */}
-            <WhatsAppButton />
 
             <Footer />
           </div>

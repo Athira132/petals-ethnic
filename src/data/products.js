@@ -1,11 +1,12 @@
 // Products Database for Petals Ethnic
 
 const img1 = "https://i.ibb.co/1fFmfKNH/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg";
-const img2 = "https://i.ibb.co/v4qWB2YQ/IMG-20260805-WA0017.jpg";
-const img3 = "https://i.ibb.co/RkKyZV0d/IMG-20260805-WA0011.jpg";
-const img4 = "https://i.ibb.co/XZF0w4jR/Whats-App-Image-2026-08-13-at-12-31-10-PM-2.jpg";
-const img5 = "https://i.ibb.co/HpfR01b2/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg";
-const img6 = "https://i.ibb.co/xt96ws2F/Whats-App-Image-2026-08-13-at-12-30-50-PM.jpg";
+const img2 = "https://i.ibb.co/xKv6CbTm/Whats-App-Image-2026-08-13-at-12-31-10-PM-2.jpg";
+const img3 = "https://i.ibb.co/WLLgp05/image.png";
+const img4 = "https://i.ibb.co/27MzMz7X/image.png";
+const img5 = "https://i.ibb.co/chvqjqFZ/image.png";
+const img6 = "https://i.ibb.co/ksFkWrhx/image.png";
+const img7 = "https://i.ibb.co/SDVwW6vy/Whats-App-Image-2026-08-13-at-12-31-11-PM.jpg";
 
 export const products = [
   // Aline Midi Dress (cat_1)
@@ -30,9 +31,9 @@ export const products = [
     categorySlug: "aline-midi-dress",
     price: 2599,
     salePrice: null,
-    images: [img2, img1, img3],
+    images: [img1, img2, img3],
     description: "Crafted in breathable premium cotton, this scarlet midi features subtle lace highlights, a comfortable flared tier, and an option to style with a matching fabric belt. Embrace comfort and high-end boutique ethnic aesthetics.",
-    sizes: ["S", "M", "L", "XL"],
+    sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Cherry Red", "Ivory"],
     stockCount: 8,
     isFeatured: false,
@@ -47,9 +48,9 @@ export const products = [
     categorySlug: "aline-kurti-floral-print",
     price: 1899,
     salePrice: 1499,
-    images: [img3, img4, img5],
+    images: [img2, img1, img3],
     description: "Adorned with pastel watercolor floral prints, this A-line Kurti is made from high-grade cotton-silk blend. It boasts elegant gather detailing at the waist, 3/4 sleeves, and delicate hand-embroidery around the keyhole neckline.",
-    sizes: ["S", "M", "L", "XL", "XXL"],
+    sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Peach Pink", "Mint Green"],
     stockCount: 20,
     isFeatured: true,
@@ -62,9 +63,9 @@ export const products = [
     categorySlug: "aline-kurti-floral-print",
     price: 2199,
     salePrice: 1799,
-    images: [img4, img3, img5],
+    images: [img2, img3, img1],
     description: "A gorgeous flowing Georgette Kurti with an all-over floral print, premium butter-crepe lining, and subtle sequin accents. Its lightweight feel makes it ideal for festive daytime wear.",
-    sizes: ["S", "M", "L", "XL"],
+    sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Lavender Blush", "Powder Blue"],
     stockCount: 5,
     isFeatured: false,
@@ -79,9 +80,9 @@ export const products = [
     categorySlug: "aline-kurti",
     price: 1599,
     salePrice: 1299,
-    images: [img5, img6, img1],
+    images: [img3, img2, img1],
     description: "A minimalist classic for your ethnic wardrobe. Made from premium, heavy-weight rayon fabric, this solid A-line Kurti is designed with a V-neck, wooden buttons, and a clean structured drape.",
-    sizes: ["S", "M", "L", "XL", "XXL"],
+    sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Baby Pink", "Olive Green", "Charcoal"],
     stockCount: 15,
     isFeatured: false,
@@ -94,9 +95,9 @@ export const products = [
     categorySlug: "aline-kurti",
     price: 2499,
     salePrice: null,
-    images: [img6, img5, img1],
+    images: [img3, img1, img2],
     description: "Woven in premium Chanderi cotton-silk, this Kurti features a subtle golden border, a button-down front, and a soft matching lining. It represents a elegant fusion of heritage craftsmanship and modern silhouette.",
-    sizes: ["M", "L", "XL"],
+    sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Mustard Gold", "Warm Ivory"],
     stockCount: 6,
     isFeatured: true,
@@ -111,9 +112,9 @@ export const products = [
     categorySlug: "anarkali",
     price: 4999,
     salePrice: 3999,
-    images: [img1, img2, img4],
+    images: [img4, img1, img2],
     description: "Make a grand entrance with this premium Royal Ivory Anarkali suit. Crafted from fine georgette, this set features detailed hand-woven zari embroidery on the yoke, a 24-kali heavy flare, a matching churidar pants, and an organza dupatta with scalloped borders.",
-    sizes: ["S", "M", "L", "XL", "XXL"],
+    sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Ivory Gold", "Rose Gold"],
     stockCount: 4,
     isFeatured: true,
@@ -126,11 +127,11 @@ export const products = [
     categorySlug: "anarkali",
     price: 4299,
     salePrice: null,
-    images: [img2, img1, img4],
+    images: [img4, img2, img1],
     description: "Drape yourself in festive luxury. This crimson red silk-blend Anarkali offers a elegant flare, gold foil print borders, and a beautiful georgette dupatta. Designed with comfortable elastic waist adjustments.",
-    sizes: ["S", "M", "L", "XL"],
+    sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Crimson Red"],
-    stockCount: 0,
+    stockCount: 5,
     isFeatured: false,
     isNewArrival: false,
     isActive: true
@@ -143,7 +144,7 @@ export const products = [
     categorySlug: "codeset",
     price: 2999,
     salePrice: 2499,
-    images: [img3, img5, img4],
+    images: [img5, img1, img2],
     description: "An elegant two-piece coordinate set that redefines daily ethnic chic. Crafted from ultra-soft cotton modal, the set features a high-low tunic shirt with delicate pintuck detailing and straight comfort pants.",
     sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Sage Green", "Soft Peach"],
@@ -158,13 +159,77 @@ export const products = [
     categorySlug: "codeset",
     price: 3200,
     salePrice: 2800,
-    images: [img4, img5, img3],
+    images: [img5, img2, img3],
     description: "Make a contemporary statement with our hand-block printed indigo Ikkat codeset. Crafted in rich cotton modal fabric, it features a collared top with pockets and comfortable wide-leg trousers.",
-    sizes: ["S", "M", "L", "XL"],
+    sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Indigo White"],
     stockCount: 9,
     isFeatured: false,
     isNewArrival: false,
+    isActive: true
+  },
+
+  // Tissue Silk Kasavu Kurta (cat_6)
+  {
+    id: "prod_11",
+    name: "Golden Tissue Silk Kasavu Kurta",
+    categorySlug: "tissue-silk-kasavu-kurta",
+    price: 3499,
+    salePrice: 2999,
+    images: [img6, img1, img2],
+    description: "A heritage masterpiece for your collection. Woven by master weavers, this premium Tissue Silk Kasavu kurta features a gorgeous shimmering texture, a clean gold zari neckline, and elegant borders. Perfect for celebrations.",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Traditional Gold Cream"],
+    stockCount: 3,
+    isFeatured: true,
+    isNewArrival: true,
+    isActive: true
+  },
+  {
+    id: "prod_12",
+    name: "Premium Rose Gold Tissue Kurta",
+    categorySlug: "tissue-silk-kasavu-kurta",
+    price: 3899,
+    salePrice: null,
+    images: [img6, img2, img1],
+    description: "A modern variation of the classic Kasavu style. Crafted in fine tissue silk with rose-gold metallic threads, this elegant kurta offers a clean fit and soft luster.",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Rose Gold Cream"],
+    stockCount: 6,
+    isFeatured: false,
+    isNewArrival: true,
+    isActive: true
+  },
+
+  // Normal Kurti (cat_7)
+  {
+    id: "prod_13",
+    name: "Aura Daily Normal Kurti",
+    categorySlug: "normal-kurti",
+    price: 1299,
+    salePrice: 999,
+    images: [img7, img1, img2],
+    description: "Elegant daily wear normal kurti crafted for a comfortable and graceful everyday look. Easy-care breathable cotton fabric.",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Soft Sage", "Blush Pink"],
+    stockCount: 15,
+    isFeatured: true,
+    isNewArrival: true,
+    isActive: true
+  },
+  {
+    id: "prod_14",
+    name: "Relaxed Indigo Daily Kurti",
+    categorySlug: "normal-kurti",
+    price: 1499,
+    salePrice: null,
+    images: [img7, img2, img3],
+    description: "Simple and comfortable daily cotton kurti in a relaxed A-line fit. Traditional handprinted patterns on organic cotton.",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Indigo Print"],
+    stockCount: 10,
+    isFeatured: false,
+    isNewArrival: true,
     isActive: true
   }
 ];

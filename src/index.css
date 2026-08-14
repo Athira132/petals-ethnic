@@ -946,6 +946,37 @@ button, .btn {
   color: var(--color-neutral-dark);
 }
 
+.card-select-dropdown {
+  width: 100%;
+  max-width: 160px;
+  height: 30px;
+  padding: 0 25px 0 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-white);
+  color: var(--color-neutral-dark);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23C96F82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+  transition: border-color var(--transition-fast);
+}
+
+.card-select-dropdown:focus {
+  outline: none;
+  border-color: var(--color-rose);
+}
+
+.card-select-dropdown:disabled {
+  background-color: var(--color-neutral-bg);
+  color: var(--color-neutral-muted);
+  cursor: not-allowed;
+}
+
 .card-size-buttons {
   display: flex;
   gap: 6px;
@@ -2065,14 +2096,27 @@ button, .btn {
    SHOP PAGE & SIDEBAR FILTERS
 ------------------------------------------------------------- */
 .shop-main-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 40px;
+  display: block;
   padding-bottom: 80px;
 }
 
-@media (max-width: 1024px) {
-  .shop-main-layout { grid-template-columns: 1fr; }
+.products-grid.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+
+@media (max-width: 1200px) {
+  .products-grid.grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .products-grid.grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
 }
 
 .sidebar-header {

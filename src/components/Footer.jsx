@@ -60,7 +60,7 @@ export default function Footer() {
           <h4 className="footer-heading">Quick Links</h4>
           <ul className="footer-links-list">
             <li><Link to="/">Home</Link></li>
-            <li><Link to="/shop">Shop All Collections</Link></li>
+            <li><Link to="/shop">Discover Your Signature Style</Link></li>
             <li><Link to="/about">About Us</Link></li>
             <li><Link to="/contact">Contact Us</Link></li>
             <li><Link to="/wishlist">My Wishlist</Link></li>

@@ -86,49 +86,44 @@ export default function ProductCard({ product }) {
             )}
           </div>
 
-          {/* Reusable, Dynamic Size Selection Option */}
+          {/* Premium Size Selection Dropdown */}
           {product.sizes && product.sizes.length > 0 && (
             <div className="card-selector-group">
               <span className="card-selector-label">Size:</span>
-              <div className="card-size-buttons">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    className={`card-size-btn ${selectedSize === size ? 'selected' : ''}`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
+              <select
+                className="card-select-dropdown"
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(e.target.value)}
+                disabled={isOutOfStock}
+              >
+                <option value="">Select Size</option>
+                {product.sizes.map((size) => {
+                  const isSizeSoldOut = isOutOfStock || (size === 'L' && product.id === 'prod_1');
+                  return (
+                    <option key={size} value={size} disabled={isSizeSoldOut}>
+                      {size} {isSizeSoldOut ? '(SOLD OUT)' : ''}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
           )}
 
-          {/* Quantity Selector */}
+          {/* Premium Quantity Selection Dropdown */}
           <div className="card-selector-group">
             <span className="card-selector-label">Quantity:</span>
-            <div className="card-qty-adjuster">
-              <button 
-                type="button" 
-                className="card-qty-btn" 
-                onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                disabled={isOutOfStock}
-                aria-label="Decrease quantity"
-              >
-                −
-              </button>
-              <span className="card-qty-value">{quantity}</span>
-              <button 
-                type="button" 
-                className="card-qty-btn" 
-                onClick={() => setQuantity(q => q + 1)}
-                disabled={isOutOfStock}
-                aria-label="Increase quantity"
-              >
-                +
-              </button>
-            </div>
+            <select
+              className="card-select-dropdown"
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+              disabled={isOutOfStock}
+            >
+              {[1, 2, 3, 4, 5].map((qty) => (
+                <option key={qty} value={qty}>
+                  {qty}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Actions Row */}
@@ -201,38 +196,40 @@ export default function ProductCard({ product }) {
                 {product.sizes && product.sizes.length > 0 && (
                   <div className="quickview-option-group">
                     <span className="option-label">Select Size</span>
-                    <div className="option-selectors">
-                      {product.sizes.map((size) => (
-                        <button
-                          key={size}
-                          className={`size-btn ${selectedSize === size ? 'selected' : ''}`}
-                          onClick={() => setSelectedSize(size)}
-                        >
-                          {size}
-                        </button>
-                      ))}
-                    </div>
+                    <select
+                      className="card-select-dropdown"
+                      value={selectedSize}
+                      onChange={(e) => setSelectedSize(e.target.value)}
+                      disabled={isOutOfStock}
+                    >
+                      <option value="">Select Size</option>
+                      {product.sizes.map((size) => {
+                        const isSizeSoldOut = isOutOfStock || (size === 'L' && product.id === 'prod_1');
+                        return (
+                          <option key={size} value={size} disabled={isSizeSoldOut}>
+                            {size} {isSizeSoldOut ? '(SOLD OUT)' : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
                   </div>
                 )}
 
                 <div className="quickview-purchase-actions">
-                  <div className="qty-selector-container">
-                    <button 
-                      onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                      disabled={quantity <= 1 || isOutOfStock}
-                    >
-                      -
-                    </button>
-                    <span>{quantity}</span>
-                    <button 
-                      onClick={() => {
-                        const maxVal = product.stockCount !== undefined ? product.stockCount : 99;
-                        setQuantity(prev => Math.min(maxVal, prev + 1));
-                      }}
+                  <div className="qty-selector-container" style={{ border: 'none', padding: 0 }}>
+                    <select
+                      className="card-select-dropdown"
+                      value={quantity}
+                      onChange={(e) => setQuantity(Number(e.target.value))}
                       disabled={isOutOfStock}
+                      style={{ height: '38px', minWidth: '80px' }}
                     >
-                      +
-                    </button>
+                      {[1, 2, 3, 4, 5].map((qty) => (
+                        <option key={qty} value={qty}>
+                          {qty}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <button 

@@ -1,14 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HeroCarousel() {
-  // Start from index 2 (Traditional Weaves banner)
-  const [currentSlide, setCurrentSlide] = useState(2);
-
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const slides = [
     {
@@ -61,77 +55,22 @@ export default function HeroCarousel() {
     }
   ];
 
-  const handleNextSlide = () => {
-    setCurrentSlide((prev) => {
-      if (prev >= slides.length - 1) {
-        return prev; // Stop permanently on the final slide
-      }
-      return prev + 1;
-    });
-  };
-
-  const handlePrevSlide = () => {
-    setCurrentSlide((prev) => {
-      if (prev <= 0) {
-        return prev;
-      }
-      return prev - 1;
-    });
-  };
-
-  // Mobile touch swiping
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    const diff = touchStart - touchEnd;
-    if (diff > 50) {
-      handleNextSlide();
-    } else if (diff < -50) {
-      handlePrevSlide();
-    }
-  };
-
-  // Desktop click & drag/swipe
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setDragStartX(e.clientX);
-  };
-
-  const handleMouseUp = (e) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    const diff = dragStartX - e.clientX;
-    if (diff > 50) {
-      handleNextSlide();
-    } else if (diff < -50) {
-      handlePrevSlide();
-    } else {
-      // Simple click advances to the next slide
-      handleNextSlide();
-    }
-  };
+  // Looping Autoplay: slides automatically change every 1 second (1000ms)
+  useEffect(() => {
+    const play = () => {
+      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+    };
+    const interval = setInterval(play, 1000);
+    return () => clearInterval(interval);
+  }, [slides.length]);
 
   return (
     <div 
       className="hero-carousel-container"
       style={{
         aspectRatio: slides[currentSlide].aspectRatio,
-        transition: 'aspect-ratio 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        cursor: 'grab'
+        transition: 'aspect-ratio 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
       }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={() => setIsDragging(false)}
     >
       {/* Slider Track for Horizontal Movement */}
       <div 
@@ -140,7 +79,7 @@ export default function HeroCarousel() {
           display: 'flex',
           width: `${slides.length * 100}%`,
           transform: `translateX(-${(currentSlide * 100) / slides.length}%)`,
-          transition: 'transform 750ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          transition: 'transform 450ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
           height: '100%'
         }}
       >
@@ -174,10 +113,10 @@ export default function HeroCarousel() {
                 <p className="hero-desc">{slide.desc}</p>
                 
                 <div className="hero-buttons">
-                  <Link to="/shop" className="btn btn-secondary hero-btn" onClick={(e) => e.stopPropagation()}>
+                  <Link to="/shop" className="btn btn-secondary hero-btn">
                     SHOP NOW
                   </Link>
-                  <Link to="/shop?filter=new" className="btn btn-outline hero-btn hero-btn-outline" onClick={(e) => e.stopPropagation()}>
+                  <Link to="/shop" className="btn btn-outline hero-btn hero-btn-outline">
                     EXPLORE COLLECTION
                   </Link>
                 </div>
@@ -187,12 +126,10 @@ export default function HeroCarousel() {
         ))}
       </div>
 
-      {/* Cinematic Linear Progress Indicator - Hidden on final slide */}
-      {currentSlide < slides.length - 1 && (
-        <div className="hero-progress-bar-container">
-          <div key={currentSlide} className="hero-progress-bar-fill" />
-        </div>
-      )}
+      {/* Cinematic Linear Progress Indicator */}
+      <div className="hero-progress-bar-container">
+        <div key={currentSlide} className="hero-progress-bar-fill" style={{ animationDuration: '1000ms' }} />
+      </div>
     </div>
   );
 }

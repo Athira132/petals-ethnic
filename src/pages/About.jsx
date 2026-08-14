@@ -21,15 +21,21 @@ export default function About() {
       {/* 2. Brand Bio Grid */}
       <section className="about-story-section" style={{ padding: '60px 0' }}>
         <div className="container grid-2 align-center">
-          {/* Visual Showcase */}
-          <div className="about-visuals">
-            <div className="about-story-img-card bg-primary-light animate-fade-in" style={{ padding: '60px 40px', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
-              <span style={{ fontSize: '3rem', fontFamily: 'var(--font-serif)', color: 'var(--color-primary-dark)', display: 'block', marginBottom: '10px' }}>“</span>
-              <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontStyle: 'italic', color: 'var(--color-neutral-dark)', lineHeight: '1.8' }}>
-                Fashion is a reflection of your heritage, rewritten for the modern day.
-              </p>
-              <div style={{ width: '40px', height: '1px', background: 'var(--color-gold)', margin: '20px auto 10px' }}></div>
-              <span style={{ fontSize: '0.8rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--color-neutral-muted)' }}>PETALS ETHNIC BOUTIQUE</span>
+          {/* Visual Showcase: 2 stacked premium fashion photos */}
+          <div className="about-visuals" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ borderRadius: 'var(--border-radius-md)', overflow: 'hidden', aspectRatio: '4 / 3', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+              <img 
+                src="https://i.ibb.co/1fFmfKNH/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" 
+                alt="Petals Ethnic drape" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+              />
+            </div>
+            <div style={{ borderRadius: 'var(--border-radius-md)', overflow: 'hidden', aspectRatio: '4 / 3', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+              <img 
+                src="https://i.ibb.co/27MzMz7X/image.png" 
+                alt="Petals Ethnic Anarkali Suit" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+              />
             </div>
           </div>
 
@@ -38,15 +44,15 @@ export default function About() {
             <span className="about-subtitle" style={{ fontSize: '0.85rem', color: 'var(--color-gold)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '600', display: 'block', marginBottom: '10px' }}>
               Elegant, Feminine, Premium
             </span>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '20px', fontFamily: 'var(--font-serif)' }}>Welcome to Petals</h2>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '20px', fontFamily: 'var(--font-serif)' }}>About Petals Ethnic</h2>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '20px', color: 'var(--color-neutral-muted)' }}>
               {aboutText}
             </p>
             <p style={{ color: 'var(--color-neutral-muted)', marginBottom: '30px' }}>
               At Petals Ethnic, we believe in celebrating the unique grace of Indian silhouettes. Every piece in our collection—from flowing Aline midi dresses to elegant ethnic outfits and coordinated sets—is curated with the utmost care, ensuring the perfect balance between heritage weaves and contemporary trends.
             </p>
-            <Link to="/shop" className="btn btn-primary">
-              Explore Our Collection
+            <Link to="/shop" className="btn btn-primary" style={{ textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Explore Collection
             </Link>
           </div>
         </div>

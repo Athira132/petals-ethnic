@@ -118,14 +118,6 @@ export default function Cart() {
                           <Link to={`/product/${item.product.id}`} className="item-name">
                             {item.product.name}
                           </Link>
-                          <button 
-                            className="item-remove-btn"
-                            onClick={() => removeFromCart(item.product.id, item.size, item.color)}
-                            title="Remove item"
-                            aria-label="Remove item from cart"
-                          >
-                            <Trash2 size={16} />
-                          </button>
                         </div>
                         
                         <p className="item-meta">
@@ -145,6 +137,31 @@ export default function Cart() {
                             )}
                             <span className="active-item-total">₹{activePrice * item.quantity}</span>
                           </div>
+                        </div>
+
+                        {/* Visible text-based Remove action button */}
+                        <div style={{ marginTop: '12px', textAlign: 'left' }}>
+                          <button 
+                            className="item-remove-btn-text"
+                            onClick={() => removeFromCart(item.product.id, item.size, item.color)}
+                            aria-label="Remove item from cart"
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#C94B4B',
+                              fontSize: '0.8rem',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              padding: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}
+                          >
+                            <Trash2 size={13} /> Remove
+                          </button>
                         </div>
                       </div>
                     </div>

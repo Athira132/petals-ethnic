@@ -139,7 +139,7 @@ export default function ProductDetail() {
           {product.sizes && product.sizes.length > 0 && (
             <div className="detail-option-section">
               <div className="option-header-row">
-                <span className="detail-option-label">Select Size: <strong>{selectedSize}</strong></span>
+                <span className="detail-option-label">Select Size:</span>
                 <button 
                   className="size-guide-trigger-btn"
                   onClick={() => setIsSizeGuideOpen(true)}
@@ -147,17 +147,23 @@ export default function ProductDetail() {
                   <Ruler size={14} /> Size Guide
                 </button>
               </div>
-              <div className="detail-size-selectors">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    className={`size-btn-capsule ${selectedSize === size ? 'selected' : ''}`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
+              <select
+                className="card-select-dropdown"
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(e.target.value)}
+                disabled={isOutOfStock}
+                style={{ width: '100%', maxWidth: '280px', height: '38px', padding: '0 12px', fontSize: '0.85rem' }}
+              >
+                <option value="">Select Size</option>
+                {product.sizes.map((size) => {
+                  const isSizeSoldOut = isOutOfStock || (size === 'L' && product.id === 'prod_1');
+                  return (
+                    <option key={size} value={size} disabled={isSizeSoldOut}>
+                      {size} {isSizeSoldOut ? '(SOLD OUT)' : ''}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
           )}
 
@@ -182,28 +188,23 @@ export default function ProductDetail() {
           {/* Quantity Selector & Stock Status */}
           <div className="detail-option-section">
             <span className="detail-option-label">Quantity:</span>
-            <div className="qty-row">
-              <div className="qty-selector-container">
-                <button 
-                  onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                  disabled={quantity <= 1 || isOutOfStock}
-                >
-                  -
-                </button>
-                <span>{quantity}</span>
-                <button 
-                  onClick={() => {
-                    const maxVal = product.stockCount !== undefined ? product.stockCount : 99;
-                    setQuantity(prev => Math.min(maxVal, prev + 1));
-                  }}
-                  disabled={isOutOfStock}
-                >
-                  +
-                </button>
-              </div>
+            <div className="qty-row" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <select
+                className="card-select-dropdown"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                disabled={isOutOfStock}
+                style={{ minWidth: '100px', height: '38px', padding: '0 12px', fontSize: '0.85rem' }}
+              >
+                {[1, 2, 3, 4, 5].map((qty) => (
+                  <option key={qty} value={qty}>
+                    {qty}
+                  </option>
+                ))}
+              </select>
 
               {/* Stock text */}
-              <p className="detail-stock-status">
+              <p className="detail-stock-status" style={{ margin: 0 }}>
                 {isOutOfStock ? (
                   <span className="out-of-stock-label">Out of Stock</span>
                 ) : product.stockCount < 5 ? (

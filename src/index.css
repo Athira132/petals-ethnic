@@ -525,7 +525,7 @@ button, .btn {
   aspect-ratio: 16 / 9;
   position: relative;
   overflow: hidden;
-  background-color: var(--color-neutral-dark);
+  background-color: transparent;
 }
 
 @media (max-width: 1024px) {

@@ -11,42 +11,48 @@ export default function HeroCarousel() {
       image: "https://i.ibb.co/nTMWnkp/Gemini-Generated-Image-39gh9039gh9039gh.png",
       title: "Style That Defines You",
       subtitle: "The Signature Festive Collection",
-      desc: "Experience the pure elegance of our premium drapes, designed to bring out your natural grace and modern confidence."
+      desc: "Experience the pure elegance of our premium drapes, designed to bring out your natural grace and modern confidence.",
+      aspectRatio: 1.7917
     },
     {
       id: 2,
       image: "https://i.ibb.co/5WCD8XX8/Chat-GPT-Image-Aug-13-2026-01-28-00-PM.png",
       title: "Style That Defines You",
       subtitle: "Premium Daily Silhouettes",
-      desc: "Delight in soft cotton A-line kurtis and coordinated sets crafted with meticulous attention to comfort and modern detail."
+      desc: "Delight in soft cotton A-line kurtis and coordinated sets crafted with meticulous attention to comfort and modern detail.",
+      aspectRatio: 2.0000
     },
     {
       id: 3,
       image: "https://i.ibb.co/Xr8k8s2H/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png",
       title: "Style That Defines You",
       subtitle: "Timeless Traditional Weaves",
-      desc: "Discover premium Tissue Silk Kasavu sarees shimmering with heritage zari details, perfect for celebration days."
+      desc: "Discover premium Tissue Silk Kasavu sarees shimmering with heritage zari details, perfect for celebration days.",
+      aspectRatio: 1.7768
     },
     {
       id: 4,
       image: "https://i.ibb.co/tTz1RQFy/Chat-GPT-Image-Aug-13-2026-12-06-28-PM.png",
       title: "Style That Defines You",
       subtitle: "Anarkali Royal Drapes",
-      desc: "Feel majestic in our heavy flared Anarkali suits embellished with classic borders and premium handwork."
+      desc: "Feel majestic in our heavy flared Anarkali suits embellished with classic borders and premium handwork.",
+      aspectRatio: 1.8545
     },
     {
       id: 5,
       image: "https://i.ibb.co/KcPY5WLJ/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png",
       title: "Style That Defines You",
       subtitle: "Boutique Co-ord Sets",
-      desc: "Elevate your style with contemporary modal ethnic co-ords that blend classic comfort with chic patterns."
+      desc: "Elevate your style with contemporary modal ethnic co-ords that blend classic comfort with chic patterns.",
+      aspectRatio: 1.8194
     },
     {
       id: 6,
       image: "https://i.ibb.co/jCTdCQW/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png",
       title: "Style That Defines You",
       subtitle: "Aline Midi Collection",
-      desc: "Elegantly tailored midi dresses flowing with clean lines, soft textures, and subtle watercolor details."
+      desc: "Elegantly tailored midi dresses flowing with clean lines, soft textures, and subtle watercolor details.",
+      aspectRatio: 1.8745
     }
   ];
 
@@ -68,7 +74,13 @@ export default function HeroCarousel() {
   }, []);
 
   return (
-    <div className="hero-carousel-container">
+    <div 
+      className="hero-carousel-container"
+      style={{
+        aspectRatio: slides[currentSlide].aspectRatio,
+        transition: 'aspect-ratio 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+      }}
+    >
       {/* Slides mapping */}
       {slides.map((slide, idx) => (
         <div 

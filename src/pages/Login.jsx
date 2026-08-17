@@ -32,7 +32,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const authResult = await signIn(email, password);
+      const cleanEmail = email.trim();
+      const authResult = await signIn(cleanEmail, password);
       if (authResult?.user) {
         // Query the profile role directly from the DB
         const { data: profileData, error: profileErr } = await supabase
@@ -41,10 +42,10 @@ export default function Login() {
           .eq('id', authResult.user.id)
           .single();
 
-        if (profileErr) throw profileErr;
+        if (profileErr) console.warn('Profile lookup notice:', profileErr.message);
 
         if (profileData?.role === 'admin') {
-          const target = (redirectPath && redirectPath.startsWith('/admin')) ? redirectPath : '/admin';
+          const target = (redirectPath && redirectPath.startsWith('/admin')) ? redirectPath : '/admin/dashboard';
           navigate(target);
         } else {
           const target = (redirectPath && !redirectPath.startsWith('/admin')) ? redirectPath : '/account';
@@ -52,11 +53,14 @@ export default function Login() {
         }
       }
     } catch (err) {
+      console.error('Login submit error:', err.message);
       const msg = err.message || '';
-      if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credential') || msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('fail')) {
-        setError('Invalid email or password');
+      if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credential')) {
+        setError('Invalid email or password. Please check your credentials.');
+      } else if (msg.toLowerCase().includes('confirm')) {
+        setError('Email not confirmed yet. Please run the SQL email confirmation script in Supabase.');
       } else {
-        setError(msg || 'Invalid email or password');
+        setError(msg || 'Invalid email or password.');
       }
     } finally {
       setLoading(false);

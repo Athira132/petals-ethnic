@@ -147,11 +147,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   const sendPasswordResetEmail = async (email) => {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/reset-password'
+    const redirectUrl = `${window.location.origin}/reset-password`;
+    console.log('[DEBUG AuthContext] current window.location.origin:', window.location.origin);
+    console.log('[DEBUG AuthContext] reset redirect URL:', redirectUrl);
+
+    const res = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: redirectUrl
     });
-    if (error) throw error;
-    return data;
+
+    console.log('[DEBUG AuthContext] resetPasswordForEmail result:', res);
+
+    if (res.error) {
+      console.error('[DEBUG AuthContext] error.message:', res.error.message);
+      console.error('[DEBUG AuthContext] error.code:', res.error.code);
+      console.error('[DEBUG AuthContext] error.status:', res.error.status);
+      throw res.error;
+    }
+    return res.data;
   };
 
   const updatePassword = async (newPassword) => {

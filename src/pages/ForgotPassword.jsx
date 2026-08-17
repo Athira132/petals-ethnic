@@ -17,13 +17,25 @@ export default function ForgotPassword() {
 
     try {
       const redirectUrl = `${window.location.origin}/reset-password`;
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      console.log('[DEBUG] current window.location.origin:', window.location.origin);
+      console.log('[DEBUG] reset redirect URL:', redirectUrl);
+
+      const res = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: redirectUrl
       });
-      
-      if (error) throw error;
+
+      console.log('[DEBUG] Supabase resetPasswordForEmail result:', res);
+
+      if (res.error) {
+        console.error('[DEBUG] error.message:', res.error.message);
+        console.error('[DEBUG] error.code:', res.error.code);
+        console.error('[DEBUG] error.status:', res.error.status);
+        throw res.error;
+      }
+
       setSuccess(true);
     } catch (err) {
+      console.error('[DEBUG] Password recovery catch block:', err);
       setError(err.message || 'Failed to dispatch password recovery email.');
     } finally {
       setLoading(false);

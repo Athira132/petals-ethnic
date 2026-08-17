@@ -294,21 +294,25 @@ CREATE TABLE public.store_settings (
 ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------
--- 13. PAYMENT SETTINGS TABLE
+-- 13. ALTER EXISTING TABLES TO ENSURE ALL REQUESTED COLUMNS EXIST
 -- ---------------------------------------------------------------------
-CREATE TABLE public.payment_settings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  razorpay_enabled boolean NOT NULL DEFAULT true,
-  razorpay_key_id text,
-  upi_enabled boolean NOT NULL DEFAULT true,
-  upi_id text DEFAULT '8113899319@ybl',
-  upi_phone text DEFAULT '+91 81138 99319',
-  upi_qr_image_url text,
-  created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now()
-);
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name text;
 
-ALTER TABLE public.payment_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true;
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS sort_order integer DEFAULT 0;
+
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_featured boolean DEFAULT false;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS short_description text;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS additional_image_urls text[];
+
+ALTER TABLE public.product_sizes ADD COLUMN IF NOT EXISTS stock_quantity integer DEFAULT 0;
+ALTER TABLE public.product_sizes ADD COLUMN IF NOT EXISTS is_available boolean DEFAULT true;
+
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_address text;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_charge numeric(10,2) DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS total_amount numeric(10,2) DEFAULT 0;
 
 -- ---------------------------------------------------------------------
 -- 14. HELPER FUNCTIONS & TRIGGERS

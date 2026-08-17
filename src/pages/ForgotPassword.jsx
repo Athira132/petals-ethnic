@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 
 export default function ForgotPassword() {
@@ -9,8 +9,6 @@ export default function ForgotPassword() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { sendPasswordResetEmail } = useAuth();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -18,7 +16,12 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      await sendPasswordResetEmail(email);
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: redirectUrl
+      });
+      
+      if (error) throw error;
       setSuccess(true);
     } catch (err) {
       setError(err.message || 'Failed to dispatch password recovery email.');
@@ -45,10 +48,10 @@ export default function ForgotPassword() {
         {success ? (
           <div style={{ textAlign: 'center', padding: '10px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '15px', background: '#EAF8EB', color: '#4E8752', borderRadius: '4px', fontSize: '0.9rem', marginBottom: '20px', border: '1px solid #C1EFC4' }}>
-              <CheckCircle size={18} />
-              <span>Password recovery instructions sent to {email}.</span>
+              <CheckCircle size={18} style={{ flexShrink: 0 }} />
+              <span>Password recovery instructions sent to <strong>{email}</strong>. Check your inbox and click the link to reset your password.</span>
             </div>
-            <Link to="/login" className="btn btn-primary" style={{ width: '100%' }}>
+            <Link to="/login" className="btn btn-primary" style={{ width: '100%', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
               Back to Login
             </Link>
           </div>

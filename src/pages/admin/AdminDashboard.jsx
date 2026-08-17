@@ -41,7 +41,7 @@ export default function AdminDashboard() {
       const totalOrders = orders || [];
       const revenue = totalOrders
         .filter(o => o.payment_status === 'paid' || o.payment_status === 'awaiting_verification')
-        .reduce((sum, o) => sum + Number(o.total), 0);
+        .reduce((sum, o) => sum + Number(o.total || o.total_amount || 0), 0);
 
       // Calculate Today's Sales
       const todayStr = new Date().toDateString();
@@ -51,12 +51,12 @@ export default function AdminDashboard() {
           const isPaid = o.payment_status === 'paid' || o.payment_status === 'awaiting_verification';
           return isToday && isPaid;
         })
-        .reduce((sum, o) => sum + Number(o.total), 0);
+        .reduce((sum, o) => sum + Number(o.total || o.total_amount || 0), 0);
 
-      const pendingOrders = totalOrders.filter(o => o.order_status === 'pending').length;
-      const confirmedOrders = totalOrders.filter(o => o.order_status === 'confirmed').length;
-      const deliveredOrders = totalOrders.filter(o => o.order_status === 'delivered').length;
-      const cancelledOrders = totalOrders.filter(o => o.order_status === 'cancelled').length;
+      const pendingOrders = totalOrders.filter(o => (o.order_status || o.status) === 'pending').length;
+      const confirmedOrders = totalOrders.filter(o => (o.order_status || o.status) === 'confirmed' || (o.order_status || o.status) === 'processing').length;
+      const deliveredOrders = totalOrders.filter(o => (o.order_status || o.status) === 'delivered').length;
+      const cancelledOrders = totalOrders.filter(o => (o.order_status || o.status) === 'cancelled').length;
 
       // 2. Fetch Customer Count
       const { count: custCount, error: custErr } = await supabase
@@ -64,27 +64,37 @@ export default function AdminDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('role', 'customer');
 
-      if (custErr) throw custErr;
+      if (custErr) console.warn('Customers count notice:', custErr.message);
 
       // 3. Fetch Products Count & Stock states
       const { data: products, error: prodErr } = await supabase
         .from('products')
-        .select('id, stock, low_stock_threshold, availability');
+        .select('*');
 
       if (prodErr) throw prodErr;
 
       const totalProds = products || [];
-      const lowStockCount = totalProds.filter(p => p.stock > 0 && p.stock <= p.low_stock_threshold).length;
-      const soldOutCount = totalProds.filter(p => p.stock === 0).length;
+      const lowStockCount = totalProds.filter(p => {
+        const stk = p.stock_quantity !== undefined ? p.stock_quantity : p.stock;
+        const thresh = p.low_stock_threshold || 5;
+        return stk > 0 && stk <= thresh;
+      }).length;
+      const soldOutCount = totalProds.filter(p => {
+        const stk = p.stock_quantity !== undefined ? p.stock_quantity : p.stock;
+        return stk === 0;
+      }).length;
 
       // 4. Fetch Low Stock sizes Watch List
       const { data: sizes, error: sizesErr } = await supabase
         .from('product_sizes')
-        .select('*, products(name)')
-        .or('stock.lte.5,status.eq.few_left,status.eq.sold_out');
+        .select('*, products(name)');
 
-      if (sizesErr) throw sizesErr;
-      setLowStockSizes(sizes || []);
+      if (sizesErr) console.warn('Sizes fetch notice:', sizesErr.message);
+      const filteredSizes = (sizes || []).filter(sz => {
+        const stk = sz.stock_quantity !== undefined ? sz.stock_quantity : sz.stock;
+        return stk <= 5 || sz.status === 'few_left' || sz.status === 'sold_out' || sz.is_available === false;
+      });
+      setLowStockSizes(filteredSizes);
 
       setStats({
         revenue: revenue.toFixed(2),

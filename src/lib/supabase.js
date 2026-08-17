@@ -14,17 +14,31 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 // Data mapping helper to bridge PostgreSQL database models to React Frontend schemas
 export const mapProduct = (p) => {
   if (!p) return null;
-  const images = p.product_images && p.product_images.length > 0
-    ? [...p.product_images].sort((a, b) => a.display_order - b.display_order).map(img => img.image_url)
-    : p.image_urls || [];
+  let images = [];
+  if (p.product_images && p.product_images.length > 0) {
+    images = [...p.product_images].sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(img => img.image_url);
+  } else if (p.additional_image_urls && p.additional_image_urls.length > 0) {
+    images = [p.image_url, ...p.additional_image_urls].filter(Boolean);
+  } else if (p.image_url) {
+    images = [p.image_url];
+  } else if (p.image_urls) {
+    images = p.image_urls;
+  }
+
+  const effectiveStock = p.stock_quantity !== undefined ? p.stock_quantity : (p.stock !== undefined ? p.stock : 0);
+  const effectiveActive = (p.is_active !== undefined ? p.is_active : p.active) !== false;
+  const effectiveFeatured = p.is_featured !== undefined ? p.is_featured : p.featured;
+
   return {
     ...p,
     images,
+    image_url: p.image_url || images[0] || '',
     categorySlug: p.categories?.slug || p.categorySlug || '',
     categoryName: p.categories?.name || '',
-    stockCount: p.stock !== undefined ? p.stock : 0,
-    isFeatured: p.featured || false,
+    stockCount: effectiveStock,
+    stock_quantity: effectiveStock,
+    isFeatured: effectiveFeatured || false,
     isNewArrival: p.new_arrival || false,
-    isActive: p.active !== false && p.availability !== 'unavailable'
+    isActive: effectiveActive && p.availability !== 'unavailable'
   };
 };

@@ -317,53 +317,47 @@ CREATE TRIGGER on_profile_update
 -- 15. ROW LEVEL SECURITY (RLS) POLICIES
 -- ---------------------------------------------------------------------
 
+-- Security definer helper to check admin status safely without triggering RLS recursion
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+$$;
+
 -- Profiles
 CREATE POLICY "Profiles select public" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Profiles insert public" ON public.profiles FOR INSERT WITH CHECK (true);
-CREATE POLICY "Profiles update own" ON public.profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Profiles admin manage" ON public.profiles FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Profiles update own" ON public.profiles FOR UPDATE USING (auth.uid() = id OR public.is_admin());
 
 -- Categories
-CREATE POLICY "Categories view active" ON public.categories FOR SELECT USING (active = true OR EXISTS (
-  SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-));
-CREATE POLICY "Categories admin manage" ON public.categories FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Categories view active" ON public.categories FOR SELECT USING (active = true OR public.is_admin());
+CREATE POLICY "Categories admin manage" ON public.categories FOR ALL USING (public.is_admin());
 
 -- Products
-CREATE POLICY "Products view active" ON public.products FOR SELECT USING (active = true OR EXISTS (
-  SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-));
-CREATE POLICY "Products admin manage" ON public.products FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Products view active" ON public.products FOR SELECT USING (active = true OR public.is_admin());
+CREATE POLICY "Products admin manage" ON public.products FOR ALL USING (public.is_admin());
 
 -- Product Images
 CREATE POLICY "Product images select public" ON public.product_images FOR SELECT USING (true);
-CREATE POLICY "Product images admin manage" ON public.product_images FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Product images admin manage" ON public.product_images FOR ALL USING (public.is_admin());
 
 -- Product Sizes
 CREATE POLICY "Product sizes select public" ON public.product_sizes FOR SELECT USING (true);
-CREATE POLICY "Product sizes admin manage" ON public.product_sizes FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Product sizes admin manage" ON public.product_sizes FOR ALL USING (public.is_admin());
 
 -- Store Settings
 CREATE POLICY "Store settings select public" ON public.store_settings FOR SELECT USING (true);
-CREATE POLICY "Store settings admin manage" ON public.store_settings FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Store settings admin manage" ON public.store_settings FOR ALL USING (public.is_admin());
 
 -- Coupons
 CREATE POLICY "Coupons select active" ON public.coupons FOR SELECT USING (active = true);
-CREATE POLICY "Coupons admin manage" ON public.coupons FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Coupons admin manage" ON public.coupons FOR ALL USING (public.is_admin());
 
 -- Wishlist
 CREATE POLICY "Wishlist select own" ON public.wishlist FOR SELECT USING (auth.uid() = user_id);
@@ -378,33 +372,23 @@ CREATE POLICY "Addresses delete own" ON public.addresses FOR DELETE USING (auth.
 
 -- Orders
 CREATE POLICY "Orders select public tracking" ON public.orders FOR SELECT USING (
-  auth.uid() = user_id OR user_id IS NULL OR EXISTS (
-    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-  )
+  auth.uid() = user_id OR user_id IS NULL OR public.is_admin()
 );
-CREATE POLICY "Orders insert anyone" ON public.orders FOR INSERT WITH CHECK (true); -- Guest checkouts
-CREATE POLICY "Orders admin update" ON public.orders FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Orders insert anyone" ON public.orders FOR INSERT WITH CHECK (true);
+CREATE POLICY "Orders admin update" ON public.orders FOR UPDATE USING (public.is_admin());
 
 -- Order Items
 CREATE POLICY "Order items select own" ON public.order_items FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.orders WHERE id = order_items.order_id AND (orders.user_id = auth.uid() OR orders.user_id IS NULL OR EXISTS (
-    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-  )))
+  EXISTS (SELECT 1 FROM public.orders WHERE id = order_items.order_id AND (orders.user_id = auth.uid() OR orders.user_id IS NULL OR public.is_admin()))
 );
 CREATE POLICY "Order items insert anyone" ON public.order_items FOR INSERT WITH CHECK (true);
 
 -- Payments
 CREATE POLICY "Payments select own" ON public.payments FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.orders WHERE id = payments.order_id AND (orders.user_id = auth.uid() OR orders.user_id IS NULL OR EXISTS (
-    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-  )))
+  EXISTS (SELECT 1 FROM public.orders WHERE id = payments.order_id AND (orders.user_id = auth.uid() OR orders.user_id IS NULL OR public.is_admin()))
 );
 CREATE POLICY "Payments insert anyone" ON public.payments FOR INSERT WITH CHECK (true);
-CREATE POLICY "Payments admin manage" ON public.payments FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Payments admin manage" ON public.payments FOR ALL USING (public.is_admin());
 
 -- ---------------------------------------------------------------------
 -- 16. TRANSACTION-SAFE STOCK DECREMENT RPC

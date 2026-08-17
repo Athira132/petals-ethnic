@@ -297,6 +297,8 @@ ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
 -- 13. ALTER EXISTING TABLES TO ENSURE ALL REQUESTED COLUMNS EXIST
 -- ---------------------------------------------------------------------
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name text;
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check CHECK (role IN ('customer', 'admin', 'superadmin'));
 
 ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true;
 ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS sort_order integer DEFAULT 0;

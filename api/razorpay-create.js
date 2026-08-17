@@ -96,12 +96,12 @@ export default async function handler(req, res) {
 
       if (coupon) {
         // Expiry check
-        if (!coupon.expiry_date || new Date(coupon.expiry_date) > new Date()) {
-          if (subtotal >= Number(coupon.min_order_amount)) {
-            if (coupon.type === 'percentage') {
-              discount = Math.round(subtotal * (Number(coupon.value) / 100));
+        if (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) {
+          if (subtotal >= Number(coupon.minimum_order_amount)) {
+            if (coupon.discount_type === 'percentage') {
+              discount = Math.round(subtotal * (Number(coupon.discount_value) / 100));
             } else {
-              discount = Number(coupon.value);
+              discount = Number(coupon.discount_value);
             }
           }
         }
@@ -143,11 +143,14 @@ export default async function handler(req, res) {
     for (const item of items) {
       const { data: product } = await supabase
         .from('products')
-        .select('name, price, sale_price, image_urls')
+        .select('name, price, sale_price, product_images(*)')
         .eq('id', item.product_id)
         .single();
 
       const activePrice = Number(product.sale_price || product.price);
+      const sortedImgs = product.product_images 
+        ? [...product.product_images].sort((a,b) => a.display_order - b.display_order).map(img => img.image_url)
+        : [];
       
       await supabase
         .from('order_items')
@@ -155,7 +158,7 @@ export default async function handler(req, res) {
           order_id: orderId,
           product_id: item.product_id,
           product_name: product.name,
-          product_image: product.image_urls[0] || '',
+          product_image: sortedImgs[0] || '',
           size: item.size,
           quantity: item.quantity,
           unit_price: activePrice,

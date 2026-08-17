@@ -104,22 +104,22 @@ export default function Cart() {
       }
 
       // Check Expiry
-      if (coupon.expiry_date && new Date(coupon.expiry_date) < new Date()) {
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
         setPromoError('This coupon code has expired.');
         return;
       }
 
       // Check Minimum Purchase
-      if (cartSubtotal < Number(coupon.min_order_amount)) {
-        setPromoError(`Minimum purchase of ₹${coupon.min_order_amount} required.`);
+      if (cartSubtotal < Number(coupon.minimum_order_amount)) {
+        setPromoError(`Minimum purchase of ₹${coupon.minimum_order_amount} required.`);
         return;
       }
 
       let discount = 0;
-      if (coupon.type === 'percentage') {
-        discount = Math.round(cartSubtotal * (Number(coupon.value) / 100));
+      if (coupon.discount_type === 'percentage') {
+        discount = Math.round(cartSubtotal * (Number(coupon.discount_value) / 100));
       } else {
-        discount = Number(coupon.value);
+        discount = Number(coupon.discount_value);
       }
 
       setDiscountAmount(discount);

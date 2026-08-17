@@ -110,7 +110,13 @@ export default function Account() {
         .order('is_default', { ascending: false });
 
       if (error) throw error;
-      setAddresses(data || []);
+      
+      // Map database full_name to frontend state name property
+      const mapped = (data || []).map(addr => ({
+        ...addr,
+        name: addr.full_name
+      }));
+      setAddresses(mapped);
     } catch (err) {
       console.error('Error fetching addresses:', err.message);
     } finally {
@@ -136,7 +142,7 @@ export default function Account() {
         const { error } = await supabase
           .from('addresses')
           .update({
-            name: addressForm.name,
+            full_name: addressForm.name,
             phone: addressForm.phone,
             address_line: addressForm.address_line,
             city: addressForm.city,
@@ -154,7 +160,7 @@ export default function Account() {
           .from('addresses')
           .insert({
             user_id: user.id,
-            name: addressForm.name,
+            full_name: addressForm.name,
             phone: addressForm.phone,
             address_line: addressForm.address_line,
             city: addressForm.city,

@@ -8,6 +8,7 @@ DROP TRIGGER IF EXISTS on_profile_update ON public.profiles;
 DROP TABLE IF EXISTS public.store_settings CASCADE;
 DROP TABLE IF EXISTS public.coupons CASCADE;
 DROP TABLE IF EXISTS public.wishlist CASCADE;
+DROP TABLE IF EXISTS public.payments CASCADE;
 DROP TABLE IF EXISTS public.order_items CASCADE;
 DROP TABLE IF EXISTS public.orders CASCADE;
 DROP TABLE IF EXISTS public.addresses CASCADE;
@@ -16,6 +17,14 @@ DROP TABLE IF EXISTS public.product_images CASCADE;
 DROP TABLE IF EXISTS public.products CASCADE;
 DROP TABLE IF EXISTS public.categories CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
+
+-- Drop sequence if exists
+DROP SEQUENCE IF EXISTS public.order_number_seq;
+
+-- ---------------------------------------------------------------------
+-- ORDER NUMBER SEQUENCE (Generates PE10001, PE10002, etc.)
+-- ---------------------------------------------------------------------
+CREATE SEQUENCE public.order_number_seq START WITH 10001;
 
 -- ---------------------------------------------------------------------
 -- 1. PROFILES TABLE
@@ -110,7 +119,7 @@ ALTER TABLE public.product_sizes ENABLE ROW LEVEL SECURITY;
 CREATE TABLE public.addresses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  name text NOT NULL,
+  full_name text NOT NULL,
   phone text NOT NULL,
   address_line text NOT NULL,
   city text NOT NULL,
@@ -128,7 +137,7 @@ ALTER TABLE public.addresses ENABLE ROW LEVEL SECURITY;
 -- ---------------------------------------------------------------------
 CREATE TABLE public.orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_number text NOT NULL UNIQUE,
+  order_number text NOT NULL UNIQUE DEFAULT ('PE' || nextval('public.order_number_seq')::text),
   user_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL, -- Nullable for Guest checkout
   customer_name text NOT NULL,
   customer_email text NOT NULL,
@@ -171,7 +180,25 @@ CREATE TABLE public.order_items (
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------
--- 9. WISHLIST TABLE
+-- 9. PAYMENTS TABLE
+-- ---------------------------------------------------------------------
+CREATE TABLE public.payments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  payment_method text NOT NULL CHECK (payment_method IN ('upi', 'razorpay')),
+  amount numeric(10,2) NOT NULL CHECK (amount >= 0),
+  status text NOT NULL CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
+  transaction_id text,
+  razorpay_order_id text,
+  razorpay_payment_id text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+
+-- ---------------------------------------------------------------------
+-- 10. WISHLIST TABLE
 -- ---------------------------------------------------------------------
 CREATE TABLE public.wishlist (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -184,38 +211,37 @@ CREATE TABLE public.wishlist (
 ALTER TABLE public.wishlist ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------
--- 10. COUPONS TABLE
+-- 11. COUPONS TABLE
 -- ---------------------------------------------------------------------
 CREATE TABLE public.coupons (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   code text NOT NULL UNIQUE,
-  type text NOT NULL CHECK (type IN ('percentage', 'fixed')),
-  value numeric(10,2) NOT NULL CHECK (value > 0),
-  min_order_amount numeric(10,2) NOT NULL DEFAULT 0 CHECK (min_order_amount >= 0),
-  expiry_date timestamp with time zone,
+  discount_type text NOT NULL CHECK (discount_type IN ('percentage', 'fixed')),
+  discount_value numeric(10,2) NOT NULL CHECK (discount_value > 0),
+  minimum_order_amount numeric(10,2) NOT NULL DEFAULT 0 CHECK (minimum_order_amount >= 0),
+  expires_at timestamp with time zone,
   active boolean NOT NULL DEFAULT true,
-  created_at timestamp with time zone DEFAULT now()
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now()
 );
 
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------
--- 11. STORE SETTINGS TABLE
+-- 12. STORE SETTINGS TABLE
 -- ---------------------------------------------------------------------
 CREATE TABLE public.store_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   store_name text NOT NULL DEFAULT 'Petals Ethnic',
-  contact_phone text,
-  contact_whatsapp text,
-  contact_email text,
-  instagram_url text,
-  facebook_url text,
+  email text,
+  phone text,
+  whatsapp text,
   currency text NOT NULL DEFAULT 'INR',
   delivery_charge numeric(10,2) NOT NULL DEFAULT 99.00 CHECK (delivery_charge >= 0),
   free_delivery_threshold numeric(10,2) NOT NULL DEFAULT 1499.00 CHECK (free_delivery_threshold >= 0),
   upi_id text,
   upi_phone text,
-  upi_name text,
+  upi_business_name text,
   upi_qr_url text,
   upi_enabled boolean NOT NULL DEFAULT true,
   razorpay_enabled boolean NOT NULL DEFAULT true,
@@ -226,21 +252,22 @@ CREATE TABLE public.store_settings (
 ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------
--- 12. INDEX OPTIMIZATIONS
+-- 13. INDEX OPTIMIZATIONS
 -- ---------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_products_cat ON public.products(category_id);
 CREATE INDEX IF NOT EXISTS idx_product_images_prod ON public.product_images(product_id);
 CREATE INDEX IF NOT EXISTS idx_product_sizes_prod ON public.product_sizes(product_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON public.orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON public.order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_payments_order ON public.payments(order_id);
 CREATE INDEX IF NOT EXISTS idx_addresses_user ON public.addresses(user_id);
 CREATE INDEX IF NOT EXISTS idx_wishlist_user ON public.wishlist(user_id);
 
 -- ---------------------------------------------------------------------
--- 13. TRIGGERS & FUNCTIONS
+-- 14. TRIGGERS & FUNCTIONS
 -- ---------------------------------------------------------------------
 
--- Create public profile automatically on auth signup
+-- Create public profile automatically on auth signup (Role always defaults securely to 'customer')
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -252,8 +279,8 @@ BEGIN
     'customer',
     COALESCE(NEW.phone, '')
   );
-  
-  -- Automatically link guest orders by matching email
+
+  -- Link guest orders automatically by matching email address
   UPDATE public.orders
   SET user_id = NEW.id
   WHERE customer_email = NEW.email AND user_id IS NULL;
@@ -266,11 +293,11 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Secure update of profile attributes and role locking
+-- Secure update of profile attributes and role locking (Customers cannot elevate themselves to admin)
 CREATE OR REPLACE FUNCTION public.handle_profile_update()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Only allow changing role if executing user is an admin
+  -- Only allow changing role if executing user is already an admin in profiles
   IF NEW.role <> OLD.role AND (
     SELECT role FROM public.profiles WHERE id = auth.uid()
   ) <> 'admin' THEN
@@ -286,7 +313,7 @@ CREATE TRIGGER on_profile_update
   FOR EACH ROW EXECUTE FUNCTION public.handle_profile_update();
 
 -- ---------------------------------------------------------------------
--- 14. ROW LEVEL SECURITY (RLS) POLICIES
+-- 15. ROW LEVEL SECURITY (RLS) POLICIES
 -- ---------------------------------------------------------------------
 
 -- Profiles
@@ -353,7 +380,7 @@ CREATE POLICY "Orders select public tracking" ON public.orders FOR SELECT USING 
     SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
   )
 );
-CREATE POLICY "Orders insert anyone" ON public.orders FOR INSERT WITH CHECK (true); -- Required for guest checkouts
+CREATE POLICY "Orders insert anyone" ON public.orders FOR INSERT WITH CHECK (true); -- Guest checkouts
 CREATE POLICY "Orders admin update" ON public.orders FOR UPDATE USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
 );
@@ -366,8 +393,19 @@ CREATE POLICY "Order items select own" ON public.order_items FOR SELECT USING (
 );
 CREATE POLICY "Order items insert anyone" ON public.order_items FOR INSERT WITH CHECK (true);
 
+-- Payments
+CREATE POLICY "Payments select own" ON public.payments FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.orders WHERE id = payments.order_id AND (orders.user_id = auth.uid() OR orders.user_id IS NULL OR EXISTS (
+    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
+  )))
+);
+CREATE POLICY "Payments insert anyone" ON public.payments FOR INSERT WITH CHECK (true);
+CREATE POLICY "Payments admin manage" ON public.payments FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+);
+
 -- ---------------------------------------------------------------------
--- 15. TRANSACTION-SAFE STOCK DECREMENT RPC
+-- 16. TRANSACTION-SAFE STOCK DECREMENT RPC
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.deduct_order_stock(p_order_id uuid)
 RETURNS void AS $$

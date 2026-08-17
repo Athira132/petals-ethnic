@@ -282,7 +282,7 @@ export default function Navbar() {
                 <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
               </li>
               <li>
-                <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}>Discover Your Signature Style</Link>
+                <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}>Shop</Link>
               </li>
               <li>
                 <div 
@@ -309,6 +309,15 @@ export default function Navbar() {
               </li>
               <li>
                 <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</Link>
+              </li>
+              <li>
+                <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>My Account</Link>
+              </li>
+              <li>
+                <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)}>Wishlist ({wishlistCount})</Link>
+              </li>
+              <li>
+                <Link to="/cart" onClick={() => setIsMobileMenuOpen(false)}>Shopping Cart ({cartCount})</Link>
               </li>
             </ul>
           </div>

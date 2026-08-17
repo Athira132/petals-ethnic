@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const slides = [
     {
@@ -56,17 +58,17 @@ export default function HeroCarousel() {
     }
   ];
 
-  // Append clone of the first slide to allow smooth continuous circular sliding
+  // Append clone of first slide for continuous horizontal rotation without visual jumps
   const extendedSlides = [...slides, slides[0]];
 
-  // Looping Autoplay: slides automatically change every 3 seconds
+  // Autoplay: 3 seconds visible duration per slide
   useEffect(() => {
     const play = () => {
       setIsTransitioning(true);
       setCurrentSlide((prev) => prev + 1);
     };
 
-    const interval = setInterval(play, 3000); // 3 seconds visible duration
+    const interval = setInterval(play, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -78,12 +80,43 @@ export default function HeroCarousel() {
     }
   };
 
-  // Determine visual index for header aspect ratios and progress bar mounts
+  // Touch and drag swipe handlers
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setIsTransitioning(true);
+      setCurrentSlide((prev) => (prev + 1) % extendedSlides.length);
+    } else if (isRightSwipe) {
+      setIsTransitioning(true);
+      setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+    }
+
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
+
   const visualIndex = currentSlide === extendedSlides.length - 1 ? 0 : currentSlide;
 
   return (
     <div 
       className="hero-carousel-container"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onMouseDown={handleTouchStart}
+      onMouseUp={handleTouchEnd}
       style={{
         aspectRatio: extendedSlides[visualIndex].aspectRatio,
         transition: 'aspect-ratio 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
@@ -101,7 +134,6 @@ export default function HeroCarousel() {
           height: '100%'
         }}
       >
-        {/* Slides mapping */}
         {extendedSlides.map((slide, idx) => (
           <div 
             key={`${slide.id}-${idx}`} 
@@ -112,18 +144,16 @@ export default function HeroCarousel() {
               position: 'relative'
             }}
           >
-            {/* Main Slide Image */}
             <img 
               src={slide.image} 
               alt={slide.title} 
               className="hero-slide-img" 
               draggable="false"
+              loading={idx === 0 ? "eager" : "lazy"}
             />
             
-            {/* Subtle overlay for text contrast without blocking fashion details */}
             <div className="hero-slide-overlay"></div>
 
-            {/* Elegant Content Box */}
             <div className="hero-slide-content">
               <div className="hero-text-block animate-slide-up">
                 <span className="hero-subtitle">{slide.subtitle}</span>
@@ -144,7 +174,7 @@ export default function HeroCarousel() {
         ))}
       </div>
 
-      {/* Cinematic Linear Progress Indicator - Tied to visualIndex to prevent double resetting */}
+      {/* Clean Linear Progress Bar */}
       <div className="hero-progress-bar-container">
         <div key={visualIndex} className="hero-progress-bar-fill" style={{ animationDuration: '3000ms' }} />
       </div>

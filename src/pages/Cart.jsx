@@ -409,7 +409,13 @@ export default function Cart() {
                 <button 
                   className="btn btn-primary checkout-btn" 
                   style={{ width: '100%', marginTop: '20px' }}
-                  onClick={() => setIsCheckoutOpen(true)}
+                  onClick={() => {
+                    if (!user) {
+                      navigate('/login?redirect=/cart');
+                    } else {
+                      setIsCheckoutOpen(true);
+                    }
+                  }}
                 >
                   Proceed to Checkout <ArrowRight size={18} />
                 </button>

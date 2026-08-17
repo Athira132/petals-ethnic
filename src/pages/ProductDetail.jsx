@@ -207,21 +207,57 @@ export default function ProductDetail() {
 
           <div className="detail-divider"></div>
 
-          {/* Sizing Selector Capsule Pills */}
+          {/* Sizing Selector Dropdown & Pills */}
           {productSizes.length > 0 && (
             <div className="detail-option-section">
               <div className="option-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span className="detail-option-label">Select Size: <strong>{selectedSize}</strong></span>
+                <span className="detail-option-label">Select Size: <strong>{selectedSize || 'Choose a size'}</strong></span>
                 <button 
                   type="button"
                   className="size-guide-trigger-btn"
                   onClick={() => setIsSizeGuideOpen(true)}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--color-rose)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'underline' }}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--color-rose)', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'underline' }}
                 >
                   <Ruler size={14} /> Size Guide
                 </button>
               </div>
 
+              {/* Size Select Dropdown */}
+              <div className="size-dropdown-wrapper" style={{ marginBottom: '12px' }}>
+                <select
+                  className="detail-size-dropdown"
+                  value={selectedSize}
+                  onChange={(e) => setSelectedSize(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    padding: '0 12px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--color-border)',
+                    background: '#FFF',
+                    fontSize: '0.95rem',
+                    color: 'var(--color-neutral-dark)',
+                    fontWeight: '500'
+                  }}
+                >
+                  <option value="" disabled>-- Select Size --</option>
+                  {productSizes.map((szRecord) => {
+                    const isSizeSoldOut = szRecord.status === 'sold_out' || szRecord.stock === 0;
+                    const isLow = szRecord.status === 'few_left' || (szRecord.stock > 0 && szRecord.stock <= 5);
+                    let label = `${szRecord.size} - Available`;
+                    if (isSizeSoldOut) label = `${szRecord.size} - Sold Out`;
+                    else if (isLow) label = `${szRecord.size} - Only ${szRecord.stock} left`;
+
+                    return (
+                      <option key={szRecord.size} value={szRecord.size} disabled={isSizeSoldOut}>
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Size Pills */}
               <div className="detail-size-pills" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {productSizes.map((szRecord) => {
                   const isSizeSoldOut = szRecord.status === 'sold_out' || szRecord.stock === 0;

@@ -65,14 +65,20 @@ export default function ProductCard({ product }) {
 
         {/* Restructured Info & Controls Area (Completely below image) */}
         <div className="product-card-info">
-          <span className="product-card-category">{product.categorySlug.replace(/-/g, ' ')}</span>
+          <div className="product-card-header-row">
+            <span className="product-card-category">{product.categorySlug ? product.categorySlug.replace(/-/g, ' ') : 'Ethnic Fashion'}</span>
+            <span className={`availability-tag ${isOutOfStock ? 'sold-out' : (product.stockCount && product.stockCount <= 5) ? 'few-left' : 'in-stock'}`}>
+              {isOutOfStock ? 'Sold Out' : (product.stockCount && product.stockCount <= 5) ? `Only ${product.stockCount} left` : 'In Stock'}
+            </span>
+          </div>
+
           <h3 className="product-card-title">
             <Link to={`/product/${product.id}`}>{product.name}</Link>
           </h3>
           
-          {/* Brand description extraction */}
+          {/* Short description */}
           <p className="product-card-desc">
-            {product.description.split('.')[0]}.
+            {product.shortDescription || (product.description ? product.description.split('.')[0] + '.' : '')}
           </p>
 
           <div className="product-card-price-container">
@@ -80,6 +86,7 @@ export default function ProductCard({ product }) {
               <>
                 <span className="price-sale">₹{product.salePrice}</span>
                 <span className="price-original">₹{product.price}</span>
+                {discountPercent > 0 && <span className="discount-tag">({discountPercent}% OFF)</span>}
               </>
             ) : (
               <span className="price-regular">₹{product.price}</span>
@@ -96,7 +103,6 @@ export default function ProductCard({ product }) {
                 onChange={(e) => setSelectedSize(e.target.value)}
                 disabled={isOutOfStock}
               >
-                <option value="">Select Size</option>
                 {product.sizes.map((size) => (
                   <option key={size} value={size}>
                     {size}
@@ -105,23 +111,6 @@ export default function ProductCard({ product }) {
               </select>
             </div>
           )}
-
-          {/* Premium Quantity Selection Dropdown */}
-          <div className="card-selector-group">
-            <span className="card-selector-label">Quantity:</span>
-            <select
-              className="card-select-dropdown"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-              disabled={isOutOfStock}
-            >
-              {[1, 2, 3, 4, 5].map((qty) => (
-                <option key={qty} value={qty}>
-                  {qty}
-                </option>
-              ))}
-            </select>
-          </div>
 
           {/* Actions Row */}
           <div className="card-actions-row">
@@ -133,6 +122,14 @@ export default function ProductCard({ product }) {
             >
               {addedMessage ? 'ADDED!' : isOutOfStock ? 'SOLD OUT' : 'ADD TO CART'}
             </button>
+
+            <Link
+              to={`/product/${product.id}`}
+              className="card-btn-view-product"
+              title="View Product Details"
+            >
+              VIEW
+            </Link>
             
             <button
               type="button"
@@ -142,9 +139,9 @@ export default function ProductCard({ product }) {
               aria-label="Toggle wishlist"
             >
               {favorited ? (
-                <Heart size={20} fill="var(--color-rose)" stroke="var(--color-rose)" />
+                <Heart size={18} fill="var(--color-rose)" stroke="var(--color-rose)" />
               ) : (
-                <Heart size={20} stroke="var(--color-rose)" />
+                <Heart size={18} stroke="var(--color-rose)" />
               )}
             </button>
           </div>

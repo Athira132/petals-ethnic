@@ -36,6 +36,7 @@ export default function AdminProducts() {
   const [sizeM, setSizeM] = useState(0);
   const [sizeL, setSizeL] = useState(0);
   const [sizeXL, setSizeXL] = useState(0);
+  const [sizeXXL, setSizeXXL] = useState(0);
 
   // Loading/Error states
   const [formLoading, setFormLoading] = useState(false);
@@ -201,6 +202,7 @@ export default function AdminProducts() {
       setSizeM(0);
       setSizeL(0);
       setSizeXL(0);
+      setSizeXXL(0);
 
       (data || []).forEach(item => {
         if (item.size === 'XS') setSizeXS(item.stock);
@@ -208,6 +210,7 @@ export default function AdminProducts() {
         if (item.size === 'M') setSizeM(item.stock);
         if (item.size === 'L') setSizeL(item.stock);
         if (item.size === 'XL') setSizeXL(item.stock);
+        if (item.size === 'XXL') setSizeXXL(item.stock);
       });
 
       setShowForm(true);
@@ -272,7 +275,8 @@ export default function AdminProducts() {
         { product_id: productId, size: 'S', stock: Number(sizeS), status: Number(sizeS) === 0 ? 'sold_out' : Number(sizeS) <= 5 ? 'few_left' : 'available' },
         { product_id: productId, size: 'M', stock: Number(sizeM), status: Number(sizeM) === 0 ? 'sold_out' : Number(sizeM) <= 5 ? 'few_left' : 'available' },
         { product_id: productId, size: 'L', stock: Number(sizeL), status: Number(sizeL) === 0 ? 'sold_out' : Number(sizeL) <= 5 ? 'few_left' : 'available' },
-        { product_id: productId, size: 'XL', stock: Number(sizeXL), status: Number(sizeXL) === 0 ? 'sold_out' : Number(sizeXL) <= 5 ? 'few_left' : 'available' }
+        { product_id: productId, size: 'XL', stock: Number(sizeXL), status: Number(sizeXL) === 0 ? 'sold_out' : Number(sizeXL) <= 5 ? 'few_left' : 'available' },
+        { product_id: productId, size: 'XXL', stock: Number(sizeXXL), status: Number(sizeXXL) === 0 ? 'sold_out' : Number(sizeXXL) <= 5 ? 'few_left' : 'available' }
       ];
 
       const { error: sizesInsertErr } = await supabase.from('product_sizes').insert(sizeRows);
@@ -292,7 +296,7 @@ export default function AdminProducts() {
       if (imgInsertErr) throw imgInsertErr;
 
       // Update cumulative stock totals
-      const totalStock = Number(sizeXS) + Number(sizeS) + Number(sizeM) + Number(sizeL) + Number(sizeXL);
+      const totalStock = Number(sizeXS) + Number(sizeS) + Number(sizeM) + Number(sizeL) + Number(sizeXL) + Number(sizeXXL);
       let calculatedAvailability = formData.availability;
       if (totalStock === 0) {
         calculatedAvailability = 'sold_out';
@@ -440,7 +444,7 @@ export default function AdminProducts() {
                 {/* Sizing stock controllers */}
                 <div style={{ background: '#FAF7F5', padding: '20px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
                   <h5 style={{ margin: '0 0 15px', fontFamily: 'var(--font-serif)', fontSize: '1rem' }}>Size-specific Stock Quantities</h5>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'center' }}>
                       <label style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>XS</label>
                       <input type="number" min="0" value={sizeXS} onChange={(e) => setSizeXS(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: '100%', height: '34px', textAlign: 'center', border: '1px solid var(--color-border)', borderRadius: '4px' }} />
@@ -460,6 +464,10 @@ export default function AdminProducts() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'center' }}>
                       <label style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>XL</label>
                       <input type="number" min="0" value={sizeXL} onChange={(e) => setSizeXL(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: '100%', height: '34px', textAlign: 'center', border: '1px solid var(--color-border)', borderRadius: '4px' }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'center' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>XXL</label>
+                      <input type="number" min="0" value={sizeXXL} onChange={(e) => setSizeXXL(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: '100%', height: '34px', textAlign: 'center', border: '1px solid var(--color-border)', borderRadius: '4px' }} />
                     </div>
                   </div>
                 </div>

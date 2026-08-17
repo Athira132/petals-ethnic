@@ -147,12 +147,12 @@ export default function Shop() {
                   value={sortOption}
                   onChange={(e) => setSortOption(e.target.value)}
                   className="card-select-dropdown"
-                  style={{ minWidth: '160px', height: '36px', fontSize: '0.8rem' }}
+                  style={{ minWidth: '180px', height: '36px', fontSize: '0.8rem' }}
                 >
-                  <option value="default">Featured</option>
+                  <option value="recommended">Recommended</option>
+                  <option value="newest">Newest</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
-                  <option value="name-asc">Name: A-Z</option>
                 </select>
               </div>
             </div>

@@ -20,8 +20,12 @@ export default function AdminRoute({ children }) {
     );
   }
 
-  if (!user || !isAdmin) {
-    return <Navigate to="/admin/login" replace />;
+  if (!user) {
+    return <Navigate to="/login?redirect=/admin" replace />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/account" replace />;
   }
 
   return children;

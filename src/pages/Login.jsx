@@ -18,7 +18,13 @@ export default function Login() {
 
   const { signIn } = useAuth();
 
-  const redirectPath = searchParams.get('redirect') || '/account';
+  const isSafeRedirect = (path) => {
+    if (!path) return false;
+    return path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
+  };
+
+  const rawRedirect = searchParams.get('redirect') || '';
+  const redirectPath = (rawRedirect && isSafeRedirect(rawRedirect)) ? rawRedirect : '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,13 +44,20 @@ export default function Login() {
         if (profileErr) throw profileErr;
 
         if (profileData?.role === 'admin') {
-          navigate('/admin');
+          const target = (redirectPath && redirectPath.startsWith('/admin')) ? redirectPath : '/admin';
+          navigate(target);
         } else {
-          navigate(redirectPath);
+          const target = (redirectPath && !redirectPath.startsWith('/admin')) ? redirectPath : '/account';
+          navigate(target);
         }
       }
     } catch (err) {
-      setError(err.message || 'Failed to sign in. Please check your credentials.');
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credential') || msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('fail')) {
+        setError('Invalid email or password');
+      } else {
+        setError(msg || 'Invalid email or password');
+      }
     } finally {
       setLoading(false);
     }

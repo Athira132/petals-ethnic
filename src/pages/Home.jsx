@@ -220,18 +220,20 @@ export default function Home() {
       {/* 7. Instagram Editorial Gallery */}
       <section className="home-section instagram-gallery-section bg-neutral">
         <div className="container">
-          <div className="insta-header text-center">
-            <span className="insta-sub">Follow Us On Instagram</span>
-            <h3>@PetalsEthnic</h3>
+          <div className="insta-header text-center" style={{ marginBottom: '30px' }}>
+            <span className="insta-sub" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--color-gold)', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Follow Us On Instagram</span>
+            <h3 style={{ fontSize: '2rem', fontFamily: 'var(--font-serif)' }}>@PetalsEthnic</h3>
           </div>
           
-          <div className="insta-grid">
+          <div className="insta-photo-grid">
             {instagramMockPhotos.map((photo) => (
-              <div key={photo.id} className="insta-card">
+              <div key={photo.id} className="insta-grid-item">
                 <img src={photo.image} alt={photo.text} className="insta-img" />
-                <div className="insta-overlay">
-                  <InstagramIcon size={24} className="insta-icon-svg" />
-                  <span>{photo.text}</span>
+                <div className="insta-hover-overlay">
+                  <div className="insta-overlay-icons">
+                    <InstagramIcon size={24} />
+                    <span>{photo.text}</span>
+                  </div>
                 </div>
               </div>
             ))}

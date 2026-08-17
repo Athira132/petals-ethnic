@@ -1,17 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-let rawUrl = import.meta.env.VITE_SUPABASE_URL || 'https://giqngsukscyghqkjtijc.supabase.co';
-if (rawUrl.includes('giqngsukscyghqkitijc')) {
-  rawUrl = rawUrl.replace('giqngsukscyghqkitijc', 'giqngsukscyghqkjtijc');
-}
-const supabaseUrl = rawUrl;
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_JHt31eRCBafVoRI-_LKswA_LZfAjyYr';
+const CORRECT_URL = 'https://giqngsukscyghqkjtijc.supabase.co';
+const CORRECT_KEY = 'sb_publishable_JHt31eRCBafVoRI-_LKswA_LZfAjyYr';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.warn(
-    'Supabase connection credentials are missing. Please verify that VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY are set in your local .env.local file.'
-  );
+let envUrl = import.meta.env.VITE_SUPABASE_URL;
+if (envUrl && envUrl.includes('giqngsukscyghqkitijc')) {
+  envUrl = envUrl.replace('giqngsukscyghqkitijc', 'giqngsukscyghqkjtijc');
 }
+
+const supabaseUrl = (envUrl && !envUrl.includes('your-supabase')) ? envUrl : CORRECT_URL;
+
+const rawKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseKey = (rawKey && rawKey.startsWith('sb_publishable_')) ? rawKey : CORRECT_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 

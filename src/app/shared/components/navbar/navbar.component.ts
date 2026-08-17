@@ -14,17 +14,6 @@ import { UserProfile } from '../../../core/models/user.model';
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
-    <!-- Top Announcement Bar -->
-    <div class="top-bar">
-      <div class="container top-bar-content">
-        <span>✨ Welcome to Petals Ethnic — Discover Premium Ethnic & Festive Collections</span>
-        <div class="top-bar-contact">
-          <a href="tel:+918113899319" class="top-link">📞 +91 81138 99319</a>
-          <a href="mailto:petalsethnic@gmail.com" class="top-link phone-hide">✉️ petalsethnic@gmail.com</a>
-        </div>
-      </div>
-    </div>
-
     <!-- Main Navigation Header -->
     <header class="navbar-header" [class.scrolled]="isScrolled">
       <div class="container navbar-container">
@@ -36,9 +25,11 @@ import { UserProfile } from '../../../core/models/user.model';
           </svg>
         </button>
 
-        <!-- Brand Logo -->
+        <!-- Brand Logo with Circular Frame -->
         <a routerLink="/" class="brand-logo">
-          <img src="https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="logo-img" />
+          <div class="logo-circle">
+            <img src="https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="logo-img" />
+          </div>
           <div class="brand-text">
             <span class="brand-name">PETALS ETHNIC</span>
             <span class="brand-tagline">BOUTIQUE & FASHION</span>
@@ -111,7 +102,9 @@ import { UserProfile } from '../../../core/models/user.model';
     <div class="mobile-drawer-overlay" *ngIf="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
     <aside class="mobile-drawer" [class.open]="isMobileMenuOpen">
       <div class="mobile-drawer-header">
-        <img src="https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" class="drawer-logo" />
+        <div class="logo-circle drawer-logo-circle">
+          <img src="https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" class="drawer-logo" />
+        </div>
         <button (click)="toggleMobileMenu()" class="close-btn">&times;</button>
       </div>
 
@@ -143,30 +136,6 @@ import { UserProfile } from '../../../core/models/user.model';
     </aside>
   `,
   styles: [`
-    .top-bar {
-      background-color: var(--color-text-heading);
-      color: #FFFFFF;
-      font-size: 12px;
-      letter-spacing: 0.5px;
-      padding: 6px 0;
-    }
-    .top-bar-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .top-bar-contact {
-      display: flex;
-      gap: 16px;
-    }
-    .top-link {
-      color: var(--color-pink);
-    }
-    @media (max-width: 768px) {
-      .top-bar-content { justify-content: center; text-align: center; }
-      .top-bar-contact { display: none; }
-    }
-
     .navbar-header {
       position: sticky;
       top: 0;
@@ -190,11 +159,36 @@ import { UserProfile } from '../../../core/models/user.model';
       align-items: center;
       gap: 12px;
     }
-    .logo-img {
-      height: 52px;
-      width: auto;
-      object-fit: contain;
+    
+    .logo-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 1.5px solid var(--color-gold);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      background-color: #FFFFFF;
+      flex-shrink: 0;
     }
+    .logo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .drawer-logo-circle {
+      width: 44px;
+      height: 44px;
+    }
+    .drawer-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .brand-text {
       display: flex;
       flex-direction: column;
@@ -355,9 +349,6 @@ import { UserProfile } from '../../../core/models/user.model';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 32px;
-    }
-    .drawer-logo {
-      height: 44px;
     }
     .close-btn {
       font-size: 28px;

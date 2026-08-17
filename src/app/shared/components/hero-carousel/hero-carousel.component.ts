@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -16,14 +16,12 @@ export interface HeroSlide {
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <section class="hero-carousel-section" (mouseenter)="pauseTimer()" (mouseleave)="resumeTimer()">
+    <section class="hero-carousel-section">
       <div class="carousel-track">
         <div 
           *ngFor="let slide of slides; let i = index"
           class="carousel-slide"
           [class.active]="i === currentIndex"
-          [class.prev]="i < currentIndex"
-          [class.next]="i > currentIndex"
         >
           <!-- Hero Background Image -->
           <div 
@@ -48,7 +46,7 @@ export interface HeroSlide {
         </div>
       </div>
 
-      <!-- Navigation Arrows -->
+      <!-- Navigation Arrows (Manual Only) -->
       <button class="carousel-arrow prev-arrow" (click)="manualPrev()" aria-label="Previous Slide">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="15 18 9 12 15 6"></polyline>
@@ -74,7 +72,7 @@ export interface HeroSlide {
         </button>
       </div>
 
-      <!-- Ping Pong Status Visual Badge -->
+      <!-- Slide Status Visual Badge -->
       <div class="ping-pong-indicator">
         <span>Slide {{ currentIndex + 1 }} / 4</span>
       </div>
@@ -234,6 +232,8 @@ export interface HeroSlide {
       align-items: center;
       justify-content: center;
       transition: var(--transition);
+      cursor: pointer;
+      border: none;
     }
     .carousel-arrow:hover {
       background: rgba(255, 255, 255, 0.8);
@@ -265,6 +265,9 @@ export interface HeroSlide {
       display: flex;
       align-items: center;
       justify-content: center;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
     .dot-inner {
       width: 100%;
@@ -296,8 +299,7 @@ export interface HeroSlide {
     }
   `]
 })
-export class HeroCarouselComponent implements OnInit, OnDestroy {
-  // 4 Required Hero Images
+export class HeroCarouselComponent {
   slides: HeroSlide[] = [
     {
       id: 1,
@@ -334,99 +336,24 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   ];
 
   currentIndex = 0;
-  // Ping Pong Direction State: +1 means moving forward (0 -> 1 -> 2 -> 3), -1 means moving backward (3 -> 2 -> 1 -> 0)
-  direction: 1 | -1 = 1;
-  timer: any;
-  isPaused = false;
-
-  ngOnInit() {
-    this.startAutoPingPong();
-  }
-
-  ngOnDestroy() {
-    this.stopTimer();
-  }
-
-  startAutoPingPong() {
-    this.stopTimer();
-    this.timer = setInterval(() => {
-      if (!this.isPaused) {
-        this.stepPingPong();
-      }
-    }, 3000); // 3 SECONDS DISPLAY INTERVAL
-  }
-
-  /**
-   * PING PONG LOGIC:
-   * 0 (Img 1) -> 1 (Img 2) -> 2 (Img 3) -> 3 (Img 4)
-   * Reaches 3 -> direction switches to -1
-   * 3 (Img 4) -> 2 (Img 3) -> 1 (Img 2) -> 0 (Img 1)
-   * Reaches 0 -> direction switches to +1
-   * NEVER jumps 3 -> 0 directly.
-   */
-  stepPingPong() {
-    if (this.direction === 1) {
-      if (this.currentIndex < this.slides.length - 1) {
-        this.currentIndex++;
-      } else {
-        // Reached Image 4 (Index 3), reverse direction to backward
-        this.direction = -1;
-        this.currentIndex--;
-      }
-    } else {
-      if (this.currentIndex > 0) {
-        this.currentIndex--;
-      } else {
-        // Reached Image 1 (Index 0), reverse direction to forward
-        this.direction = 1;
-        this.currentIndex++;
-      }
-    }
-  }
 
   manualNext() {
     if (this.currentIndex < this.slides.length - 1) {
       this.currentIndex++;
-      this.direction = 1;
     } else {
-      this.currentIndex--;
-      this.direction = -1;
+      this.currentIndex = 0;
     }
-    this.startAutoPingPong();
   }
 
   manualPrev() {
     if (this.currentIndex > 0) {
       this.currentIndex--;
-      this.direction = -1;
     } else {
-      this.currentIndex++;
-      this.direction = 1;
+      this.currentIndex = this.slides.length - 1;
     }
-    this.startAutoPingPong();
   }
 
   goToSlide(index: number) {
-    if (index > this.currentIndex) {
-      this.direction = 1;
-    } else if (index < this.currentIndex) {
-      this.direction = -1;
-    }
     this.currentIndex = index;
-    this.startAutoPingPong();
-  }
-
-  pauseTimer() {
-    this.isPaused = true;
-  }
-
-  resumeTimer() {
-    this.isPaused = false;
-  }
-
-  stopTimer() {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
   }
 }

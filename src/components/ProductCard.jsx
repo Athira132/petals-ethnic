@@ -97,14 +97,11 @@ export default function ProductCard({ product }) {
                 disabled={isOutOfStock}
               >
                 <option value="">Select Size</option>
-                {product.sizes.map((size) => {
-                  const isSizeSoldOut = isOutOfStock || (size === 'L' && product.id === 'prod_1');
-                  return (
-                    <option key={size} value={size} disabled={isSizeSoldOut}>
-                      {size} {isSizeSoldOut ? '(SOLD OUT)' : ''}
-                    </option>
-                  );
-                })}
+                {product.sizes.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
               </select>
             </div>
           )}
@@ -203,14 +200,11 @@ export default function ProductCard({ product }) {
                       disabled={isOutOfStock}
                     >
                       <option value="">Select Size</option>
-                      {product.sizes.map((size) => {
-                        const isSizeSoldOut = isOutOfStock || (size === 'L' && product.id === 'prod_1');
-                        return (
-                          <option key={size} value={size} disabled={isSizeSoldOut}>
-                            {size} {isSizeSoldOut ? '(SOLD OUT)' : ''}
-                          </option>
-                        );
-                      })}
+                      {product.sizes.map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}

@@ -207,40 +207,50 @@ export default function ProductDetail() {
 
           <div className="detail-divider"></div>
 
-          {/* Sizing Selector Dropdown */}
+          {/* Sizing Selector Capsule Pills */}
           {productSizes.length > 0 && (
             <div className="detail-option-section">
-              <div className="option-header-row">
-                <span className="detail-option-label">Select Size:</span>
+              <div className="option-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span className="detail-option-label">Select Size: <strong>{selectedSize}</strong></span>
                 <button 
+                  type="button"
                   className="size-guide-trigger-btn"
                   onClick={() => setIsSizeGuideOpen(true)}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--color-rose)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'underline' }}
                 >
                   <Ruler size={14} /> Size Guide
                 </button>
               </div>
-              <select
-                className="card-select-dropdown"
-                value={selectedSize}
-                onChange={(e) => setSelectedSize(e.target.value)}
-                disabled={product.stockCount === 0}
-                style={{ width: '100%', maxWidth: '280px', height: '38px', padding: '0 12px', fontSize: '0.85rem' }}
-              >
-                <option value="">Select Size</option>
+
+              <div className="detail-size-pills" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {productSizes.map((szRecord) => {
                   const isSizeSoldOut = szRecord.status === 'sold_out' || szRecord.stock === 0;
-                  const labelSuffix = isSizeSoldOut 
-                    ? '(SOLD OUT)' 
-                    : szRecord.status === 'few_left' 
-                      ? `(FEW LEFT - only ${szRecord.stock} left)`
-                      : '';
                   return (
-                    <option key={szRecord.size} value={szRecord.size} disabled={isSizeSoldOut}>
-                      {szRecord.size} {labelSuffix}
-                    </option>
+                    <button
+                      key={szRecord.size}
+                      type="button"
+                      disabled={isSizeSoldOut}
+                      className={`size-btn-pill ${selectedSize === szRecord.size ? 'selected' : ''}`}
+                      onClick={() => setSelectedSize(szRecord.size)}
+                      style={{
+                        minWidth: '44px',
+                        height: '38px',
+                        padding: '0 12px',
+                        borderRadius: '4px',
+                        border: selectedSize === szRecord.size ? '2px solid var(--color-rose)' : '1px solid var(--color-border)',
+                        background: selectedSize === szRecord.size ? 'var(--color-primary-light)' : isSizeSoldOut ? '#F5F5F5' : '#FFF',
+                        color: isSizeSoldOut ? '#A0A0A0' : 'var(--color-neutral-dark)',
+                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        cursor: isSizeSoldOut ? 'not-allowed' : 'pointer',
+                        textDecoration: isSizeSoldOut ? 'line-through' : 'none'
+                      }}
+                    >
+                      {szRecord.size}
+                    </button>
                   );
                 })}
-              </select>
+              </div>
             </div>
           )}
 
@@ -267,19 +277,21 @@ export default function ProductDetail() {
           <div className="detail-option-section" style={{ marginTop: '20px' }}>
             <span className="detail-option-label">Quantity:</span>
             <div className="qty-row" style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '8px' }}>
-              <select
-                className="card-select-dropdown"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                disabled={isOutOfStock}
-                style={{ minWidth: '100px', height: '38px', padding: '0 12px', fontSize: '0.85rem' }}
-              >
-                {Array.from({ length: selectedSizeRecord ? Math.min(5, selectedSizeRecord.stock) : 1 }, (_, i) => i + 1).map((qty) => (
-                  <option key={qty} value={qty}>
-                    {qty}
-                  </option>
-                ))}
-              </select>
+              <div className="qty-stepper-container" style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid var(--color-border)', borderRadius: '4px', height: '38px', overflow: 'hidden' }}>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1 || isOutOfStock}
+                  style={{ border: 'none', background: 'var(--color-primary-light)', width: '36px', height: '100%', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}
+                >-</button>
+                <span style={{ padding: '0 14px', fontSize: '0.9rem', fontWeight: 600, minWidth: '24px', textAlign: 'center' }}>{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.min(selectedSizeRecord ? selectedSizeRecord.stock : 99, quantity + 1))}
+                  disabled={isOutOfStock || (selectedSizeRecord && quantity >= selectedSizeRecord.stock)}
+                  style={{ border: 'none', background: 'var(--color-primary-light)', width: '36px', height: '100%', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}
+                >+</button>
+              </div>
 
               {/* Stock text */}
               <p className="detail-stock-status" style={{ margin: 0 }}>

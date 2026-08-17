@@ -99,12 +99,13 @@ export const AuthProvider = ({ children }) => {
       try {
         await supabase.from('profiles').upsert({
           id: data.user.id,
-          name: name || 'Valued Customer',
           email: email,
+          full_name: name || 'Valued Customer',
+          name: name || 'Valued Customer',
           phone: phone || '',
           role: 'customer',
           updated_at: new Date()
-        }, { onConflict: 'id', ignoreDuplicates: true });
+        }, { onConflict: 'id' });
       } catch (profileErr) {
         console.warn('Manual profile upsert notice:', profileErr.message);
       }
@@ -132,7 +133,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updates) => {
     if (!user) throw new Error('Unauthorized profile modification request.');
     
-    // RLS policy permits updates to their own record, but trigger locks the role field
+    // RLS policy permits updates to their own record
     const { data, error } = await supabase
       .from('profiles')
       .update(updates)
@@ -165,7 +166,8 @@ export const AuthProvider = ({ children }) => {
     user,
     profile,
     loading,
-    isAdmin: profile?.role === 'admin',
+    isAdmin: profile?.role === 'admin' || profile?.role === 'superadmin',
+    isSuperAdmin: profile?.role === 'superadmin',
     signUp,
     signIn,
     signOut,

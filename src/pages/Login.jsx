@@ -44,7 +44,7 @@ export default function Login() {
 
         if (profileErr) console.warn('Profile lookup notice:', profileErr.message);
 
-        if (profileData?.role === 'admin') {
+        if (profileData?.role === 'admin' || profileData?.role === 'superadmin') {
           const target = (redirectPath && redirectPath.startsWith('/admin')) ? redirectPath : '/admin/dashboard';
           navigate(target);
         } else {

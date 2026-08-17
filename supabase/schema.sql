@@ -269,7 +269,10 @@ CREATE INDEX IF NOT EXISTS idx_wishlist_user ON public.wishlist(user_id);
 
 -- Create public profile automatically on auth signup (Role always defaults securely to 'customer')
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
 BEGIN
   INSERT INTO public.profiles (id, name, email, role, phone)
   VALUES (
@@ -277,17 +280,15 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'name', 'Valued Customer'),
     NEW.email,
     'customer',
-    COALESCE(NEW.phone, '')
-  );
-
-  -- Link guest orders automatically by matching email address
-  UPDATE public.orders
-  SET user_id = NEW.id
-  WHERE customer_email = NEW.email AND user_id IS NULL;
+    COALESCE(NEW.raw_user_meta_data->>'phone', '')
+  )
+  ON CONFLICT (id) DO NOTHING;
 
   RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -318,6 +319,7 @@ CREATE TRIGGER on_profile_update
 
 -- Profiles
 CREATE POLICY "Profiles select public" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Profiles insert public" ON public.profiles FOR INSERT WITH CHECK (true);
 CREATE POLICY "Profiles update own" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Profiles admin manage" ON public.profiles FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')

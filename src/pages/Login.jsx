@@ -1,69 +1,61 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function Login() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const emailParam = searchParams.get('email') || '';
-  const passwordParam = searchParams.get('password') || '';
-
-  const [email, setEmail] = useState(emailParam);
-  const [password, setPassword] = useState(passwordParam);
+  const [email, setEmail] = useState('dhanyaadwork@gmail.com');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [authSuccessData, setAuthSuccessData] = useState(null);
+  const [connResult, setConnResult] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const { signIn } = useAuth();
-
-  const isSafeRedirect = (path) => {
-    if (!path) return false;
-    return path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
-  };
-
-  const rawRedirect = searchParams.get('redirect') || '';
-  const redirectPath = (rawRedirect && isSafeRedirect(rawRedirect)) ? rawRedirect : '';
+  const [connLoading, setConnLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setAuthSuccessData(null);
     setLoading(true);
 
     try {
-      const cleanEmail = email.trim();
-      const authResult = await signIn(cleanEmail, password);
-      if (authResult?.user) {
-        // Query the profile role directly from the DB
-        const { data: profileData, error: profileErr } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', authResult.user.id)
-          .single();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password
+      });
 
-        if (profileErr) console.warn('Profile lookup notice:', profileErr.message);
-
-        if (profileData?.role === 'admin' || profileData?.role === 'superadmin') {
-          const target = (redirectPath && redirectPath.startsWith('/admin')) ? redirectPath : '/admin/dashboard';
-          navigate(target);
-        } else {
-          const target = (redirectPath && !redirectPath.startsWith('/admin')) ? redirectPath : '/account';
-          navigate(target);
-        }
+      if (error) {
+        setError(error.message);
+      } else if (data?.user) {
+        setAuthSuccessData({
+          userId: data.user.id,
+          userEmail: data.user.email,
+          emailConfirmedAt: data.user.email_confirmed_at || 'Not Confirmed',
+          sessionExists: data.session ? 'yes' : 'no'
+        });
       }
     } catch (err) {
-      console.error('Login submit error:', err.message);
-      const msg = err.message || '';
-      if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credential')) {
-        setError('Invalid email or password. Please check your credentials.');
-      } else if (msg.toLowerCase().includes('confirm')) {
-        setError('Email not confirmed yet. Please run the SQL email confirmation script in Supabase.');
-      } else {
-        setError(msg || 'Invalid email or password.');
-      }
+      setError(err.message || 'Unexpected login error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setConnLoading(true);
+    setConnResult('');
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id')
+        .limit(1);
+
+      if (error) {
+        setConnResult(`CONNECTION ERROR: ${error.message}`);
+      } else {
+        setConnResult(`CONNECTION SUCCESSFUL! Categories read: ${JSON.stringify(data)}`);
+      }
+    } finally {
+      setConnLoading(false);
     }
   };
 
@@ -75,10 +67,44 @@ export default function Login() {
           <p style={{ fontSize: '0.85rem', color: 'var(--color-neutral-muted)' }}>Login to view order updates and delivery details</p>
         </div>
 
+        {/* Temporary connection test button */}
+        <div style={{ marginBottom: '25px', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={handleTestConnection}
+            disabled={connLoading}
+            className="btn btn-outline"
+            style={{ width: '100%', height: '38px', fontSize: '0.8rem', fontWeight: 600 }}
+          >
+            {connLoading ? 'Testing...' : 'TEST SUPABASE CONNECTION'}
+          </button>
+
+          {connResult && (
+            <div style={{ marginTop: '10px', padding: '10px', background: '#F8F9FA', borderRadius: '4px', fontSize: '0.75rem', fontFamily: 'monospace', textAlign: 'left', wordBreak: 'break-all', border: '1px solid var(--color-border)' }}>
+              {connResult}
+            </div>
+          )}
+        </div>
+
         {error && (
-          <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: '#FFF5F5', color: '#C94B4B', borderRadius: '4px', fontSize: '0.85rem', marginBottom: '20px', border: '1px solid #FFD8D8' }}>
-            <AlertCircle size={16} />
+          <div className="alert alert-error" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '12px', background: '#FFF5F5', color: '#C94B4B', borderRadius: '4px', fontSize: '0.85rem', marginBottom: '20px', border: '1px solid #FFD8D8' }}>
+            <AlertCircle size={16} style={{ marginTop: '2px', flexShrink: 0 }} />
             <span>{error}</span>
+          </div>
+        )}
+
+        {authSuccessData && (
+          <div className="alert alert-success" style={{ padding: '15px', background: '#EAF8EB', color: '#4E8752', borderRadius: '4px', fontSize: '0.85rem', marginBottom: '20px', border: '1px solid #C1EFC4', textAlign: 'left' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', marginBottom: '10px' }}>
+              <CheckCircle size={18} />
+              <span>AUTHENTICATION SUCCESSFUL</span>
+            </div>
+            <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '4px', fontFamily: 'monospace' }}>
+              <div><strong>user.id:</strong> {authSuccessData.userId}</div>
+              <div><strong>user.email:</strong> {authSuccessData.userEmail}</div>
+              <div><strong>email_confirmed_at:</strong> {authSuccessData.emailConfirmedAt}</div>
+              <div><strong>session exists:</strong> {authSuccessData.sessionExists}</div>
+            </div>
           </div>
         )}
 
@@ -99,12 +125,7 @@ export default function Login() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-neutral-dark)' }}>Password</label>
-              <Link to="/forgot-password" style={{ fontSize: '0.75rem', color: 'var(--color-rose)', fontWeight: 600, textDecoration: 'underline' }}>
-                Forgot Password?
-              </Link>
-            </div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-neutral-dark)' }}>Password</label>
             <div style={{ position: 'relative' }}>
               <input
                 type="password"
@@ -124,16 +145,9 @@ export default function Login() {
             className="btn btn-primary"
             style={{ width: '100%', height: '44px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginTop: '10px' }}
           >
-            {loading ? 'Logging in...' : 'Sign In'}
+            {loading ? 'Testing Sign In...' : 'Sign In'}
           </button>
         </form>
-
-        <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-neutral-muted)', borderTop: '1px solid var(--color-border)', paddingTop: '20px' }}>
-          Don't have an account?{' '}
-          <Link to={`/register?redirect=${encodeURIComponent(redirectPath)}`} style={{ color: 'var(--color-rose)', fontWeight: 600, textDecoration: 'underline' }}>
-            Register here
-          </Link>
-        </div>
       </div>
     </div>
   );

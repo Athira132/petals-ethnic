@@ -84,7 +84,32 @@ export const AuthProvider = ({ children }) => {
         }
       }
     });
-    if (error) throw error;
+    
+    if (error) {
+      // If error is DB trigger related ("Database error finding user" / missing public.profiles table),
+      // format a clean readable error or suggestion
+      if (error.message && error.message.toLowerCase().includes('database error')) {
+        throw new Error('Database schema initialization required. Please run the migration script in Supabase SQL Editor.');
+      }
+      throw error;
+    }
+
+    // Safely attempt to create profile manually in case trigger is disabled or missing
+    if (data?.user) {
+      try {
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          name: name || 'Valued Customer',
+          email: email,
+          phone: phone || '',
+          role: 'customer',
+          updated_at: new Date()
+        }, { onConflict: 'id', ignoreDuplicates: true });
+      } catch (profileErr) {
+        console.warn('Manual profile upsert notice:', profileErr.message);
+      }
+    }
+
     return data;
   };
 

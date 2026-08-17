@@ -1,16 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { SlidersHorizontal } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
+import { supabase, mapProduct } from '../lib/supabase';
 
 export default function CategoryProducts() {
   const { slug } = useParams();
+  const [category, setCategory] = useState(null);
+  const [sortedProducts, setSortedProducts] = useState([]);
+  const [rawProducts, setRawProducts] = useState([]);
   const [sortOption, setSortOption] = useState('default');
+  const [loading, setLoading] = useState(true);
 
-  // Find current category
-  const category = categories.find((cat) => cat.slug === slug && cat.isActive);
+  // Fetch Category details and Products on mount or slug change
+  useEffect(() => {
+    const fetchCategoryData = async () => {
+      try {
+        setLoading(true);
+        
+        // Find current category
+        const { data: catData, error: catErr } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('slug', slug)
+          .eq('active', true)
+          .single();
+
+        if (catErr || !catData) {
+          setCategory(null);
+          setLoading(false);
+          return;
+        }
+
+        // Map description and cover image matching frontend CategoryCard expectations
+        setCategory({
+          ...catData,
+          image: catData.image_url
+        });
+
+        // Filter active products by category
+        const { data: prodData, error: prodErr } = await supabase
+          .from('products')
+          .select('*, categories(slug, name), product_images(*)')
+          .eq('category_id', catData.id)
+          .neq('availability', 'unavailable');
+
+        if (prodErr) throw prodErr;
+        const mappedProducts = (prodData || []).map(mapProduct);
+        setRawProducts(mappedProducts);
+        setSortedProducts(mappedProducts);
+
+      } catch (err) {
+        console.error('Error loading category detail list:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategoryData();
+  }, [slug]);
+
+  // Handle local sorting updates when option changes
+  useEffect(() => {
+    const sorted = [...rawProducts].sort((a, b) => {
+      const priceA = a.salePrice || a.price;
+      const priceB = b.salePrice || b.price;
+
+      if (sortOption === 'price-low') {
+        return priceA - priceB;
+      }
+      if (sortOption === 'price-high') {
+        return priceB - priceA;
+      }
+      if (sortOption === 'name-asc') {
+        return a.name.localeCompare(b.name);
+      }
+      return 0; // default featured
+    });
+    setSortedProducts(sorted);
+  }, [sortOption, rawProducts]);
+
+  if (loading) {
+    return (
+      <div className="container text-center" style={{ padding: '120px 20px' }}>
+        <div className="loading-spinner" style={{ border: '3px solid var(--color-primary-light)', borderTop: '3px solid var(--color-rose)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
+        <p style={{ color: 'var(--color-neutral-muted)', fontSize: '0.9rem' }}>Loading Collection...</p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   if (!category) {
     return (
@@ -23,28 +105,6 @@ export default function CategoryProducts() {
       </div>
     );
   }
-
-  // Filter products by category
-  const categoryProducts = products.filter(
-    (product) => product.categorySlug === slug && product.isActive
-  );
-
-  // Sort products
-  const sortedProducts = [...categoryProducts].sort((a, b) => {
-    const priceA = a.salePrice || a.price;
-    const priceB = b.salePrice || b.price;
-
-    if (sortOption === 'price-low') {
-      return priceA - priceB;
-    }
-    if (sortOption === 'price-high') {
-      return priceB - priceA;
-    }
-    if (sortOption === 'name-asc') {
-      return a.name.localeCompare(b.name);
-    }
-    return 0;
-  });
 
   return (
     <div className="category-page-wrapper">

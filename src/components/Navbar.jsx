@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
+import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, ChevronRight, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { categories } from '../data/categories';
+import { categories as fallbackCategories } from '../data/categories';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const { cartCount, cartItems, cartSubtotal, updateQuantity, removeFromCart } = useCart();
   const { wishlistCount } = useWishlist();
+  const { user } = useAuth();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,9 +19,32 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
 
-  // Logo URL extracted from ibb.co page
-  const logoUrl = "https://i.ibb.co/YFSVjCPP/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg";
+  // Fetch active categories from Supabase on mount
+  useEffect(() => {
+    const fetchNavCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('active', true)
+          .order('display_order', { ascending: true });
+        
+        if (error) throw error;
+        if (data && data.length > 0) {
+          setCategories(data);
+        } else {
+          setCategories(fallbackCategories);
+        }
+      } catch (err) {
+        console.warn('Navbar categories load warning (falling back to static category list):', err.message);
+        setCategories(fallbackCategories);
+      }
+    };
+
+    fetchNavCategories();
+  }, []);
 
   // Check scroll position to make navbar sticky with background
   useEffect(() => {
@@ -42,6 +68,8 @@ export default function Navbar() {
       setSearchQuery('');
     }
   };
+
+  const logoUrl = "https://i.ibb.co/YFSVjCPP/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg";
 
   return (
     <>
@@ -94,6 +122,17 @@ export default function Navbar() {
             >
               <Search size={22} />
             </button>
+
+            {/* Account Icon Shortcut */}
+            <Link 
+              to="/account" 
+              className="action-icon-btn" 
+              aria-label="Account Settings"
+              title={user ? "My Account Dashboard" : "Sign In / Register"}
+              style={{ color: user ? 'var(--color-rose)' : 'inherit' }}
+            >
+              <User size={22} />
+            </Link>
 
             <Link to="/wishlist" className="action-icon-btn wishlist-icon-link" aria-label="View Wishlist">
               <Heart size={22} />

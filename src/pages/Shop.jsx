@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { products } from '../data/products';
-import { categories } from '../data/categories';
+import { supabase, mapProduct } from '../lib/supabase';
 
 export default function Shop() {
   const location = useLocation();
   
-  // State variables for filtering and sorting
+  // State variables for dynamic data
+  const [dbCategories, setDbCategories] = useState([]);
+  const [dbProducts, setDbProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortOption, setSortOption] = useState('default');
+  const [loading, setLoading] = useState(true);
 
   // Check URL query parameters on load (e.g. ?category=normal-kurti)
   useEffect(() => {
@@ -23,13 +25,47 @@ export default function Shop() {
     }
   }, [location.search]);
 
+  // Fetch categories and products on mount
+  useEffect(() => {
+    const fetchShopData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch active categories
+        const { data: catData, error: catErr } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('active', true)
+          .order('display_order', { ascending: true });
+        
+        if (catErr) throw catErr;
+        setDbCategories(catData || []);
+
+        // Fetch products with their category slug join
+        const { data: prodData, error: prodErr } = await supabase
+          .from('products')
+          .select('*, categories(slug, name), product_images(*)')
+          .neq('availability', 'unavailable');
+
+        if (prodErr) throw prodErr;
+        setDbProducts((prodData || []).map(mapProduct));
+
+      } catch (err) {
+        console.error('Error fetching shop details:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShopData();
+  }, []);
+
   // Filter products logic
-  const filteredProducts = products.filter((product) => {
-    // 1. Category filter
+  const filteredProducts = dbProducts.filter((product) => {
+    // Category filter
     if (selectedCategory !== 'all' && product.categorySlug !== selectedCategory) {
       return false;
     }
-    // Must be active
     return product.isActive;
   });
 
@@ -50,6 +86,21 @@ export default function Shop() {
     // Default / Featured
     return 0;
   });
+
+  if (loading) {
+    return (
+      <div className="container text-center" style={{ padding: '120px 20px' }}>
+        <div className="loading-spinner" style={{ border: '3px solid var(--color-primary-light)', borderTop: '3px solid var(--color-rose)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
+        <p style={{ color: 'var(--color-neutral-muted)', fontSize: '0.9rem' }}>Loading Signature Outfits...</p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="shop-page-wrapper">
@@ -79,7 +130,7 @@ export default function Shop() {
                   style={{ minWidth: '220px', height: '36px', fontSize: '0.8rem' }}
                 >
                   <option value="all">All Collections</option>
-                  {categories.map((cat) => (
+                  {dbCategories.map((cat) => (
                     <option key={cat.id} value={cat.slug}>
                       {cat.name}
                     </option>

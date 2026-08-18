@@ -146,9 +146,15 @@ import { Category } from '../../core/models/category.model';
     </div>
 
     <ng-template #loadingBlock>
-      <div class="loading-box">
-        <div class="spinner"></div>
-        <p>Fetching styles...</p>
+      <div class="product-grid">
+        <div class="skeleton-card" *ngFor="let s of [1,2,3,4,5,6]">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line title"></div>
+            <div class="skeleton-line price"></div>
+          </div>
+        </div>
       </div>
     </ng-template>
 
@@ -379,6 +385,42 @@ import { Category } from '../../core/models/category.model';
       margin: 0 auto 16px auto;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Skeleton Placeholder Cards */
+    .skeleton-card {
+      background: #FFFFFF;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--color-border-light);
+    }
+    .skeleton-img {
+      width: 100%;
+      padding-top: 133%;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    .skeleton-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .skeleton-line {
+      height: 12px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+    .skeleton-line.short { width: 35%; }
+    .skeleton-line.title { width: 85%; height: 16px; }
+    .skeleton-line.price { width: 50%; }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
   `]
 })
 export class ShopComponent implements OnInit {

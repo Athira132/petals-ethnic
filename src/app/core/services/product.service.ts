@@ -24,14 +24,25 @@ export class ProductService {
   private categoriesSubject = new BehaviorSubject<Category[]>([]);
   categories$: Observable<Category[]> = this.categoriesSubject.asObservable();
 
+  private cachedProducts: Product[] | null = null;
+  private cachedCategories: Category[] | null = null;
+
   constructor(private supabaseService: SupabaseService) {
     this.refreshCategories(false);
+  }
+
+  clearCache() {
+    this.cachedProducts = null;
+    this.cachedCategories = null;
   }
 
   // ==========================================
   // CATEGORIES MANAGEMENT
   // ==========================================
   async getCategories(activeOnly = true): Promise<Category[]> {
+    if (this.cachedCategories && this.cachedCategories.length > 0) {
+      return activeOnly ? this.cachedCategories.filter(c => c.active) : this.cachedCategories;
+    }
     try {
       let query = this.supabaseService.supabase
         .from('categories')
@@ -230,70 +241,45 @@ export class ProductService {
   // PRODUCTS MANAGEMENT
   // ==========================================
   async getProducts(options: ProductFilterOptions = {}): Promise<Product[]> {
-    let products: Product[] = [];
-
-    try {
-      let query = this.supabaseService.supabase
-        .from('products')
-        .select(`
-          *,
-          category:categories(*),
-          images:product_images(*),
-          sizes:product_sizes(*)
-        `);
-
-      if (options.activeOnly !== false) {
-        query = query.eq('active', true);
-      }
-
-      if (options.categoryId) {
-        query = query.eq('category_id', options.categoryId);
-      }
-
-      if (options.featuredOnly) {
-        query = query.eq('featured', true);
-      }
-
-      if (options.newArrivalOnly) {
-        query = query.eq('new_arrival', true);
-      }
-
-      if (options.bestSellerOnly) {
-        query = query.eq('best_seller', true);
-      }
-
-      if (options.minPrice !== undefined) {
-        query = query.gte('price', options.minPrice);
-      }
-
-      if (options.maxPrice !== undefined) {
-        query = query.lte('price', options.maxPrice);
-      }
-
-      query = query.order('created_at', { ascending: false });
-
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        products = data;
-      }
-    } catch (e) {
-      console.warn('Direct product query notice, using API fallback:', e);
-    }
-
-    if (products.length === 0) {
+    if (!this.cachedProducts) {
+      let fetched: Product[] = [];
       try {
-        const res = await fetch('/api/admin-product');
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const resData = await res.json();
-          if (resData.success && resData.products) {
-            products = resData.products as Product[];
-          }
+        const { data, error } = await this.supabaseService.supabase
+          .from('products')
+          .select(`
+            *,
+            category:categories(*),
+            images:product_images(*),
+            sizes:product_sizes(*)
+          `)
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          fetched = data;
         }
       } catch (e) {
-        console.error('API product fallback error:', e);
+        console.warn('Direct product query notice, using API fallback:', e);
       }
+
+      if (fetched.length === 0) {
+        try {
+          const res = await fetch('/api/admin-product');
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const resData = await res.json();
+            if (resData.success && resData.products) {
+              fetched = resData.products as Product[];
+            }
+          }
+        } catch (e) {
+          console.error('API product fallback error:', e);
+        }
+      }
+
+      this.cachedProducts = fetched;
     }
+
+    let products = [...(this.cachedProducts || [])];
 
     if (options.activeOnly !== false) {
       products = products.filter(p => p.active !== false);
@@ -311,6 +297,18 @@ export class ProductService {
       products = products.filter(p => p.new_arrival);
     }
 
+    if (options.bestSellerOnly) {
+      products = products.filter(p => p.best_seller);
+    }
+
+    if (options.minPrice !== undefined && options.minPrice !== null) {
+      products = products.filter(p => p.price >= options.minPrice!);
+    }
+
+    if (options.maxPrice !== undefined && options.maxPrice !== null) {
+      products = products.filter(p => p.price <= options.maxPrice!);
+    }
+
     if (options.searchQuery && options.searchQuery.trim()) {
       const q = options.searchQuery.toLowerCase().trim();
       products = products.filter(p => 
@@ -318,6 +316,14 @@ export class ProductService {
         (p.description && p.description.toLowerCase().includes(q)) ||
         (p.sku && p.sku.toLowerCase().includes(q))
       );
+    }
+
+    if (options.sortBy === 'price-low') {
+      products.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (options.sortBy === 'price-high') {
+      products.sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (options.sortBy === 'featured') {
+      products.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
 
     return products;

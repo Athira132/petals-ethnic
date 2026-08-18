@@ -8,34 +8,66 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, RouterModule],
   template: `
     <div class="about-page">
-      <!-- Full Width Visual Header Banner -->
-      <section class="about-hero-banner">
-        <img src="https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg" alt="Petals Ethnic Hero" class="about-hero-img" />
-        <div class="about-hero-overlay"></div>
-        <div class="container about-hero-container">
-          <span class="about-hero-subtitle">HERITAGE & ELEGANCE</span>
-          <h1 class="about-hero-title">About Petals Ethnic</h1>
+      <!-- Header Banner -->
+      <div class="about-header-banner">
+        <div class="container">
+          <span class="about-tag">AUTHENTIC BOUTIQUE HERITAGE</span>
+          <h1 class="about-header-title">About Petals Ethnic</h1>
+          <p class="about-header-subtitle">Celebrating Indian craftsmanship, soft watercolor florals, and timeless ethnic drapes.</p>
+        </div>
+      </div>
+
+      <!-- Main Two-Column Premium Photo + Text Composition -->
+      <section class="section about-main-section">
+        <div class="container">
+          <div class="about-composition-grid">
+            <!-- Left Side: High Quality Image (Positioned Center Top) -->
+            <div class="about-photo-frame">
+              <img 
+                src="https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" 
+                alt="Petals Ethnic Boutique Heritage" 
+                class="about-photo-img" 
+              />
+              <div class="photo-badge">
+                <span>PETALS ETHNIC BOUTIQUE</span>
+              </div>
+            </div>
+
+            <!-- Right Side: Heading & Introduction -->
+            <div class="about-text-content">
+              <span class="section-subtitle">OUR FASHION PHILOSOPHY</span>
+              <h2 class="about-heading">Crafting Timeless Ethnic Elegance</h2>
+              
+              <p class="about-lead">
+                Welcome to Petals Ethnic! Step up your style with our latest fashion collection of handcrafted Kurtis, Anarkalis, Tissue Silk Kasavu, Co-ord Sets, and Midi Dresses tailored for perfection.
+              </p>
+
+              <p class="about-body-text">
+                We offer premium quality breathable fabrics, soft watercolor botanical prints, and intricate embroidery that fit every celebration. Whether you are seeking a traditional saree for a sacred ritual or a modern two-piece co-ord set for an evening festive edit, our boutique silhouettes ensure effortless comfort and regal flair.
+              </p>
+
+              <p class="about-body-text">
+                Let us know what you are looking for, and our fashion stylists will be happy to help you find the best outfit tailored to your size preferences!
+              </p>
+
+              <div class="about-cta-group">
+                <a routerLink="/shop" class="btn-primary">Explore Our Collection &rarr;</a>
+                <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnic,%20I%20would%20like%20to%20know%20more%20about%20your%20boutique." target="_blank" rel="noopener" class="btn-outline">Styling Advice on WhatsApp</a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Main About Content -->
-      <section class="section about-story-section">
-        <div class="container text-center max-w-800">
-          <h2 class="section-title">Our Fashion Philosophy</h2>
-          <p class="about-lead">
-            Welcome to Petals Ethnic! Step up your style with our latest fashion collection. We offer premium quality fabrics and trendy designs that fit every occasion. Let us know what you are looking for, and we'll be happy to help you find the best outfit!
-          </p>
-        </div>
-      </section>
-
-      <!-- Full-Width Visual Showcase Image Banner -->
-      <section class="full-width-showcase">
-        <img src="https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg" alt="Petals Ethnic Fashion Craftsmanship" class="showcase-img" />
-      </section>
-
-      <!-- Brand Pillars -->
+      <!-- Brand Pillars Section -->
       <section class="section pillars-section">
         <div class="container">
+          <div class="section-header text-center">
+            <span class="section-subtitle">WHY CHOOSE US</span>
+            <h2 class="section-title">The Petals Ethnic Promise</h2>
+            <p class="section-desc">Our commitment to quality, authenticity, and personalized boutique care.</p>
+          </div>
+
           <div class="pillars-grid">
             <div class="pillar-card">
               <div class="pillar-icon-box">
@@ -73,77 +105,137 @@ import { RouterModule } from '@angular/router';
     </div>
   `,
   styles: [`
-    .about-hero-banner {
+    .about-header-banner {
       position: relative;
-      width: 100%;
-      height: 50vh;
-      min-height: 360px;
-      display: flex;
-      align-items: center;
-      overflow: hidden;
-      background-color: #0D0D0D;
-    }
-    .about-hero-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .about-hero-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
-    }
-    .about-hero-container {
-      position: relative;
-      z-index: 2;
-      color: #FFFFFF;
+      background: linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg') center/cover no-repeat;
+      padding: 60px 20px;
       text-align: center;
+      color: #FFFFFF;
     }
-    .about-hero-subtitle {
+    .about-tag {
       display: inline-block;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 3px;
-      color: var(--color-pink);
+      letter-spacing: 2.5px;
+      color: #F8BBD0;
       margin-bottom: 12px;
     }
-    .about-hero-title {
-      font-size: 48px;
+    .about-header-title {
+      font-size: 38px;
+      font-weight: 700;
       color: #FFFFFF;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .about-header-subtitle {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
     @media (max-width: 768px) {
-      .about-hero-title { font-size: 32px; }
+      .about-header-banner { padding: 40px 16px; }
+      .about-header-title { font-size: 26px; }
+      .about-header-subtitle { font-size: 13px; }
     }
 
     .section { padding: 64px 0; }
     .text-center { text-align: center; }
-    .max-w-800 { max-width: 800px; margin: 0 auto; }
 
-    .about-lead {
-      font-size: 18px;
-      line-height: 1.8;
-      color: var(--color-muted);
-      font-style: italic;
+    /* Main Two-Column Composition */
+    .about-composition-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    @media (max-width: 992px) {
+      .about-composition-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
     }
 
-    /* Full Width Image Showcase */
-    .full-width-showcase {
+    .about-photo-frame {
+      position: relative;
       width: 100%;
-      height: 550px;
+      max-width: 520px;
+      margin: 0 auto;
+      border-radius: var(--radius-lg);
       overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--color-border);
     }
-    .showcase-img {
+    .about-photo-img {
       width: 100%;
-      height: 100%;
+      height: 520px;
       object-fit: cover;
+      object-position: center top; /* Subject visible from top without zoom */
+      display: block;
+      transition: transform 0.6s ease;
+    }
+    .about-photo-frame:hover .about-photo-img {
+      transform: scale(1.03);
     }
     @media (max-width: 768px) {
-      .full-width-showcase { height: 320px; }
+      .about-photo-img { height: 360px; }
+    }
+
+    .photo-badge {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #9F3D62;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .about-text-content {
+      padding: 10px 0;
+    }
+    .about-heading {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--color-text-heading);
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+    @media (max-width: 768px) {
+      .about-heading { font-size: 26px; }
+    }
+
+    .about-lead {
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--color-text);
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+
+    .about-body-text {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--color-muted);
+      margin-bottom: 16px;
+    }
+
+    .about-cta-group {
+      display: flex;
+      gap: 14px;
+      margin-top: 28px;
+      flex-wrap: wrap;
     }
 
     /* Pillars */
+    .pillars-section {
+      background-color: #FAF8F6;
+      border-top: 1px solid var(--color-border-light);
+    }
     .pillars-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -153,18 +245,19 @@ import { RouterModule } from '@angular/router';
       .pillars-grid { grid-template-columns: 1fr; }
     }
     .pillar-card {
-      background: var(--color-bg-alt);
+      background: #FFFFFF;
       padding: 40px 32px;
       border-radius: var(--radius-md);
       text-align: center;
       border: 1px solid var(--color-border-light);
+      box-shadow: var(--shadow-sm);
     }
     .pillar-icon-box {
       width: 56px;
       height: 56px;
       border-radius: 50%;
       background: var(--color-pink-light);
-      color: var(--color-pink-dark);
+      color: #9F3D62;
       display: flex;
       align-items: center;
       justify-content: center;

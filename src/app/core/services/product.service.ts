@@ -29,6 +29,7 @@ export class ProductService {
 
   constructor(private supabaseService: SupabaseService) {
     this.refreshCategories(false);
+    this.getProducts().catch(e => console.warn('Preload products notice:', e));
   }
 
   clearCache() {

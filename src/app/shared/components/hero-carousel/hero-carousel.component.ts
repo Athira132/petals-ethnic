@@ -120,15 +120,15 @@ export interface HeroSlide {
       background-repeat: no-repeat;
     }
 
-    /* High-Contrast Gradient Overlay */
+    /* Ultra-Light Subtle Gradient Overlay Behind Text Only for Maximum Brightness */
     .slide-overlay {
       position: absolute;
       inset: 0;
       background: linear-gradient(
         90deg, 
-        rgba(0, 0, 0, 0.78) 0%, 
-        rgba(0, 0, 0, 0.50) 50%, 
-        rgba(0, 0, 0, 0.25) 100%
+        rgba(0, 0, 0, 0.35) 0%, 
+        rgba(0, 0, 0, 0.12) 45%, 
+        rgba(0, 0, 0, 0) 100%
       );
       z-index: 2;
     }

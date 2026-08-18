@@ -285,7 +285,7 @@ import { Order } from '../../core/models/order.model';
   styles: [`
     .page-hero-banner {
       position: relative;
-      background: linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png') center/cover no-repeat;
+      background: linear-gradient(rgba(0,0,0,0.22), rgba(0,0,0,0.12)), url('https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png') center/cover no-repeat;
       padding: 50px 20px;
       text-align: center;
       color: #FFFFFF;

@@ -107,7 +107,7 @@ import { RouterModule } from '@angular/router';
   styles: [`
     .about-header-banner {
       position: relative;
-      background: linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg') center/cover no-repeat;
+      background: linear-gradient(rgba(0,0,0,0.22), rgba(0,0,0,0.12)), url('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg') center/cover no-repeat;
       padding: 60px 20px;
       text-align: center;
       color: #FFFFFF;

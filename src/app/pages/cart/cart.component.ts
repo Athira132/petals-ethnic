@@ -138,7 +138,7 @@ import { Observable } from 'rxjs';
   styles: [`
     .page-hero-banner {
       position: relative;
-      background: linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('https://i.ibb.co/5ZcYbZx/Chat-GPT-Image-Aug-13-2026-12-15-54-PM.png') center/cover no-repeat;
+      background: linear-gradient(rgba(0,0,0,0.22), rgba(0,0,0,0.12)), url('https://i.ibb.co/5ZcYbZx/Chat-GPT-Image-Aug-13-2026-12-15-54-PM.png') center/cover no-repeat;
       padding: 50px 20px;
       text-align: center;
       color: #FFFFFF;

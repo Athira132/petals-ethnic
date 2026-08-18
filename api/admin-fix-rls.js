@@ -160,6 +160,13 @@ CREATE POLICY "Orders insert" ON public.orders
 
 CREATE POLICY "Orders update" ON public.orders 
   FOR UPDATE USING (public.is_admin());
+
+-- 9. Create Performance Optimization Indexes on public.products
+CREATE INDEX IF NOT EXISTS idx_products_active_cat ON public.products(active, category_id);
+CREATE INDEX IF NOT EXISTS idx_products_featured ON public.products(featured) WHERE active = true;
+CREATE INDEX IF NOT EXISTS idx_products_new_arrival ON public.products(new_arrival) WHERE active = true;
+CREATE INDEX IF NOT EXISTS idx_products_best_seller ON public.products(best_seller) WHERE active = true;
+CREATE INDEX IF NOT EXISTS idx_products_created ON public.products(created_at DESC);
 `;
 
   try {

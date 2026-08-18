@@ -32,24 +32,45 @@ export class ProductService {
   // CATEGORIES MANAGEMENT
   // ==========================================
   async getCategories(activeOnly = true): Promise<Category[]> {
-    let query = this.supabaseService.supabase
-      .from('categories')
-      .select('*')
-      .order('display_order', { ascending: true });
+    try {
+      let query = this.supabaseService.supabase
+        .from('categories')
+        .select('*')
+        .order('display_order', { ascending: true });
 
-    if (activeOnly) {
-      query = query.eq('active', true);
+      if (activeOnly) {
+        query = query.eq('active', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        this.categoriesSubject.next(data);
+        return data;
+      }
+    } catch (e) {
+      console.warn('Direct category query failed, falling back to API:', e);
     }
 
-    const { data, error } = await query;
-    if (error) {
-      console.error('Error fetching categories:', error);
-      throw error;
+    // Fallback to serverless endpoint
+    try {
+      const res = await fetch('/api/admin-category');
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const resData = await res.json();
+        if (resData.success && resData.categories) {
+          let cats = resData.categories as Category[];
+          if (activeOnly) {
+            cats = cats.filter(c => c.active);
+          }
+          this.categoriesSubject.next(cats);
+          return cats;
+        }
+      }
+    } catch (e) {
+      console.error('API category fallback error:', e);
     }
-    
-    const categories = data || [];
-    this.categoriesSubject.next(categories);
-    return categories;
+
+    return [];
   }
 
   async refreshCategories(activeOnly = false): Promise<Category[]> {
@@ -57,17 +78,8 @@ export class ProductService {
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | null> {
-    const { data, error } = await this.supabaseService.supabase
-      .from('categories')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-
-    if (error) {
-      console.error('Error fetching category by slug:', error);
-      return null;
-    }
-    return data;
+    const categories = await this.getCategories(false);
+    return categories.find(c => c.slug === slug) || null;
   }
 
   async createCategory(category: Partial<Category>): Promise<Category> {
@@ -80,12 +92,8 @@ export class ProductService {
     }
 
     // 1. Check for duplicate slug
-    const { data: existing } = await this.supabaseService.supabase
-      .from('categories')
-      .select('id, name')
-      .eq('slug', rawSlug)
-      .maybeSingle();
-
+    const categories = await this.getCategories(false);
+    const existing = categories.find(c => c.slug === rawSlug);
     if (existing) {
       throw new Error(`This category slug '${rawSlug}' ('${existing.name}') already exists.`);
     }
@@ -111,9 +119,9 @@ export class ProductService {
       return data;
     }
 
-    console.warn('Direct Supabase category insert error, attempting serverless fallback:', error?.message);
+    console.warn('Direct Supabase category insert notice, using API endpoint:', error?.message);
 
-    // 3. Fallback to API endpoint if direct RLS returned policy violation
+    // 3. Fallback to API endpoint
     const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
     const token = session ? session.access_token : '';
 
@@ -226,68 +234,89 @@ export class ProductService {
   // PRODUCTS MANAGEMENT
   // ==========================================
   async getProducts(options: ProductFilterOptions = {}): Promise<Product[]> {
-    let query = this.supabaseService.supabase
-      .from('products')
-      .select(`
-        *,
-        category:categories(*),
-        images:product_images(*),
-        sizes:product_sizes(*)
-      `);
+    let products: Product[] = [];
 
+    // Try direct Supabase query first
+    try {
+      let query = this.supabaseService.supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories(*),
+          images:product_images(*),
+          sizes:product_sizes(*)
+        `);
+
+      if (options.activeOnly !== false) {
+        query = query.eq('active', true);
+      }
+
+      if (options.categoryId) {
+        query = query.eq('category_id', options.categoryId);
+      }
+
+      if (options.featuredOnly) {
+        query = query.eq('featured', true);
+      }
+
+      if (options.newArrivalOnly) {
+        query = query.eq('new_arrival', true);
+      }
+
+      if (options.bestSellerOnly) {
+        query = query.eq('best_seller', true);
+      }
+
+      if (options.minPrice !== undefined) {
+        query = query.gte('price', options.minPrice);
+      }
+
+      if (options.maxPrice !== undefined) {
+        query = query.lte('price', options.maxPrice);
+      }
+
+      query = query.order('created_at', { ascending: false });
+
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        products = data;
+      }
+    } catch (e) {
+      console.warn('Direct product query notice, using API fallback:', e);
+    }
+
+    // If direct query returned 0 products or RLS error, use API serverless endpoint
+    if (products.length === 0) {
+      try {
+        const res = await fetch('/api/admin-product');
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const resData = await res.json();
+          if (resData.success && resData.products) {
+            products = resData.products as Product[];
+          }
+        }
+      } catch (e) {
+        console.error('API product fallback error:', e);
+      }
+    }
+
+    // Apply active filter if requested
     if (options.activeOnly !== false) {
-      query = query.eq('active', true);
+      products = products.filter(p => p.active !== false);
     }
 
     if (options.categoryId) {
-      query = query.eq('category_id', options.categoryId);
+      products = products.filter(p => p.category_id === options.categoryId);
     }
 
     if (options.featuredOnly) {
-      query = query.eq('featured', true);
+      products = products.filter(p => p.featured);
     }
 
     if (options.newArrivalOnly) {
-      query = query.eq('new_arrival', true);
+      products = products.filter(p => p.new_arrival);
     }
-
-    if (options.bestSellerOnly) {
-      query = query.eq('best_seller', true);
-    }
-
-    if (options.minPrice !== undefined) {
-      query = query.gte('price', options.minPrice);
-    }
-
-    if (options.maxPrice !== undefined) {
-      query = query.lte('price', options.maxPrice);
-    }
-
-    if (options.sortBy) {
-      switch (options.sortBy) {
-        case 'newest':
-          query = query.order('created_at', { ascending: false });
-          break;
-        case 'price-low':
-          query = query.order('price', { ascending: true });
-          break;
-        case 'price-high':
-          query = query.order('price', { ascending: false });
-          break;
-        default:
-          query = query.order('created_at', { ascending: false });
-      }
-    } else {
-      query = query.order('created_at', { ascending: false });
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      console.error('Error fetching products:', error);
-      throw error;
-    }
-
-    let products = data || [];
 
     if (options.searchQuery && options.searchQuery.trim()) {
       const q = options.searchQuery.toLowerCase().trim();
@@ -302,41 +331,13 @@ export class ProductService {
   }
 
   async getProductBySlug(slug: string): Promise<Product | null> {
-    const { data, error } = await this.supabaseService.supabase
-      .from('products')
-      .select(`
-        *,
-        category:categories(*),
-        images:product_images(*),
-        sizes:product_sizes(*)
-      `)
-      .eq('slug', slug)
-      .single();
-
-    if (error) {
-      console.error('Error fetching product by slug:', error);
-      return null;
-    }
-    return data;
+    const products = await this.getProducts({ activeOnly: false });
+    return products.find(p => p.slug === slug) || null;
   }
 
   async getProductById(id: string): Promise<Product | null> {
-    const { data, error } = await this.supabaseService.supabase
-      .from('products')
-      .select(`
-        *,
-        category:categories(*),
-        images:product_images(*),
-        sizes:product_sizes(*)
-      `)
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching product by ID:', error);
-      return null;
-    }
-    return data;
+    const products = await this.getProducts({ activeOnly: false });
+    return products.find(p => p.id === id) || null;
   }
 
   async createProduct(

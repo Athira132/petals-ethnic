@@ -119,16 +119,36 @@ export class OrderService {
   }
 
   async getAllOrders(): Promise<Order[]> {
-    const { data, error } = await this.supabaseService.supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items(*)
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await this.supabaseService.supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items(*)
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
+      if (!error && data && data.length > 0) {
+        return data;
+      }
+    } catch (e) {
+      console.warn('Direct order query notice, using API fallback:', e);
+    }
+
+    try {
+      const res = await fetch('/api/admin-order');
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const resData = await res.json();
+        if (resData.success && resData.orders) {
+          return resData.orders as Order[];
+        }
+      }
+    } catch (e) {
+      console.error('API order fallback error:', e);
+    }
+
+    return [];
   }
 
   async updateOrderStatus(orderId: string, orderStatus: OrderStatus): Promise<void> {

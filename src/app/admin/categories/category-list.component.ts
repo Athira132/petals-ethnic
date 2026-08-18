@@ -64,7 +64,7 @@ import { Category } from '../../core/models/category.model';
         </div>
       </div>
 
-      <!-- Modal -->
+      <!-- Category Modal -->
       <div class="modal-backdrop" *ngIf="isModalOpen">
         <div class="modal-box">
           <div class="modal-header">
@@ -75,22 +75,48 @@ import { Category } from '../../core/models/category.model';
           <form (ngSubmit)="saveCategory()" class="modal-body">
             <div class="form-group">
               <label class="form-label">Category Name *</label>
-              <input type="text" [(ngModel)]="formCat.name" name="name" required class="form-control" (input)="autoSlug()" />
+              <input 
+                type="text" 
+                [(ngModel)]="formCat.name" 
+                name="name" 
+                required 
+                class="form-control" 
+                placeholder="e.g. Sarees"
+                (input)="autoSlug()" 
+              />
             </div>
 
             <div class="form-group">
-              <label class="form-label">Slug *</label>
-              <input type="text" [(ngModel)]="formCat.slug" name="slug" required class="form-control" />
+              <label class="form-label">Slug (Auto-generated)</label>
+              <input 
+                type="text" 
+                [(ngModel)]="formCat.slug" 
+                name="slug" 
+                class="form-control" 
+                placeholder="e.g. sarees" 
+              />
             </div>
 
             <div class="form-group">
               <label class="form-label">Description</label>
-              <textarea [(ngModel)]="formCat.description" name="description" rows="2" class="form-control"></textarea>
+              <textarea 
+                [(ngModel)]="formCat.description" 
+                name="description" 
+                rows="3" 
+                class="form-control"
+                placeholder="Category description..."
+              ></textarea>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Image Direct URL</label>
-              <input type="text" [(ngModel)]="formCat.image_url" name="image_url" class="form-control" placeholder="https://i.ibb.co/..." />
+              <label class="form-label">Category Image URL (Optional)</label>
+              <input 
+                type="text" 
+                [(ngModel)]="formCat.image_url" 
+                name="image_url" 
+                class="form-control" 
+                placeholder="https://i.ibb.co/... (Leave empty if none)" 
+              />
             </div>
 
             <div class="form-row">
@@ -102,7 +128,7 @@ import { Category } from '../../core/models/category.model';
               <div class="form-group flex-1 flex-center">
                 <label class="checkbox-label">
                   <input type="checkbox" [(ngModel)]="formCat.active" name="active" />
-                  <span>Active</span>
+                  <span>Active Category</span>
                 </label>
               </div>
             </div>
@@ -137,13 +163,13 @@ import { Category } from '../../core/models/category.model';
     .delete-btn { color: #D32F2F; font-size: 13px; font-weight: 500; background: transparent; border: none; cursor: pointer; }
 
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .modal-box { background: #FFFFFF; width: 100%; max-width: 500px; border-radius: var(--radius-lg); padding: 32px; }
+    .modal-box { background: #FFFFFF; width: 100%; max-width: 520px; border-radius: var(--radius-lg); padding: 32px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border-light); padding-bottom: 12px; }
     .close-modal-btn { font-size: 28px; color: var(--color-muted); background: transparent; border: none; cursor: pointer; }
 
     .form-row { display: flex; gap: 16px; }
     .flex-1 { flex: 1; }
-    .flex-center { display: flex; align-items: center; }
+    .flex-center { display: flex; align-items: center; margin-top: 24px; }
     .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
 
     .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border-light); }
@@ -174,7 +200,11 @@ export class CategoryListComponent implements OnInit {
   }
 
   async loadCategories() {
-    this.categories = await this.productService.getCategories(false);
+    try {
+      this.categories = await this.productService.getCategories(false);
+    } catch (err: any) {
+      console.error('Failed to load categories:', err);
+    }
   }
 
   openCreateModal() {
@@ -183,7 +213,7 @@ export class CategoryListComponent implements OnInit {
       name: '',
       slug: '',
       description: '',
-      image_url: 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg',
+      image_url: '',
       active: true,
       display_order: this.categories.length + 1
     };
@@ -207,21 +237,29 @@ export class CategoryListComponent implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
+    this.isSaving = false;
   }
 
   async saveCategory() {
-    if (!this.formCat.name || !this.formCat.slug) {
-      alert('Please fill in Name and Slug.');
+    if (!this.formCat.name || !this.formCat.name.trim()) {
+      alert('Please enter a Category Name.');
       return;
     }
 
+    if (!this.formCat.slug || !this.formCat.slug.trim()) {
+      this.autoSlug();
+    }
+
     this.isSaving = true;
+
     try {
       if (this.editingCat) {
         await this.productService.updateCategory(this.editingCat.id, this.formCat);
       } else {
         await this.productService.createCategory(this.formCat);
       }
+      
+      alert('Category saved successfully!');
       this.closeModal();
       await this.loadCategories();
     } catch (err: any) {

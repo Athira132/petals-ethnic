@@ -58,26 +58,99 @@ export class ProductService {
   }
 
   async createCategory(category: Partial<Category>): Promise<Category> {
+    // 1. Sanitize payload
+    const rawName = (category.name || '').trim();
+    if (!rawName) throw new Error('Category Name is required.');
+
+    let rawSlug = (category.slug || '').trim().toLowerCase();
+    if (!rawSlug) {
+      rawSlug = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    const payload: any = {
+      name: rawName,
+      slug: rawSlug,
+      description: category.description ? category.description.trim() : null,
+      image_url: (category.image_url && category.image_url.trim()) ? category.image_url.trim() : null,
+      active: category.active !== false,
+      display_order: Number(category.display_order) || 0
+    };
+
+    // 2. Try direct Supabase insert
     const { data, error } = await this.supabaseService.supabase
       .from('categories')
-      .insert([category])
+      .insert([payload])
       .select()
       .single();
 
-    if (error) throw error;
-    return data;
+    if (!error && data) {
+      return data;
+    }
+
+    console.warn('Direct Supabase category insert notice:', error?.message);
+
+    // 3. Fallback to API endpoint if direct RLS returned policy violation or permission error
+    const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
+    const token = session ? session.access_token : '';
+
+    const res = await fetch('/api/admin-category', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const resData = await res.json();
+    if (!res.ok || !resData.success) {
+      throw new Error(resData.error || error?.message || 'Failed to create category.');
+    }
+
+    return resData.category;
   }
 
   async updateCategory(id: string, category: Partial<Category>): Promise<Category> {
+    const payload: any = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (category.name !== undefined) payload.name = category.name.trim();
+    if (category.slug !== undefined) payload.slug = category.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (category.description !== undefined) payload.description = category.description ? category.description.trim() : null;
+    if (category.image_url !== undefined) payload.image_url = (category.image_url && category.image_url.trim()) ? category.image_url.trim() : null;
+    if (category.active !== undefined) payload.active = Boolean(category.active);
+    if (category.display_order !== undefined) payload.display_order = Number(category.display_order);
+
     const { data, error } = await this.supabaseService.supabase
       .from('categories')
-      .update({ ...category, updated_at: new Date().toISOString() })
+      .update(payload)
       .eq('id', id)
       .select()
       .single();
 
-    if (error) throw error;
-    return data;
+    if (!error && data) {
+      return data;
+    }
+
+    const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
+    const token = session ? session.access_token : '';
+
+    const res = await fetch('/api/admin-category', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ id, ...payload })
+    });
+
+    const resData = await res.json();
+    if (!res.ok || !resData.success) {
+      throw new Error(resData.error || error?.message || 'Failed to update category.');
+    }
+
+    return resData.category;
   }
 
   async deleteCategory(id: string): Promise<void> {
@@ -86,7 +159,22 @@ export class ProductService {
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
+    if (!error) return;
+
+    const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
+    const token = session ? session.access_token : '';
+
+    const res = await fetch(`/api/admin-category?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const resData = await res.json();
+    if (!res.ok || !resData.success) {
+      throw new Error(resData.error || error?.message || 'Failed to delete category.');
+    }
   }
 
   // ==========================================
@@ -207,7 +295,6 @@ export class ProductService {
   }
 
   async createProduct(product: Partial<Product>, images: Partial<ProductImage>[], sizes: Partial<ProductSize>[]): Promise<Product> {
-    // 1. Create main product row
     const { data: newProd, error: prodErr } = await this.supabaseService.supabase
       .from('products')
       .insert([product])
@@ -218,7 +305,6 @@ export class ProductService {
 
     const productId = newProd.id;
 
-    // 2. Insert Images
     if (images && images.length > 0) {
       const imgPayload = images.map((img, idx) => ({
         ...img,
@@ -231,7 +317,6 @@ export class ProductService {
       if (imgErr) console.error('Error inserting product images:', imgErr);
     }
 
-    // 3. Insert Sizes
     if (sizes && sizes.length > 0) {
       const sizePayload = sizes.map(s => ({
         ...s,
@@ -248,7 +333,6 @@ export class ProductService {
   }
 
   async updateProduct(id: string, product: Partial<Product>, images?: Partial<ProductImage>[], sizes?: Partial<ProductSize>[]): Promise<Product> {
-    // 1. Update product main table
     const { error: prodErr } = await this.supabaseService.supabase
       .from('products')
       .update({ ...product, updated_at: new Date().toISOString() })
@@ -256,7 +340,6 @@ export class ProductService {
 
     if (prodErr) throw prodErr;
 
-    // 2. Update images if provided
     if (images !== undefined) {
       await this.supabaseService.supabase.from('product_images').delete().eq('product_id', id);
       if (images.length > 0) {
@@ -269,7 +352,6 @@ export class ProductService {
       }
     }
 
-    // 3. Update sizes if provided
     if (sizes !== undefined) {
       await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
       if (sizes.length > 0) {

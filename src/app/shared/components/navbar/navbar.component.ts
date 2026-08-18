@@ -28,7 +28,7 @@ import { UserProfile } from '../../../core/models/user.model';
         <!-- Brand Logo with Circular Frame -->
         <a routerLink="/" class="brand-logo">
           <div class="logo-circle">
-            <img src="https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="logo-img" />
+            <img src="https://i.ibb.co/GQ2GstYF/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="logo-img" />
           </div>
           <div class="brand-text">
             <span class="brand-name">PETALS ETHNIC</span>
@@ -85,7 +85,7 @@ import { UserProfile } from '../../../core/models/user.model';
             </a>
           </ng-template>
 
-          <!-- Cart Drawer Button -->
+          <!-- Cart Button -->
           <a routerLink="/cart" class="action-btn cart-btn" title="Shopping Cart">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -103,7 +103,7 @@ import { UserProfile } from '../../../core/models/user.model';
     <aside class="mobile-drawer" [class.open]="isMobileMenuOpen">
       <div class="mobile-drawer-header">
         <div class="logo-circle drawer-logo-circle">
-          <img src="https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" class="drawer-logo" />
+          <img src="https://i.ibb.co/GQ2GstYF/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" class="drawer-logo" />
         </div>
         <button (click)="toggleMobileMenu()" class="close-btn">&times;</button>
       </div>
@@ -119,7 +119,7 @@ import { UserProfile } from '../../../core/models/user.model';
         
         <ng-container *ngIf="user$ | async; else mobileGuest">
           <a routerLink="/account" (click)="toggleMobileMenu()" class="mobile-link highlight">My Profile & Orders</a>
-          <a *ngIf="isAdmin" routerLink="/admin" (click)="toggleMobileMenu()" class="mobile-link admin-link">⚙️ Admin Dashboard</a>
+          <a *ngIf="isAdmin" routerLink="/admin" (click)="toggleMobileMenu()" class="mobile-link admin-link">Admin Dashboard</a>
           <button (click)="logout()" class="mobile-link logout-btn">Logout</button>
         </ng-container>
         <ng-template #mobileGuest>
@@ -128,9 +128,12 @@ import { UserProfile } from '../../../core/models/user.model';
       </nav>
 
       <div class="mobile-drawer-footer">
-        <p>📱 WhatsApp Order Helpline:</p>
-        <a href="https://wa.me/918113899319" target="_blank" class="mobile-wa-btn">
-          💬 Chat on WhatsApp
+        <p class="drawer-contact-label">WhatsApp Helpline:</p>
+        <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnic,%20I%20would%20like%20to%20know%20more%20about%20your%20products." target="_blank" class="mobile-wa-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.333 5.001l-1.416 5.174 5.299-1.389c1.464.798 3.114 1.218 4.774 1.218h.004c5.506 0 9.989-4.478 9.99-9.984 0-2.669-1.038-5.176-2.925-7.062-1.887-1.886-4.394-2.924-7.064-2.924zm5.82 14.281c-.244.687-1.42 1.312-1.957 1.393-.49.074-1.127.106-1.815-.115-.418-.134-.956-.31-1.657-.615-2.955-1.282-4.887-4.281-5.035-4.479-.148-.198-1.205-1.604-1.205-3.059 0-1.455.762-2.172 1.033-2.464.271-.292.593-.365.791-.365.198 0 .396.002.568.01.185.009.432-.07.676.516.244.587.834 2.036.907 2.184.073.148.122.321.024.516-.098.196-.148.318-.293.49-.148.171-.31.382-.443.513-.148.148-.303.31-.131.606.171.296.76 1.256 1.632 2.033 1.123.999 2.07 1.309 2.366 1.457.296.148.469.124.642-.074.173-.198.742-.865.94-1.162.198-.296.396-.247.668-.148.271.098 1.727.815 2.023.963.296.148.494.222.568.346.074.123.074.715-.17 1.402z"/>
+          </svg>
+          <span>Chat on WhatsApp</span>
         </a>
       </div>
     </aside>
@@ -253,6 +256,9 @@ import { UserProfile } from '../../../core/models/user.model';
       border-radius: var(--radius-full);
       transition: var(--transition);
       position: relative;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
     .action-btn:hover {
       background-color: var(--color-pink-light);
@@ -312,6 +318,9 @@ import { UserProfile } from '../../../core/models/user.model';
     .mobile-toggle {
       display: none;
       color: var(--color-text-heading);
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
 
     @media (max-width: 992px) {
@@ -353,6 +362,9 @@ import { UserProfile } from '../../../core/models/user.model';
     .close-btn {
       font-size: 28px;
       color: var(--color-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
     .mobile-nav-links {
       display: flex;
@@ -380,6 +392,9 @@ import { UserProfile } from '../../../core/models/user.model';
     .logout-btn {
       text-align: left;
       color: #D32F2F;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
     .mobile-drawer-footer {
       margin-top: auto;
@@ -387,9 +402,15 @@ import { UserProfile } from '../../../core/models/user.model';
       border-top: 1px solid var(--color-border-light);
       font-size: 13px;
     }
+    .drawer-contact-label {
+      color: var(--color-muted);
+      margin-bottom: 8px;
+    }
     .mobile-wa-btn {
-      display: block;
-      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       background-color: #25D366;
       color: #FFFFFF;
       text-align: center;

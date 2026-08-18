@@ -16,7 +16,7 @@ import { Category } from '../../core/models/category.model';
           <p class="page-subtitle">Manage store categories, slugs, and cover banner images.</p>
         </div>
         <button (click)="openCreateModal()" class="btn-primary">
-          ➕ Create New Category
+          + Create New Category
         </button>
       </div>
 
@@ -51,8 +51,8 @@ import { Category } from '../../core/models/category.model';
                 </td>
                 <td>
                   <div class="action-btn-group">
-                    <button (click)="openEditModal(cat)" class="edit-btn">✏️ Edit</button>
-                    <button (click)="deleteCategory(cat)" class="delete-btn">🗑️ Delete</button>
+                    <button (click)="openEditModal(cat)" class="edit-btn">Edit</button>
+                    <button (click)="deleteCategory(cat)" class="delete-btn">Delete</button>
                   </div>
                 </td>
               </tr>
@@ -133,13 +133,13 @@ import { Category } from '../../core/models/category.model';
     .cat-desc { font-size: 12px; color: var(--color-muted); }
 
     .action-btn-group { display: flex; gap: 8px; }
-    .edit-btn { color: #1976D2; font-size: 13px; font-weight: 500; }
-    .delete-btn { color: #D32F2F; font-size: 13px; font-weight: 500; }
+    .edit-btn { color: #1976D2; font-size: 13px; font-weight: 500; background: transparent; border: none; cursor: pointer; }
+    .delete-btn { color: #D32F2F; font-size: 13px; font-weight: 500; background: transparent; border: none; cursor: pointer; }
 
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px; }
     .modal-box { background: #FFFFFF; width: 100%; max-width: 500px; border-radius: var(--radius-lg); padding: 32px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border-light); padding-bottom: 12px; }
-    .close-modal-btn { font-size: 28px; color: var(--color-muted); }
+    .close-modal-btn { font-size: 28px; color: var(--color-muted); background: transparent; border: none; cursor: pointer; }
 
     .form-row { display: flex; gap: 16px; }
     .flex-1 { flex: 1; }

@@ -14,13 +14,13 @@ import { Category } from '../../core/models/category.model';
   imports: [CommonModule, RouterModule, HeroCarouselComponent, ProductCardComponent],
   template: `
     <main class="home-page">
-      <!-- 1. Hero Carousel (Ping-Pong 3-second loop) -->
+      <!-- 1. Hero Fashion Showcase (Automatic 3s Ping-Pong, Clean Design) -->
       <app-hero-carousel></app-hero-carousel>
 
       <!-- 2. Featured Categories -->
       <section class="section categories-section">
         <div class="container">
-          <div class="section-header">
+          <div class="section-header text-center">
             <span class="section-subtitle">CURATED COLLECTIONS</span>
             <h2 class="section-title">Shop By Category</h2>
             <p class="section-desc">Discover our handpicked silhouettes designed for every celebration.</p>
@@ -38,7 +38,7 @@ import { Category } from '../../core/models/category.model';
                 </div>
                 <div class="category-info">
                   <h3 class="category-name">{{ cat.name }}</h3>
-                  <span class="category-cta">Explore Collection →</span>
+                  <span class="category-cta">Explore Collection &rarr;</span>
                 </div>
               </a>
             </div>
@@ -54,7 +54,7 @@ import { Category } from '../../core/models/category.model';
               <span class="section-subtitle">JUST DROPPED</span>
               <h2 class="section-title">New Arrivals</h2>
             </div>
-            <a routerLink="/shop" [queryParams]="{filter: 'new'}" class="btn-outline">View All New Arrivals →</a>
+            <a routerLink="/shop" [queryParams]="{filter: 'new'}" class="btn-outline">View All New Arrivals &rarr;</a>
           </div>
 
           <div class="product-grid" *ngIf="newArrivals.length > 0; else loadingState">
@@ -67,30 +67,10 @@ import { Category } from '../../core/models/category.model';
         </div>
       </section>
 
-      <!-- 6. Fashion Promotion Banner -->
-      <section class="section promo-banner-section">
-        <div class="container">
-          <div class="promo-card">
-            <div class="promo-content">
-              <span class="promo-badge">FESTIVE EXCLUSIVE</span>
-              <h2 class="promo-title">Tissue Silk Kasavu & Royal Anarkalis</h2>
-              <p class="promo-text">
-                Immerse yourself in traditional South Indian Kasavu gold weaves and handcrafted royal Anarkali sets. Crafted with love, tailored to perfection.
-              </p>
-              <a routerLink="/shop" class="btn-primary">Shop Festive Couture</a>
-            </div>
-            <div class="promo-image-group">
-              <img src="https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg" alt="Festive Couture 1" class="promo-img promo-img-1" />
-              <img src="https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" alt="Festive Couture 2" class="promo-img promo-img-2" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 4 & 5. Featured Products / Best Sellers Tabs -->
+      <!-- 4. Featured & Best Sellers -->
       <section class="section featured-section">
         <div class="container">
-          <div class="section-header">
+          <div class="section-header text-center">
             <span class="section-subtitle">MOST LOVED</span>
             <h2 class="section-title">Featured & Best Sellers</h2>
             <p class="section-desc">Our customers' absolute favorite ethnic styles of the season.</p>
@@ -106,103 +86,28 @@ import { Category } from '../../core/models/category.model';
         </div>
       </section>
 
-      <!-- 7. About Petals Ethnic -->
-      <section class="section about-preview-section">
-        <div class="container about-grid">
-          <div class="about-img-box">
-            <img src="https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg" alt="Petals Ethnic Boutique" class="about-img" />
-            <div class="about-accent-badge">
-              <span class="badge-number">100%</span>
-              <span class="badge-text">Premium Quality Fabrics</span>
-            </div>
-          </div>
-          <div class="about-content">
-            <span class="section-subtitle">OUR BRAND STORY</span>
-            <h2 class="section-title">Welcome to Petals Ethnic</h2>
-            <p class="brand-quote-text">
-              "Step up your style with our latest fashion collection. We offer premium quality fabrics and trendy designs that fit every occasion. Let us know what you are looking for, and we'll be happy to help you find the best outfit!"
-            </p>
-            <div class="about-features">
-              <div class="feature-item">
-                <span class="feature-icon">✨</span>
-                <div>
-                  <h4>Handpicked Fabrics</h4>
-                  <p>Breathable cottons, shimmering tissue silks, and soft georgette drapes.</p>
-                </div>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">👗</span>
-                <div>
-                  <h4>Inclusive Sizing</h4>
-                  <p>Tailored fits ranging from XS to XXL for every silhouette.</p>
-                </div>
-              </div>
-            </div>
-            <a routerLink="/about" class="btn-secondary">Learn More About Us</a>
-          </div>
-        </div>
-      </section>
-
-      <!-- 8. Why Choose Us -->
-      <section class="section why-us-section">
-        <div class="container">
-          <div class="why-us-grid">
-            <div class="why-card">
-              <div class="why-icon">🚚</div>
-              <h3>Free Shipping</h3>
-              <p>On all orders above ₹1499 delivered across India.</p>
-            </div>
-            <div class="why-card">
-              <div class="why-icon">🧵</div>
-              <h3>Craftsmanship</h3>
-              <p>Finest hand-stitching, intricate prints, and luxury fabrics.</p>
-            </div>
-            <div class="why-card">
-              <div class="why-icon">💳</div>
-              <h3>Secure Payments</h3>
-              <p>Razorpay Gateway, Credit Cards, NetBanking & UPI QR.</p>
-            </div>
-            <div class="why-card">
-              <div class="why-icon">💬</div>
-              <h3>Instant Assistance</h3>
-              <p>Personalized shopping assistance via WhatsApp helpline.</p>
+      <!-- 5. Full-Width Visual About Showcase -->
+      <section class="section full-about-section">
+        <div class="full-about-banner">
+          <img src="https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg" alt="Petals Ethnic Boutique" class="full-about-img" />
+          <div class="full-about-overlay"></div>
+          <div class="container full-about-container">
+            <div class="full-about-content">
+              <span class="full-about-subtitle">OUR BRAND STORY</span>
+              <h2 class="full-about-title">Welcome to Petals Ethnic</h2>
+              <p class="full-about-quote">
+                "Step up your style with our latest fashion collection. We offer premium quality fabrics and trendy designs that fit every occasion. Let us know what you are looking for, and we'll be happy to help you find the best outfit!"
+              </p>
+              <a routerLink="/about" class="btn-primary full-about-btn">Discover Our Story &rarr;</a>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 9. Customer Reviews -->
-      <section class="section reviews-section">
-        <div class="container">
-          <div class="section-header">
-            <span class="section-subtitle">TESTIMONIALS</span>
-            <h2 class="section-title">Loved By Fashion Lovers</h2>
-          </div>
-
-          <div class="reviews-grid">
-            <div class="review-card">
-              <div class="stars">⭐⭐⭐⭐⭐</div>
-              <p class="review-text">"The A-line floral kurti I ordered fit like a dream! The tissue silk quality exceeded my expectations. Delivered super fast too!"</p>
-              <span class="reviewer-name">— Ananya R., Kochi</span>
-            </div>
-            <div class="review-card">
-              <div class="stars">⭐⭐⭐⭐⭐</div>
-              <p class="review-text">"Petals Ethnic has become my go-to for festive wear. Beautiful color combinations, elegant packaging, and great customer service on WhatsApp."</p>
-              <span class="reviewer-name">— Divya Nair, Trivandrum</span>
-            </div>
-            <div class="review-card">
-              <div class="stars">⭐⭐⭐⭐⭐</div>
-              <p class="review-text">"The Anarkali set was so comfortable for my family function. Received so many compliments! Will definitely shop again."</p>
-              <span class="reviewer-name">— Meera V., Bengaluru</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 10. Instagram Section -->
+      <!-- 6. Instagram Section -->
       <section class="section instagram-section">
         <div class="container">
-          <div class="section-header">
+          <div class="section-header text-center">
             <span class="section-subtitle">FOLLOW OUR JOURNEY</span>
             <h2 class="section-title">&#64;petalsethnic on Instagram</h2>
             <p class="section-desc">Tag us in your Petals Ethnic outfits to be featured!</p>
@@ -211,31 +116,54 @@ import { Category } from '../../core/models/category.model';
           <div class="insta-grid">
             <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
               <img src="https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png" alt="Insta 1" />
-              <div class="insta-overlay">📸 View on Instagram</div>
+              <div class="insta-overlay">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span>Instagram</span>
+              </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
               <img src="https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png" alt="Insta 2" />
-              <div class="insta-overlay">📸 View on Instagram</div>
+              <div class="insta-overlay">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span>Instagram</span>
+              </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
               <img src="https://i.ibb.co/5ZcYbZx/Chat-GPT-Image-Aug-13-2026-12-15-54-PM.png" alt="Insta 3" />
-              <div class="insta-overlay">📸 View on Instagram</div>
+              <div class="insta-overlay">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span>Instagram</span>
+              </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
               <img src="https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png" alt="Insta 4" />
-              <div class="insta-overlay">📸 View on Instagram</div>
+              <div class="insta-overlay">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span>Instagram</span>
+              </div>
             </a>
           </div>
         </div>
       </section>
 
-      <!-- 11. WhatsApp CTA Section -->
+      <!-- 7. WhatsApp CTA Section -->
       <section class="section wa-cta-section">
         <div class="container wa-cta-box">
           <h2>Need Help Finding Your Perfect Outfit?</h2>
           <p>Connect directly with our fashion stylists on WhatsApp for sizing advice, customized recommendations, or order inquiries.</p>
           <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnic,%20I%20would%20like%20to%20know%20more%20about%20your%20products." target="_blank" rel="noopener" class="btn-wa">
-            💬 Chat with Us on WhatsApp (+91 81138 99319)
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.333 5.001l-1.416 5.174 5.299-1.389c1.464.798 3.114 1.218 4.774 1.218h.004c5.506 0 9.989-4.478 9.99-9.984 0-2.669-1.038-5.176-2.925-7.062-1.887-1.886-4.394-2.924-7.064-2.924zm5.82 14.281c-.244.687-1.42 1.312-1.957 1.393-.49.074-1.127.106-1.815-.115-.418-.134-.956-.31-1.657-.615-2.955-1.282-4.887-4.281-5.035-4.479-.148-.198-1.205-1.604-1.205-3.059 0-1.455.762-2.172 1.033-2.464.271-.292.593-.365.791-.365.198 0 .396.002.568.01.185.009.432-.07.676.516.244.587.834 2.036.907 2.184.073.148.122.321.024.516-.098.196-.148.318-.293.49-.148.171-.31.382-.443.513-.148.148-.303.31-.131.606.171.296.76 1.256 1.632 2.033 1.123.999 2.07 1.309 2.366 1.457.296.148.469.124.642-.074.173-.198.742-.865.94-1.162.198-.296.396-.247.668-.148.271.098 1.727.815 2.023.963.296.148.494.222.568.346.074.123.074.715-.17 1.402z"/>
+            </svg>
+            <span>Chat on WhatsApp (+91 81138 99319)</span>
           </a>
         </div>
       </section>
@@ -244,16 +172,20 @@ import { Category } from '../../core/models/category.model';
     <ng-template #loadingState>
       <div class="loading-spinner-box">
         <div class="spinner"></div>
-        <p>Loading stunning fashion collections...</p>
+        <p>Loading fashion collections...</p>
       </div>
     </ng-template>
   `,
   styles: [`
     .section {
-      padding: 72px 0;
+      padding: 64px 0;
     }
     @media (max-width: 768px) {
-      .section { padding: 48px 0; }
+      .section { padding: 40px 0; }
+    }
+
+    .text-center {
+      text-align: center;
     }
 
     /* Categories Grid */
@@ -341,196 +273,66 @@ import { Category } from '../../core/models/category.model';
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     }
 
-    /* Promo Banner */
-    .promo-banner-section {
-      background-color: var(--color-bg-alt);
+    /* Full Width About Section */
+    .full-about-section {
+      padding: 0;
+      margin: 40px 0;
     }
-    .promo-card {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
+    .full-about-banner {
+      position: relative;
+      width: 100%;
+      min-height: 480px;
+      display: flex;
       align-items: center;
-      background: #FFFFFF;
-      padding: 48px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--color-pink-light);
-      box-shadow: var(--shadow-md);
+      overflow: hidden;
     }
-    @media (max-width: 992px) {
-      .promo-card { grid-template-columns: 1fr; padding: 24px; }
+    .full-about-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
-    .promo-badge {
+    .full-about-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%);
+    }
+    .full-about-container {
+      position: relative;
+      z-index: 2;
+      padding-top: 60px;
+      padding-bottom: 60px;
+    }
+    .full-about-content {
+      max-width: 560px;
+      color: #FFFFFF;
+    }
+    .full-about-subtitle {
       display: inline-block;
-      background: var(--color-gold-light);
-      color: var(--color-gold);
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       letter-spacing: 2px;
-      padding: 6px 14px;
-      border-radius: var(--radius-full);
-      margin-bottom: 16px;
-    }
-    .promo-title {
-      font-size: 38px;
-      line-height: 1.2;
-      margin-bottom: 16px;
-    }
-    @media (max-width: 576px) {
-      .promo-title { font-size: 26px; }
-    }
-    .promo-text {
-      font-size: 15px;
-      color: var(--color-muted);
-      margin-bottom: 28px;
-    }
-    .promo-image-group {
-      display: flex;
-      gap: 16px;
-    }
-    .promo-img {
-      width: 50%;
-      height: 320px;
-      object-fit: cover;
-      border-radius: var(--radius-md);
-    }
-
-    /* About Section */
-    .about-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      align-items: center;
-    }
-    @media (max-width: 992px) {
-      .about-grid { grid-template-columns: 1fr; gap: 32px; }
-    }
-    .about-img-box {
-      position: relative;
-    }
-    .about-img {
-      width: 100%;
-      height: 480px;
-      object-fit: cover;
-      border-radius: var(--radius-lg);
-    }
-    .about-accent-badge {
-      position: absolute;
-      bottom: -20px;
-      right: -20px;
-      background-color: var(--color-text-heading);
-      color: #FFFFFF;
-      padding: 24px;
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-lg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .badge-number {
-      font-size: 28px;
-      font-family: var(--font-heading);
-      font-weight: 700;
       color: var(--color-pink);
+      margin-bottom: 12px;
     }
-    .badge-text {
-      font-size: 11px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+    .full-about-title {
+      font-size: 42px;
+      color: #FFFFFF;
+      margin-bottom: 20px;
+      line-height: 1.15;
     }
-    .brand-quote-text {
+    @media (max-width: 768px) {
+      .full-about-title { font-size: 28px; }
+    }
+    .full-about-quote {
       font-style: italic;
       font-size: 16px;
       line-height: 1.6;
-      color: var(--color-muted);
-      margin-bottom: 24px;
-      border-left: 3px solid var(--color-pink);
+      color: #E0E0E0;
+      margin-bottom: 28px;
+      border-left: 3px solid var(--color-gold);
       padding-left: 16px;
-    }
-    .about-features {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-    .feature-item {
-      display: flex;
-      gap: 16px;
-    }
-    .feature-icon {
-      font-size: 24px;
-    }
-
-    /* Why Us */
-    .why-us-section {
-      background-color: var(--color-bg-alt);
-    }
-    .why-us-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-    }
-    @media (max-width: 992px) {
-      .why-us-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 576px) {
-      .why-us-grid { grid-template-columns: 1fr; }
-    }
-    .why-card {
-      background: #FFFFFF;
-      padding: 32px 24px;
-      border-radius: var(--radius-md);
-      text-align: center;
-      border: 1px solid var(--color-border-light);
-      transition: var(--transition);
-    }
-    .why-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-sm);
-      border-color: var(--color-pink);
-    }
-    .why-icon {
-      font-size: 36px;
-      margin-bottom: 16px;
-    }
-    .why-card h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-    .why-card p {
-      font-size: 13px;
-      color: var(--color-muted);
-    }
-
-    /* Reviews */
-    .reviews-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-    @media (max-width: 768px) {
-      .reviews-grid { grid-template-columns: 1fr; }
-    }
-    .review-card {
-      background: #FFFFFF;
-      padding: 32px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--color-border-light);
-      box-shadow: var(--shadow-sm);
-    }
-    .stars {
-      margin-bottom: 12px;
-    }
-    .review-text {
-      font-size: 14px;
-      color: var(--color-text);
-      font-style: italic;
-      margin-bottom: 16px;
-      line-height: 1.6;
-    }
-    .reviewer-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--color-gold);
     }
 
     /* Instagram */
@@ -562,8 +364,10 @@ import { Category } from '../../core/models/category.model';
       background: rgba(0,0,0,0.6);
       color: #FFFFFF;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 8px;
       font-size: 13px;
       font-weight: 600;
       opacity: 0;
@@ -590,7 +394,7 @@ import { Category } from '../../core/models/category.model';
       margin-bottom: 12px;
     }
     .wa-cta-box p {
-      font-size: 16px;
+      font-size: 15px;
       color: #CCCCCC;
       max-width: 600px;
       margin: 0 auto 28px auto;
@@ -598,7 +402,7 @@ import { Category } from '../../core/models/category.model';
     .btn-wa {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       background-color: #25D366;
       color: #FFFFFF;
       padding: 16px 36px;
@@ -648,7 +452,6 @@ export class HomeComponent implements OnInit {
       this.newArrivals = await this.productService.getProducts({ newArrivalOnly: true });
       this.featuredProducts = await this.productService.getProducts({ featuredOnly: true });
       
-      // Fallback sample data if database is empty initially
       if (this.newArrivals.length === 0) {
         this.newArrivals = this.getFallbackProducts();
       }

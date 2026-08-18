@@ -61,9 +61,9 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
                 </td>
                 <td>
                   <strong>{{ order.customer_name }}</strong>
-                  <div class="sub-text">📞 {{ order.customer_phone }}</div>
-                  <div class="sub-text">✉️ {{ order.customer_email }}</div>
-                  <div class="address-text">📍 {{ order.address }}, {{ order.city }} - {{ order.pincode }}</div>
+                  <div class="sub-text">Phone: {{ order.customer_phone }}</div>
+                  <div class="sub-text">Email: {{ order.customer_email }}</div>
+                  <div class="address-text">Address: {{ order.address }}, {{ order.city }} - {{ order.pincode }}</div>
                 </td>
                 <td>
                   <div class="items-list">
@@ -86,10 +86,10 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
                     class="status-select pay-select"
                   >
                     <option value="pending">Pending</option>
-                    <option value="paid">Paid ✅</option>
-                    <option value="awaiting_verification">Awaiting Verification ⏳</option>
-                    <option value="failed">Failed ❌</option>
-                    <option value="refunded">Refunded ↩️</option>
+                    <option value="paid">Paid</option>
+                    <option value="awaiting_verification">Awaiting Verification</option>
+                    <option value="failed">Failed</option>
+                    <option value="refunded">Refunded</option>
                   </select>
                 </td>
                 <td>
@@ -101,14 +101,14 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
                     <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>
                     <option value="packed">Packed</option>
-                    <option value="shipped">Shipped 🚚</option>
-                    <option value="delivered">Delivered 🎉</option>
-                    <option value="cancelled">Cancelled ❌</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
                   </select>
                 </td>
                 <td>
                   <button (click)="openDetailModal(order)" class="detail-btn">
-                    🔍 Full Details
+                    Full Details
                   </button>
                 </td>
               </tr>
@@ -189,12 +189,12 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
 
     .status-select { padding: 6px 10px; font-size: 12px; font-weight: 600; border-radius: 4px; border: 1px solid var(--color-border); }
 
-    .detail-btn { font-size: 12px; color: var(--color-pink-dark); font-weight: 600; }
+    .detail-btn { font-size: 12px; color: var(--color-pink-dark); font-weight: 600; background: transparent; border: none; cursor: pointer; }
 
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px; }
     .modal-box { background: #FFFFFF; width: 100%; max-width: 580px; border-radius: var(--radius-lg); padding: 32px; max-height: 85vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border-light); padding-bottom: 12px; }
-    .close-modal-btn { font-size: 28px; color: var(--color-muted); }
+    .close-modal-btn { font-size: 28px; color: var(--color-muted); background: transparent; border: none; cursor: pointer; }
 
     .detail-row { background: var(--color-bg-alt); padding: 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 4px; }
     .items-heading { margin-bottom: 12px; font-size: 15px; }

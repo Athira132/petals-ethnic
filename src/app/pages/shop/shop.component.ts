@@ -113,7 +113,7 @@ import { Category } from '../../core/models/category.model';
           <!-- Top Bar (Mobile Filter Toggle + Results Count + Sorting) -->
           <div class="shop-toolbar">
             <button class="mobile-filter-btn" (click)="toggleMobileFilter()">
-              ⚡ Filters & Refine
+              Filters & Refine
             </button>
 
             <span class="results-count">
@@ -211,10 +211,16 @@ import { Category } from '../../core/models/category.model';
       color: var(--color-gold);
       font-weight: 600;
       text-transform: uppercase;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
     .close-filter-mobile {
       display: none;
       font-size: 24px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
 
     @media (max-width: 992px) {
@@ -278,6 +284,7 @@ import { Category } from '../../core/models/category.model';
       background: #FFFFFF;
       color: var(--color-text);
       transition: var(--transition);
+      cursor: pointer;
     }
     .size-filter-chip.active {
       background-color: var(--color-pink-dark);
@@ -312,6 +319,8 @@ import { Category } from '../../core/models/category.model';
       border-radius: var(--radius-sm);
       font-weight: 500;
       font-size: 13px;
+      border: none;
+      cursor: pointer;
     }
     @media (max-width: 992px) {
       .mobile-filter-btn { display: block; }

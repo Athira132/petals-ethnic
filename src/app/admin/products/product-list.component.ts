@@ -94,6 +94,7 @@ import { Category } from '../../core/models/category.model';
                 <td>
                   <span *ngIf="prod.featured" class="badge badge-pink">Featured</span>
                   <span *ngIf="prod.new_arrival" class="badge badge-gold">New</span>
+                  <span *ngIf="prod.best_seller" class="badge badge-dark">Best Seller</span>
                 </td>
                 <td>
                   <span class="badge" [class.badge-pink]="prod.active" [class.badge-dark]="!prod.active">
@@ -197,6 +198,11 @@ import { Category } from '../../core/models/category.model';
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="formProduct.new_arrival" name="new_arrival" />
                 <span>New Arrival</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="formProduct.best_seller" name="best_seller" />
+                <span>Best Seller</span>
               </label>
 
               <label class="checkbox-label">

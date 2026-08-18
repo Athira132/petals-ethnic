@@ -54,7 +54,8 @@ CREATE POLICY "Profiles update own or admin" ON public.profiles
 CREATE POLICY "Profiles insert own" ON public.profiles 
   FOR INSERT WITH CHECK (id = auth.uid() OR public.is_admin());
 
--- 4. Fix Products RLS Policies
+-- 4. Fix Products RLS Policies & Ensure best_seller Column Exists
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS best_seller boolean NOT NULL DEFAULT false;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Products view active" ON public.products;

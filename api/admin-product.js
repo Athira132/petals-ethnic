@@ -43,16 +43,33 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Product Name and Price are required.' });
       }
 
-      const { data: insertedProduct, error: prodErr } = await supabase
+      let payload = { ...productPayload };
+      let insertedProduct = null;
+
+      let { data: inserted, error: prodErr } = await supabase
         .from('products')
-        .insert([productPayload])
+        .insert([payload])
         .select()
         .single();
 
-      if (prodErr) {
-        return res.status(500).json({ error: prodErr.message });
+      // If best_seller column is missing in DB schema cache, retry without best_seller
+      if (prodErr && prodErr.message && prodErr.message.includes('best_seller')) {
+        console.warn('best_seller column missing in schema cache, retrying insert without best_seller');
+        delete payload.best_seller;
+        const retryRes = await supabase
+          .from('products')
+          .insert([payload])
+          .select()
+          .single();
+        inserted = retryRes.data;
+        prodErr = retryRes.error;
       }
 
+      if (prodErr || !inserted) {
+        return res.status(500).json({ error: prodErr ? prodErr.message : 'Failed to insert product.' });
+      }
+
+      insertedProduct = inserted;
       const productId = insertedProduct.id;
 
       if (images && images.length > 0) {
@@ -87,16 +104,35 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Product ID is required for update.' });
       }
 
-      const { data: updatedProduct, error: updErr } = await supabase
+      let payload = { ...productPayload };
+      let updatedProduct = null;
+
+      let { data: updated, error: updErr } = await supabase
         .from('products')
-        .update(productPayload)
+        .update(payload)
         .eq('id', id)
         .select()
         .single();
 
-      if (updErr) {
-        return res.status(500).json({ error: updErr.message });
+      // If best_seller column is missing in DB schema cache, retry without best_seller
+      if (updErr && updErr.message && updErr.message.includes('best_seller')) {
+        console.warn('best_seller column missing in schema cache, retrying update without best_seller');
+        delete payload.best_seller;
+        const retryRes = await supabase
+          .from('products')
+          .update(payload)
+          .eq('id', id)
+          .select()
+          .single();
+        updated = retryRes.data;
+        updErr = retryRes.error;
       }
+
+      if (updErr || !updated) {
+        return res.status(500).json({ error: updErr ? updErr.message : 'Failed to update product.' });
+      }
+
+      updatedProduct = updated;
 
       if (images !== undefined) {
         await supabase.from('product_images').delete().eq('product_id', id);

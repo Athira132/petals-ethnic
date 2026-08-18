@@ -96,13 +96,13 @@ export interface HeroSlide {
       height: 100%;
     }
 
-    /* Ultra-Fast, GPU-Accelerated 350ms Transition (No Lag or Blank Frames) */
+    /* Ultra-Fast 300ms GPU-Accelerated Transition (No Delay or Blank Frames) */
     .carousel-slide {
       position: absolute;
       inset: 0;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 350ms cubic-bezier(0.25, 1, 0.5, 1), transform 350ms cubic-bezier(0.25, 1, 0.5, 1);
+      transition: opacity 300ms cubic-bezier(0.25, 1, 0.5, 1), transform 300ms cubic-bezier(0.25, 1, 0.5, 1);
       transform: scale(1.02) translateZ(0);
       will-change: opacity, transform;
       z-index: 1;
@@ -292,9 +292,8 @@ export interface HeroSlide {
     }
 
     .indicator-dot {
-      width: 100px;
-      height: 10px;
       width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.4);
       border: none;
@@ -352,6 +351,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   currentIndex = 0;
   timer: any;
+  initialTimeout: any;
 
   ngOnInit() {
     this.preloadSlideImages();
@@ -375,13 +375,18 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * AUTOMATIC CONTINUOUS LOOPING SLIDER (EVERY 2 SECONDS = 2000MS)
+   * AUTOMATIC CONTINUOUS LOOPING SLIDER:
+   * - 1st transition starts after EXACTLY 1 SECOND (1000ms)
+   * - Subsequent transitions repeat every 2 SECONDS (2000ms)
    */
   startAutoSlider() {
     this.stopTimer();
-    this.timer = setInterval(() => {
-      this.currentIndex = (this.currentIndex + 1) % this.slides.length;
-    }, 2000); // 2 SECONDS AUTOMATIC INTERVAL
+    this.initialTimeout = setTimeout(() => {
+      this.currentIndex = 1;
+      this.timer = setInterval(() => {
+        this.currentIndex = (this.currentIndex + 1) % this.slides.length;
+      }, 2000);
+    }, 1000);
   }
 
   goToSlide(index: number) {
@@ -390,8 +395,13 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   stopTimer() {
+    if (this.initialTimeout) {
+      clearTimeout(this.initialTimeout);
+      this.initialTimeout = null;
+    }
     if (this.timer) {
       clearInterval(this.timer);
+      this.timer = null;
     }
   }
 }

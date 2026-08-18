@@ -14,7 +14,7 @@ import { Category } from '../../core/models/category.model';
   imports: [CommonModule, RouterModule, HeroCarouselComponent, ProductCardComponent],
   template: `
     <main class="home-page">
-      <!-- 1. Hero Fashion Showcase (Automatic 3s Ping-Pong, Clean Design) -->
+      <!-- 1. Hero Fashion Showcase (85-90% Viewport Height, Auto 2s Slider) -->
       <app-hero-carousel></app-hero-carousel>
 
       <!-- 2. Featured Categories -->
@@ -86,19 +86,45 @@ import { Category } from '../../core/models/category.model';
         </div>
       </section>
 
-      <!-- 5. Full-Width Visual About Showcase -->
-      <section class="section full-about-section">
-        <div class="full-about-banner">
-          <img src="https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg" alt="Petals Ethnic Boutique" class="full-about-img" />
-          <div class="full-about-overlay"></div>
-          <div class="container full-about-container">
-            <div class="full-about-content">
-              <span class="full-about-subtitle">OUR BRAND STORY</span>
-              <h2 class="full-about-title">Welcome to Petals Ethnic</h2>
-              <p class="full-about-quote">
-                "Step up your style with our latest fashion collection. We offer premium quality fabrics and trendy designs that fit every occasion. Let us know what you are looking for, and we'll be happy to help you find the best outfit!"
+      <!-- 5. Editorial Two-Column Photo + Text "Our Story" Section -->
+      <section class="section story-editorial-section">
+        <div class="container">
+          <div class="story-grid">
+            <!-- Left Side: Large High Quality Image -->
+            <div class="story-image-col">
+              <div class="story-image-frame">
+                <img 
+                  src="https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg" 
+                  alt="Petals Ethnic Boutique Craftsmanship" 
+                  class="story-img" 
+                  loading="lazy"
+                />
+                <div class="story-badge-floating">
+                  <span>HANDWORKED ELEGANCE</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side: Heading & Short Elegant Description -->
+            <div class="story-text-col">
+              <span class="story-subtitle">OUR BOUTIQUE HERITAGE</span>
+              <h2 class="story-title">Our Story</h2>
+              
+              <p class="story-paragraph lead-p">
+                Founded with a passion for authentic ethnic craftsmanship, Petals Ethnic brings together timeless Indian silhouettes and contemporary boutique elegance.
               </p>
-              <a routerLink="/about" class="btn-primary full-about-btn">Discover Our Story &rarr;</a>
+              
+              <p class="story-paragraph">
+                From handpicked breathable fabrics to delicate watercolor floral drapes, intricate embroidery, and traditional Kerala Kasavu zari weaves, every garment is thoughtfully created to celebrate your unique grace.
+              </p>
+
+              <p class="story-paragraph">
+                Whether you are dressing for a joyous festive family gathering, a serene temple ritual, or a modern celebration, our boutique collection ensures effortless fit, regal flair, and supreme comfort.
+              </p>
+
+              <div class="story-cta-box">
+                <a routerLink="/about" class="btn-primary story-btn">Discover Our Story &rarr;</a>
+              </div>
             </div>
           </div>
         </div>
@@ -273,66 +299,114 @@ import { Category } from '../../core/models/category.model';
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     }
 
-    /* Full Width About Section */
-    .full-about-section {
-      padding: 0;
-      margin: 40px 0;
+    /* Clean Two-Column Editorial "Our Story" Section */
+    .story-editorial-section {
+      background-color: #FAF8F6;
+      border-top: 1px solid var(--color-border-light);
+      border-bottom: 1px solid var(--color-border-light);
     }
-    .full-about-banner {
-      position: relative;
-      width: 100%;
-      min-height: 480px;
-      display: flex;
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
       align-items: center;
-      overflow: hidden;
     }
-    .full-about-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    @media (max-width: 992px) {
+      .story-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
     }
-    .full-about-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%);
-    }
-    .full-about-container {
+
+    .story-image-col {
       position: relative;
-      z-index: 2;
-      padding-top: 60px;
-      padding-bottom: 60px;
     }
-    .full-about-content {
-      max-width: 560px;
-      color: #FFFFFF;
+    .story-image-frame {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--color-border);
     }
-    .full-about-subtitle {
+    .story-img {
+      width: 100%;
+      height: 480px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s ease;
+    }
+    .story-image-frame:hover .story-img {
+      transform: scale(1.03);
+    }
+
+    .story-badge-floating {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #9F3D62;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .story-text-col {
+      padding: 10px 0;
+    }
+    .story-subtitle {
       display: inline-block;
       font-size: 12px;
       font-weight: 700;
-      letter-spacing: 2px;
-      color: var(--color-pink);
-      margin-bottom: 12px;
+      letter-spacing: 2.5px;
+      color: #9F3D62;
+      text-transform: uppercase;
+      margin-bottom: 10px;
     }
-    .full-about-title {
-      font-size: 42px;
-      color: #FFFFFF;
+    .story-title {
+      font-size: 38px;
+      font-weight: 700;
+      color: var(--color-text-heading);
       margin-bottom: 20px;
-      line-height: 1.15;
+      line-height: 1.2;
     }
     @media (max-width: 768px) {
-      .full-about-title { font-size: 28px; }
+      .story-title { font-size: 28px; }
+      .story-img { height: 360px; }
     }
-    .full-about-quote {
-      font-style: italic;
-      font-size: 16px;
+    @media (max-width: 480px) {
+      .story-img { height: 300px; }
+    }
+
+    .story-paragraph {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--color-muted);
+      margin-bottom: 16px;
+    }
+    .story-paragraph.lead-p {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--color-text);
       line-height: 1.6;
-      color: #E0E0E0;
-      margin-bottom: 28px;
-      border-left: 3px solid var(--color-gold);
-      padding-left: 16px;
+    }
+
+    .story-cta-box {
+      margin-top: 28px;
+    }
+    .story-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     /* Instagram */

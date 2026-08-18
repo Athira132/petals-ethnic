@@ -41,7 +41,7 @@ export interface HeroSlide {
               <div class="hero-cta-group">
                 <a [routerLink]="slide.ctaLink" class="btn-hero-primary">
                   {{ slide.ctaText }}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
@@ -66,27 +66,27 @@ export interface HeroSlide {
     </section>
   `,
   styles: [`
+    /* 85-90% Viewport Height Hero Banner */
     .hero-carousel-section {
       position: relative;
       width: 100%;
-      height: 56vh;
-      min-height: 420px;
-      max-height: 520px;
+      height: 88vh;
+      min-height: 600px;
+      max-height: 850px;
       overflow: hidden;
       background-color: #0D0D0D;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       .hero-carousel-section {
-        height: 45vh;
-        min-height: 340px;
-        max-height: 400px;
+        height: 82vh;
+        min-height: 520px;
       }
     }
-    @media (max-width: 480px) {
+    @media (max-width: 576px) {
       .hero-carousel-section {
-        height: 42vh;
-        min-height: 320px;
-        max-height: 360px;
+        height: 78vh;
+        min-height: 480px;
+        max-height: 620px;
       }
     }
 
@@ -126,9 +126,9 @@ export interface HeroSlide {
       inset: 0;
       background: linear-gradient(
         90deg, 
-        rgba(0, 0, 0, 0.75) 0%, 
-        rgba(0, 0, 0, 0.48) 50%, 
-        rgba(0, 0, 0, 0.22) 100%
+        rgba(0, 0, 0, 0.78) 0%, 
+        rgba(0, 0, 0, 0.50) 50%, 
+        rgba(0, 0, 0, 0.25) 100%
       );
       z-index: 2;
     }
@@ -144,89 +144,76 @@ export interface HeroSlide {
     }
     @media (max-width: 768px) {
       .hero-container {
-        padding: 0 20px;
+        padding: 0 24px;
       }
     }
 
     .hero-content {
-      max-width: 540px;
+      max-width: 600px;
       color: #FFFFFF;
-      animation: fadeInUp 0.6s ease-out forwards;
+      animation: fadeInUp 0.7s ease-out forwards;
     }
 
     .hero-badge {
       display: inline-block;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #F8BBD0;
-      background: rgba(159, 61, 98, 0.3);
+      background: rgba(159, 61, 98, 0.35);
       border: 1px solid rgba(248, 187, 208, 0.4);
-      padding: 4px 12px;
-      border-radius: 16px;
-      margin-bottom: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
       backdrop-filter: blur(4px);
     }
     @media (max-width: 480px) {
       .hero-badge {
-        font-size: 9px;
-        padding: 3px 10px;
-        margin-bottom: 8px;
+        font-size: 10px;
+        padding: 4px 12px;
+        margin-bottom: 10px;
       }
     }
 
     .hero-title {
-      font-size: 36px;
+      font-size: 46px;
       font-weight: 700;
       line-height: 1.15;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       letter-spacing: -0.5px;
       color: #FFFFFF;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
     }
-    @media (max-width: 768px) {
-      .hero-title {
-        font-size: 24px;
-        margin-bottom: 8px;
-      }
+    @media (max-width: 992px) {
+      .hero-title { font-size: 36px; }
     }
-    @media (max-width: 480px) {
+    @media (max-width: 576px) {
       .hero-title {
-        font-size: 20px;
-        margin-bottom: 6px;
+        font-size: 26px;
+        margin-bottom: 10px;
       }
     }
 
     .hero-subtitle {
-      font-size: 14px;
-      line-height: 1.45;
+      font-size: 16px;
+      line-height: 1.5;
       color: rgba(255, 255, 255, 0.95);
-      margin-bottom: 22px;
+      margin-bottom: 28px;
       font-weight: 400;
       text-shadow: 0 1px 4px rgba(0,0,0,0.6);
     }
     @media (max-width: 768px) {
       .hero-subtitle {
-        font-size: 12px;
-        line-height: 1.35;
-        margin-bottom: 16px;
-      }
-    }
-    @media (max-width: 480px) {
-      .hero-subtitle {
-        font-size: 11px;
-        margin-bottom: 14px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        font-size: 13px;
+        line-height: 1.4;
+        margin-bottom: 20px;
       }
     }
 
     .hero-cta-group {
       display: flex;
-      gap: 12px;
+      gap: 14px;
       align-items: center;
       flex-wrap: wrap;
     }
@@ -234,12 +221,12 @@ export interface HeroSlide {
     .btn-hero-primary {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background-color: #9F3D62;
       color: #FFFFFF !important;
-      padding: 12px 24px;
+      padding: 14px 28px;
       border-radius: 30px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       text-decoration: none;
       transition: all 0.3s ease;
@@ -258,9 +245,9 @@ export interface HeroSlide {
       align-items: center;
       background-color: #9F3D62;
       color: #FFFFFF !important;
-      padding: 12px 22px;
+      padding: 14px 26px;
       border-radius: 30px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       text-decoration: none;
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -277,16 +264,16 @@ export interface HeroSlide {
 
     @media (max-width: 480px) {
       .btn-hero-primary, .btn-hero-explore {
-        padding: 9px 16px;
-        font-size: 11px;
-        min-height: 38px;
+        padding: 10px 18px;
+        font-size: 12px;
+        min-height: 40px;
       }
     }
 
     /* Minimal Unobtrusive Bottom Indicators */
     .carousel-indicators {
       position: absolute;
-      bottom: 16px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 4;
@@ -392,7 +379,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   goToSlide(index: number) {
     this.currentIndex = index;
-    this.startAutoSlider(); // Reset 2s timer on manual click
+    this.startAutoSlider();
   }
 
   stopTimer() {

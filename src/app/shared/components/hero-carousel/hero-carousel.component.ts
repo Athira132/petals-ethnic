@@ -46,7 +46,7 @@ export interface HeroSlide {
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
                 </a>
-                <a routerLink="/shop" class="btn-hero-outline">Explore All Categories</a>
+                <a routerLink="/shop" class="btn-hero-explore">Explore All Categories</a>
               </div>
             </div>
           </div>
@@ -66,8 +66,8 @@ export interface HeroSlide {
     }
     @media (max-width: 768px) {
       .hero-carousel-section {
-        height: 56vh;
-        min-height: 380px;
+        height: 58vh;
+        min-height: 400px;
       }
     }
 
@@ -101,15 +101,15 @@ export interface HeroSlide {
       background-repeat: no-repeat;
     }
 
-    /* Subtle Overlay for Readability */
+    /* Subtle Dark Gradient Overlay for High Contrast */
     .slide-overlay {
       position: absolute;
       inset: 0;
       background: linear-gradient(
         90deg, 
-        rgba(0, 0, 0, 0.65) 0%, 
-        rgba(0, 0, 0, 0.40) 50%, 
-        rgba(0, 0, 0, 0.15) 100%
+        rgba(0, 0, 0, 0.72) 0%, 
+        rgba(0, 0, 0, 0.45) 50%, 
+        rgba(0, 0, 0, 0.20) 100%
       );
       z-index: 2;
     }
@@ -142,8 +142,8 @@ export interface HeroSlide {
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #F8BBD0;
-      background: rgba(248, 187, 208, 0.15);
-      border: 1px solid rgba(248, 187, 208, 0.3);
+      background: rgba(159, 61, 98, 0.25);
+      border: 1px solid rgba(248, 187, 208, 0.4);
       padding: 6px 14px;
       border-radius: 20px;
       margin-bottom: 16px;
@@ -157,7 +157,7 @@ export interface HeroSlide {
       margin-bottom: 16px;
       letter-spacing: -0.5px;
       color: #FFFFFF;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
     @media (max-width: 768px) {
       .hero-title {
@@ -169,10 +169,10 @@ export interface HeroSlide {
     .hero-subtitle {
       font-size: 16px;
       line-height: 1.5;
-      color: rgba(255, 255, 255, 0.9);
+      color: rgba(255, 255, 255, 0.95);
       margin-bottom: 28px;
-      font-weight: 300;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      font-weight: 400;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
     }
     @media (max-width: 768px) {
       .hero-subtitle {
@@ -189,49 +189,56 @@ export interface HeroSlide {
       flex-wrap: wrap;
     }
 
+    /* High Visibility Dark Pink Explore Button */
     .btn-hero-primary {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background-color: var(--color-pink, #C05676);
-      color: #FFFFFF;
+      background-color: #9F3D62;
+      color: #FFFFFF !important;
       padding: 14px 28px;
       border-radius: 30px;
       font-size: 14px;
       font-weight: 600;
       text-decoration: none;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(192, 86, 118, 0.4);
+      box-shadow: 0 4px 16px rgba(159, 61, 98, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .btn-hero-primary:hover {
-      background-color: #a84462;
+      background-color: #7F2A4C;
+      color: #FFFFFF !important;
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(192, 86, 118, 0.5);
+      box-shadow: 0 6px 22px rgba(127, 42, 76, 0.6);
     }
 
-    .btn-hero-outline {
+    .btn-hero-explore {
       display: inline-flex;
       align-items: center;
-      background: rgba(255, 255, 255, 0.1);
-      color: #FFFFFF;
-      padding: 14px 24px;
+      background-color: #9F3D62;
+      color: #FFFFFF !important;
+      padding: 14px 26px;
       border-radius: 30px;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       text-decoration: none;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 16px rgba(159, 61, 98, 0.4);
       transition: all 0.3s ease;
     }
-    .btn-hero-outline:hover {
-      background: rgba(255, 255, 255, 0.25);
+    .btn-hero-explore:hover {
+      background-color: #7F2A4C;
+      color: #FFFFFF !important;
+      transform: translateY(-2px);
       border-color: #FFFFFF;
+      box-shadow: 0 6px 22px rgba(127, 42, 76, 0.6);
     }
 
     @media (max-width: 480px) {
-      .btn-hero-primary, .btn-hero-outline {
-        padding: 10px 18px;
-        font-size: 12px;
+      .btn-hero-primary, .btn-hero-explore {
+        padding: 12px 20px;
+        font-size: 13px;
+        min-height: 44px;
       }
     }
 

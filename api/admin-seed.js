@@ -20,13 +20,24 @@ export default async function handler(req, res) {
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   try {
+    // 1. Fetch categories to get valid category_id values
+    const { data: existingCategories, error: catErr } = await supabase.from('categories').select('id, slug, name');
+    if (catErr) {
+      return res.status(500).json({ error: 'Failed to fetch categories: ' + catErr.message });
+    }
+
+    const catMap = {};
+    (existingCategories || []).forEach(c => {
+      catMap[c.slug] = c.id;
+    });
+
     const productsToSeed = [
       {
         id: 'a1111111-1111-1111-1111-111111111111',
         name: 'Elegance Floral Printed A-Line Midi Dress',
         slug: 'elegance-floral-printed-aline-midi-dress',
         description: 'Stunning floral printed A-line midi dress tailored in lightweight, breathable fabric featuring a graceful drape.',
-        category_id: '11111111-1111-1111-1111-111111111111',
+        category_slug: 'aline-midi-dress',
         price: 2499,
         sale_price: 1899,
         sku: 'PE-MD-001',
@@ -42,7 +53,7 @@ export default async function handler(req, res) {
         name: 'Watercolor Botanical Floral Print A-Line Kurti',
         slug: 'watercolor-botanical-floral-print-aline-kurti',
         description: 'Vibrant watercolor botanical floral print kurti crafted for a charming ethnic flair.',
-        category_id: '22222222-2222-2222-2222-222222222222',
+        category_slug: 'aline-kurti-floral-print',
         price: 1999,
         sale_price: 1499,
         sku: 'PE-AKF-002',
@@ -58,7 +69,7 @@ export default async function handler(req, res) {
         name: 'Classic Cotton Slub A-Line Kurti',
         slug: 'classic-cotton-slub-aline-kurti',
         description: 'Soft cotton slub A-line kurti perfect for casual days and office elegance.',
-        category_id: '33333333-3333-3333-3333-333333333333',
+        category_slug: 'aline-kurti',
         price: 1799,
         sale_price: 1299,
         sku: 'PE-AK-003',
@@ -74,7 +85,7 @@ export default async function handler(req, res) {
         name: 'Royal Festive Embroidered Anarkali Set',
         slug: 'royal-festive-embroidered-anarkali-set',
         description: 'Regal flare Anarkali set intricately embroidered for wedding functions and celebratory moments.',
-        category_id: '44444444-4444-4444-4444-444444444444',
+        category_slug: 'anarkali',
         price: 3999,
         sale_price: 2999,
         sku: 'PE-AN-004',
@@ -90,7 +101,7 @@ export default async function handler(req, res) {
         name: 'Contemporary Ethnic Co-Ord Set',
         slug: 'contemporary-ethnic-coord-set',
         description: 'Modern coordinated two-piece ethnic set blending high fashion with ultimate comfort.',
-        category_id: '55555555-5555-5555-5555-555555555555',
+        category_slug: 'codeset',
         price: 2899,
         sale_price: 2199,
         sku: 'PE-CS-005',
@@ -106,7 +117,7 @@ export default async function handler(req, res) {
         name: 'Traditional Golden Kasavu Tissue Silk Kurta',
         slug: 'traditional-golden-kasavu-tissue-silk-kurta',
         description: 'Authentic Kerala golden zari Kasavu kurta woven in shimmering tissue silk.',
-        category_id: '66666666-6666-6666-6666-666666666666',
+        category_slug: 'tissue-silk-kasavu-kurta',
         price: 3499,
         sale_price: 2699,
         sku: 'PE-TSK-006',
@@ -122,7 +133,7 @@ export default async function handler(req, res) {
         name: 'Everyday Soft Cotton Straight Fit Kurti',
         slug: 'everyday-soft-cotton-straight-fit-kurti',
         description: 'Breathable, relaxed straight fit kurti designed for day-long ease and style.',
-        category_id: '77777777-7777-7777-7777-777777777777',
+        category_slug: 'normal-kurti',
         price: 1499,
         sale_price: 999,
         sku: 'PE-NK-007',
@@ -138,7 +149,7 @@ export default async function handler(req, res) {
         name: 'Traditional Kanjeevaram Silk Festive Saree',
         slug: 'traditional-kanjeevaram-silk-festive-saree',
         description: 'Exquisite silk saree featuring intricate zari borders and a rich festive pallu.',
-        category_id: '0204c7f0-7043-49f1-a1bd-33d29d40c3d4',
+        category_slug: 'sarees',
         price: 4999,
         sale_price: 3799,
         sku: 'PE-SR-008',
@@ -151,43 +162,53 @@ export default async function handler(req, res) {
       }
     ];
 
+    const errors = [];
     const insertedProducts = [];
 
     for (const prod of productsToSeed) {
-      const { image, ...prodData } = prod;
+      const { image, category_slug, ...prodData } = prod;
+      prodData.category_id = catMap[category_slug] || null;
 
-      const { data: pRes, error: pErr } = await supabase.from('products').upsert(prodData).select();
+      const { data: pRes, error: pErr } = await supabase
+        .from('products')
+        .upsert([prodData])
+        .select();
+
       if (pErr) {
-        console.error('Product upsert error:', pErr.message);
+        console.error('Product upsert error:', prod.name, pErr);
+        errors.push({ product: prod.name, error: pErr.message });
         continue;
       }
-      insertedProducts.push(pRes[0].name);
 
-      await supabase.from('product_images').upsert({
-        product_id: prod.id,
-        image_url: image,
-        is_primary: true,
-        display_order: 1
-      });
+      if (pRes && pRes.length > 0) {
+        insertedProducts.push(pRes[0].name);
 
-      const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-      for (const sz of sizeOptions) {
-        await supabase.from('product_sizes').upsert({
+        await supabase.from('product_images').upsert([{
           product_id: prod.id,
-          size: sz,
-          stock: Math.floor(prod.stock / 6),
-          stock_quantity: Math.floor(prod.stock / 6),
-          is_available: true,
-          status: 'in_stock'
-        });
+          image_url: image,
+          is_primary: true,
+          display_order: 1
+        }]);
+
+        const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+        for (const sz of sizeOptions) {
+          await supabase.from('product_sizes').upsert([{
+            product_id: prod.id,
+            size: sz,
+            stock: Math.floor(prod.stock / 6),
+            stock_quantity: Math.floor(prod.stock / 6),
+            is_available: true,
+            status: 'in_stock'
+          }]);
+        }
       }
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Product catalog seeded successfully!',
       seededProductsCount: insertedProducts.length,
-      products: insertedProducts
+      products: insertedProducts,
+      errors
     });
 
   } catch (err) {

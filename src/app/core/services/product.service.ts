@@ -51,7 +51,6 @@ export class ProductService {
       console.warn('Direct category query failed, falling back to API:', e);
     }
 
-    // Fallback to serverless endpoint
     try {
       const res = await fetch('/api/admin-category');
       const contentType = res.headers.get('content-type') || '';
@@ -91,7 +90,6 @@ export class ProductService {
       rawSlug = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     }
 
-    // 1. Check for duplicate slug
     const categories = await this.getCategories(false);
     const existing = categories.find(c => c.slug === rawSlug);
     if (existing) {
@@ -107,7 +105,6 @@ export class ProductService {
       display_order: Number(category.display_order) || 0
     };
 
-    // 2. Try direct Supabase insert
     const { data, error } = await this.supabaseService.supabase
       .from('categories')
       .insert([payload])
@@ -121,7 +118,6 @@ export class ProductService {
 
     console.warn('Direct Supabase category insert notice, using API endpoint:', error?.message);
 
-    // 3. Fallback to API endpoint
     const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
     const token = session ? session.access_token : '';
 
@@ -236,7 +232,6 @@ export class ProductService {
   async getProducts(options: ProductFilterOptions = {}): Promise<Product[]> {
     let products: Product[] = [];
 
-    // Try direct Supabase query first
     try {
       let query = this.supabaseService.supabase
         .from('products')
@@ -285,7 +280,6 @@ export class ProductService {
       console.warn('Direct product query notice, using API fallback:', e);
     }
 
-    // If direct query returned 0 products or RLS error, use API serverless endpoint
     if (products.length === 0) {
       try {
         const res = await fetch('/api/admin-product');
@@ -301,7 +295,6 @@ export class ProductService {
       }
     }
 
-    // Apply active filter if requested
     if (options.activeOnly !== false) {
       products = products.filter(p => p.active !== false);
     }
@@ -371,45 +364,68 @@ export class ProductService {
       availability: totalStock > 0 ? 'in_stock' : 'sold_out'
     };
 
-    const { data: insertedProduct, error: prodErr } = await this.supabaseService.supabase
-      .from('products')
-      .insert([productPayload])
-      .select()
-      .single();
+    // 1. Try direct Supabase insert
+    try {
+      const { data: insertedProduct, error: prodErr } = await this.supabaseService.supabase
+        .from('products')
+        .insert([productPayload])
+        .select()
+        .single();
 
-    if (prodErr) throw prodErr;
+      if (!prodErr && insertedProduct) {
+        const productId = insertedProduct.id;
 
-    const productId = insertedProduct.id;
+        if (images && images.length > 0) {
+          const imagePayloads = images.map((imgUrl, idx) => ({
+            product_id: productId,
+            image_url: imgUrl.trim(),
+            is_primary: idx === 0,
+            display_order: idx + 1
+          }));
+          await this.supabaseService.supabase.from('product_images').insert(imagePayloads);
+        }
 
-    if (images && images.length > 0) {
-      const imagePayloads = images.map((imgUrl, idx) => ({
-        product_id: productId,
-        image_url: imgUrl.trim(),
-        is_primary: idx === 0,
-        display_order: idx + 1
-      }));
+        if (sizes && sizes.length > 0) {
+          const sizePayloads = sizes.map(sz => ({
+            product_id: productId,
+            size: sz.size,
+            stock: Number(sz.stock) || 0,
+            stock_quantity: Number(sz.stock) || 0,
+            is_available: (Number(sz.stock) || 0) > 0,
+            status: (Number(sz.stock) || 0) > 0 ? 'in_stock' : 'sold_out'
+          }));
+          await this.supabaseService.supabase.from('product_sizes').insert(sizePayloads);
+        }
 
-      await this.supabaseService.supabase
-        .from('product_images')
-        .insert(imagePayloads);
+        return this.getProductById(productId) as Promise<Product>;
+      }
+    } catch (e) {
+      console.warn('Direct product creation notice, using API endpoint:', e);
     }
 
-    if (sizes && sizes.length > 0) {
-      const sizePayloads = sizes.map(sz => ({
-        product_id: productId,
-        size: sz.size,
-        stock: Number(sz.stock) || 0,
-        stock_quantity: Number(sz.stock) || 0,
-        is_available: (Number(sz.stock) || 0) > 0,
-        status: (Number(sz.stock) || 0) > 0 ? 'in_stock' : 'sold_out'
-      }));
+    // 2. Fallback to serverless API endpoint
+    const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
+    const token = session ? session.access_token : '';
 
-      await this.supabaseService.supabase
-        .from('product_sizes')
-        .insert(sizePayloads);
+    const res = await fetch('/api/admin-product', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ productPayload, images, sizes })
+    });
+
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || 'Failed to create product in database.');
+      }
+      return resData.product;
+    } else {
+      throw new Error('Failed to create product in database.');
     }
-
-    return this.getProductById(productId) as Promise<Product>;
   }
 
   async updateProduct(
@@ -441,56 +457,71 @@ export class ProductService {
       productPayload.availability = totalStock > 0 ? 'in_stock' : 'sold_out';
     }
 
-    const { error: updErr } = await this.supabaseService.supabase
-      .from('products')
-      .update(productPayload)
-      .eq('id', id);
+    // 1. Try direct Supabase update
+    try {
+      const { error: updErr } = await this.supabaseService.supabase
+        .from('products')
+        .update(productPayload)
+        .eq('id', id);
 
-    if (updErr) throw updErr;
+      if (!updErr) {
+        if (images !== undefined) {
+          await this.supabaseService.supabase.from('product_images').delete().eq('product_id', id);
+          if (images.length > 0) {
+            const imagePayloads = images.map((imgUrl, idx) => ({
+              product_id: id,
+              image_url: imgUrl.trim(),
+              is_primary: idx === 0,
+              display_order: idx + 1
+            }));
+            await this.supabaseService.supabase.from('product_images').insert(imagePayloads);
+          }
+        }
 
-    if (images !== undefined) {
-      await this.supabaseService.supabase
-        .from('product_images')
-        .delete()
-        .eq('product_id', id);
+        if (sizes !== undefined) {
+          await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
+          if (sizes.length > 0) {
+            const sizePayloads = sizes.map(sz => ({
+              product_id: id,
+              size: sz.size,
+              stock: Number(sz.stock) || 0,
+              stock_quantity: Number(sz.stock) || 0,
+              is_available: (Number(sz.stock) || 0) > 0,
+              status: (Number(sz.stock) || 0) > 0 ? 'in_stock' : 'sold_out'
+            }));
+            await this.supabaseService.supabase.from('product_sizes').insert(sizePayloads);
+          }
+        }
 
-      if (images.length > 0) {
-        const imagePayloads = images.map((imgUrl, idx) => ({
-          product_id: id,
-          image_url: imgUrl.trim(),
-          is_primary: idx === 0,
-          display_order: idx + 1
-        }));
-
-        await this.supabaseService.supabase
-          .from('product_images')
-          .insert(imagePayloads);
+        return (await this.getProductById(id)) as Product;
       }
+    } catch (e) {
+      console.warn('Direct product update notice, using API endpoint:', e);
     }
 
-    if (sizes !== undefined) {
-      await this.supabaseService.supabase
-        .from('product_sizes')
-        .delete()
-        .eq('product_id', id);
+    // 2. Fallback to serverless API endpoint
+    const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
+    const token = session ? session.access_token : '';
 
-      if (sizes.length > 0) {
-        const sizePayloads = sizes.map(sz => ({
-          product_id: id,
-          size: sz.size,
-          stock: Number(sz.stock) || 0,
-          stock_quantity: Number(sz.stock) || 0,
-          is_available: (Number(sz.stock) || 0) > 0,
-          status: (Number(sz.stock) || 0) > 0 ? 'in_stock' : 'sold_out'
-        }));
+    const res = await fetch('/api/admin-product', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ id, productPayload, images, sizes })
+    });
 
-        await this.supabaseService.supabase
-          .from('product_sizes')
-          .insert(sizePayloads);
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || 'Failed to update product in database.');
       }
+      return resData.product;
+    } else {
+      throw new Error('Failed to update product in database.');
     }
-
-    return this.getProductById(id) as Promise<Product>;
   }
 
   async deleteProduct(id: string): Promise<boolean> {
@@ -499,8 +530,28 @@ export class ProductService {
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
-    return true;
+    if (!error) return true;
+
+    const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
+    const token = session ? session.access_token : '';
+
+    const res = await fetch(`/api/admin-product?id=${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || 'Failed to delete product.');
+      }
+      return true;
+    } else {
+      throw new Error('Failed to delete product.');
+    }
   }
 
   async updateSizeStock(sizeId: string, stock: number): Promise<boolean> {

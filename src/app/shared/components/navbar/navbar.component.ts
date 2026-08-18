@@ -329,6 +329,16 @@ import { UserProfile } from '../../../core/models/user.model';
       .mobile-toggle { display: block; }
     }
 
+    @media (max-width: 480px) {
+      .navbar-container { height: 66px; padding: 0 12px; }
+      .brand-logo { gap: 8px; }
+      .logo-circle { width: 38px; height: 38px; }
+      .brand-name { font-size: 14px; letter-spacing: 0.8px; }
+      .brand-tagline { font-size: 7.5px; letter-spacing: 1.2px; }
+      .nav-actions { gap: 6px; }
+      .search-box.active .search-input { width: 130px; font-size: 12px; }
+    }
+
     /* Mobile Drawer */
     .mobile-drawer-overlay {
       position: fixed;

@@ -16,8 +16,14 @@ import { Order } from '../../core/models/order.model';
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="checkout-page" *ngIf="summary && summary.items.length > 0; else emptyCheckout">
-      <div class="container">
-        <h1 class="page-title">Checkout & Payment</h1>
+      <div class="page-hero-banner checkout-hero-bg">
+        <div class="container">
+          <h1 class="page-hero-title">Checkout & Secure Payment</h1>
+          <p class="page-hero-subtitle">Enter your shipping address, review order items, and select your preferred payment mode.</p>
+        </div>
+      </div>
+
+      <div class="container checkout-container">
 
         <div class="checkout-grid">
           <!-- Left Column: Shipping & Payment Form -->
@@ -277,12 +283,34 @@ import { Order } from '../../core/models/order.model';
     </ng-template>
   `,
   styles: [`
-    .checkout-page {
-      padding: 48px 0 80px 0;
+    .page-hero-banner {
+      position: relative;
+      background: linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png') center/cover no-repeat;
+      padding: 50px 20px;
+      text-align: center;
+      color: #FFFFFF;
+      margin-bottom: 30px;
     }
-    .page-title {
-      font-size: 36px;
-      margin-bottom: 32px;
+    .page-hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .page-hero-subtitle {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    @media (max-width: 768px) {
+      .page-hero-banner { padding: 36px 16px; margin-bottom: 20px; }
+      .page-hero-title { font-size: 22px; }
+      .page-hero-subtitle { font-size: 12px; }
+    }
+
+    .checkout-page {
+      padding: 0 0 80px 0;
     }
 
     .checkout-grid {

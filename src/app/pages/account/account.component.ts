@@ -13,7 +13,14 @@ import { Order } from '../../core/models/order.model';
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="account-page" *ngIf="profile; else loadingBlock">
-      <div class="container">
+      <div class="page-hero-banner account-hero-bg">
+        <div class="container">
+          <h1 class="page-hero-title">My Account & Orders</h1>
+          <p class="page-hero-subtitle">Manage your personal profile, track active orders, and view past purchases.</p>
+        </div>
+      </div>
+
+      <div class="container account-container">
         <!-- Account Header -->
         <div class="account-header-box">
           <div>
@@ -130,8 +137,34 @@ import { Order } from '../../core/models/order.model';
     </ng-template>
   `,
   styles: [`
+    .page-hero-banner {
+      position: relative;
+      background: linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png') center/cover no-repeat;
+      padding: 50px 20px;
+      text-align: center;
+      color: #FFFFFF;
+      margin-bottom: 30px;
+    }
+    .page-hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .page-hero-subtitle {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    @media (max-width: 768px) {
+      .page-hero-banner { padding: 36px 16px; margin-bottom: 20px; }
+      .page-hero-title { font-size: 22px; }
+      .page-hero-subtitle { font-size: 12px; }
+    }
+
     .account-page {
-      padding: 48px 0 80px 0;
+      padding: 0 0 80px 0;
     }
     .account-header-box {
       background-color: var(--color-bg-alt);

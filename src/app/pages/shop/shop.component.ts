@@ -162,18 +162,28 @@ import { Category } from '../../core/models/category.model';
   `,
   styles: [`
     .shop-header-banner {
-      background-color: var(--color-bg-alt);
-      border-bottom: 1px solid var(--color-border-light);
-      padding: 48px 0;
+      position: relative;
+      background: linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png') center/cover no-repeat;
+      padding: 60px 20px;
       text-align: center;
+      color: #FFFFFF;
     }
     .shop-title {
       font-size: 36px;
+      font-weight: 700;
+      color: #FFFFFF;
       margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
     .shop-subtitle {
       font-size: 15px;
-      color: var(--color-muted);
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    @media (max-width: 768px) {
+      .shop-header-banner { padding: 40px 16px; }
+      .shop-title { font-size: 24px; }
+      .shop-subtitle { font-size: 13px; }
     }
 
     .shop-container {

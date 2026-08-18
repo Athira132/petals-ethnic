@@ -11,9 +11,14 @@ import { Observable } from 'rxjs';
   imports: [CommonModule, RouterModule],
   template: `
     <div class="cart-page">
-      <div class="container">
-        <h1 class="page-title">Your Shopping Cart</h1>
+      <div class="page-hero-banner cart-hero-bg">
+        <div class="container">
+          <h1 class="page-hero-title">Your Shopping Bag</h1>
+          <p class="page-hero-subtitle">Review your selected ethnic styles, select size quantities, and proceed to secure checkout.</p>
+        </div>
+      </div>
 
+      <div class="container cart-container">
         <div *ngIf="(cartSummary$ | async) as summary; else emptyCart">
           <div class="cart-layout" *ngIf="summary.items.length > 0; else emptyCart">
             <!-- Items List -->
@@ -131,6 +136,32 @@ import { Observable } from 'rxjs';
     </ng-template>
   `,
   styles: [`
+    .page-hero-banner {
+      position: relative;
+      background: linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('https://i.ibb.co/5ZcYbZx/Chat-GPT-Image-Aug-13-2026-12-15-54-PM.png') center/cover no-repeat;
+      padding: 50px 20px;
+      text-align: center;
+      color: #FFFFFF;
+      margin-bottom: 30px;
+    }
+    .page-hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .page-hero-subtitle {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    @media (max-width: 768px) {
+      .page-hero-banner { padding: 36px 16px; margin-bottom: 20px; }
+      .page-hero-title { font-size: 22px; }
+      .page-hero-subtitle { font-size: 12px; }
+    }
+
     .cart-page {
       padding: 48px 0 80px 0;
     }

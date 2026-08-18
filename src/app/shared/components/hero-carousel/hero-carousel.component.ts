@@ -29,7 +29,7 @@ export interface HeroSlide {
             [style.backgroundImage]="'url(' + slide.imageUrl + ')'"
           ></div>
 
-          <!-- Subtle Gradient Overlay for Readability -->
+          <!-- Subtle Dark Gradient Overlay for High Contrast -->
           <div class="slide-overlay"></div>
 
           <!-- Premium Designed Hero Content -->
@@ -41,7 +41,7 @@ export interface HeroSlide {
               <div class="hero-cta-group">
                 <a [routerLink]="slide.ctaLink" class="btn-hero-primary">
                   {{ slide.ctaText }}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
@@ -52,22 +52,41 @@ export interface HeroSlide {
           </div>
         </div>
       </div>
+
+      <!-- Minimal Unobtrusive Slider Indicators (Dots) -->
+      <div class="carousel-indicators">
+        <button 
+          *ngFor="let slide of slides; let i = index"
+          class="indicator-dot"
+          [class.active]="i === currentIndex"
+          (click)="goToSlide(i)"
+          [attr.aria-label]="'Go to slide ' + (i + 1)"
+        ></button>
+      </div>
     </section>
   `,
   styles: [`
     .hero-carousel-section {
       position: relative;
       width: 100%;
-      height: 75vh;
-      min-height: 480px;
-      max-height: 750px;
+      height: 56vh;
+      min-height: 420px;
+      max-height: 520px;
       overflow: hidden;
       background-color: #0D0D0D;
     }
     @media (max-width: 768px) {
       .hero-carousel-section {
-        height: 58vh;
-        min-height: 400px;
+        height: 45vh;
+        min-height: 340px;
+        max-height: 400px;
+      }
+    }
+    @media (max-width: 480px) {
+      .hero-carousel-section {
+        height: 42vh;
+        min-height: 320px;
+        max-height: 360px;
       }
     }
 
@@ -82,7 +101,7 @@ export interface HeroSlide {
       inset: 0;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+      transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 1;
       display: flex;
       align-items: center;
@@ -101,15 +120,15 @@ export interface HeroSlide {
       background-repeat: no-repeat;
     }
 
-    /* Subtle Dark Gradient Overlay for High Contrast */
+    /* High-Contrast Gradient Overlay */
     .slide-overlay {
       position: absolute;
       inset: 0;
       background: linear-gradient(
         90deg, 
-        rgba(0, 0, 0, 0.72) 0%, 
-        rgba(0, 0, 0, 0.45) 50%, 
-        rgba(0, 0, 0, 0.20) 100%
+        rgba(0, 0, 0, 0.75) 0%, 
+        rgba(0, 0, 0, 0.48) 50%, 
+        rgba(0, 0, 0, 0.22) 100%
       );
       z-index: 2;
     }
@@ -130,75 +149,97 @@ export interface HeroSlide {
     }
 
     .hero-content {
-      max-width: 580px;
+      max-width: 540px;
       color: #FFFFFF;
-      animation: fadeInUp 0.8s ease-out forwards;
+      animation: fadeInUp 0.6s ease-out forwards;
     }
 
     .hero-badge {
       display: inline-block;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #F8BBD0;
-      background: rgba(159, 61, 98, 0.25);
+      background: rgba(159, 61, 98, 0.3);
       border: 1px solid rgba(248, 187, 208, 0.4);
-      padding: 6px 14px;
-      border-radius: 20px;
-      margin-bottom: 16px;
+      padding: 4px 12px;
+      border-radius: 16px;
+      margin-bottom: 12px;
       backdrop-filter: blur(4px);
+    }
+    @media (max-width: 480px) {
+      .hero-badge {
+        font-size: 9px;
+        padding: 3px 10px;
+        margin-bottom: 8px;
+      }
     }
 
     .hero-title {
-      font-size: 42px;
+      font-size: 36px;
       font-weight: 700;
       line-height: 1.15;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       letter-spacing: -0.5px;
       color: #FFFFFF;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
     }
     @media (max-width: 768px) {
       .hero-title {
-        font-size: 26px;
-        margin-bottom: 10px;
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+    }
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 20px;
+        margin-bottom: 6px;
       }
     }
 
     .hero-subtitle {
-      font-size: 16px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.45;
       color: rgba(255, 255, 255, 0.95);
-      margin-bottom: 28px;
+      margin-bottom: 22px;
       font-weight: 400;
       text-shadow: 0 1px 4px rgba(0,0,0,0.6);
     }
     @media (max-width: 768px) {
       .hero-subtitle {
-        font-size: 13px;
-        line-height: 1.4;
-        margin-bottom: 20px;
+        font-size: 12px;
+        line-height: 1.35;
+        margin-bottom: 16px;
+      }
+    }
+    @media (max-width: 480px) {
+      .hero-subtitle {
+        font-size: 11px;
+        margin-bottom: 14px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
     }
 
     .hero-cta-group {
       display: flex;
-      gap: 14px;
+      gap: 12px;
       align-items: center;
       flex-wrap: wrap;
     }
 
-    /* High Visibility Dark Pink Explore Button */
     .btn-hero-primary {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background-color: #9F3D62;
       color: #FFFFFF !important;
-      padding: 14px 28px;
+      padding: 12px 24px;
       border-radius: 30px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       text-decoration: none;
       transition: all 0.3s ease;
@@ -217,9 +258,9 @@ export interface HeroSlide {
       align-items: center;
       background-color: #9F3D62;
       color: #FFFFFF !important;
-      padding: 14px 26px;
+      padding: 12px 22px;
       border-radius: 30px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       text-decoration: none;
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -236,16 +277,53 @@ export interface HeroSlide {
 
     @media (max-width: 480px) {
       .btn-hero-primary, .btn-hero-explore {
-        padding: 12px 20px;
-        font-size: 13px;
-        min-height: 44px;
+        padding: 9px 16px;
+        font-size: 11px;
+        min-height: 38px;
       }
+    }
+
+    /* Minimal Unobtrusive Bottom Indicators */
+    .carousel-indicators {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 14px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .indicator-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+    .indicator-dot:hover {
+      background: rgba(255, 255, 255, 0.75);
+    }
+    .indicator-dot.active {
+      width: 24px;
+      border-radius: 12px;
+      background: #9F3D62;
+      box-shadow: 0 0 10px rgba(159, 61, 98, 0.8);
     }
 
     @keyframes fadeInUp {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(15px);
       }
       to {
         opacity: 1;
@@ -255,7 +333,7 @@ export interface HeroSlide {
   `]
 })
 export class HeroCarouselComponent implements OnInit, OnDestroy {
-  // 4 Required Hero Fashion Slides with Original Designed Content
+  // 4 Required Hero Fashion Slides with Original Uploaded Images & Content
   slides: HeroSlide[] = [
     { 
       id: 1, 
@@ -292,51 +370,29 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   ];
 
   currentIndex = 0;
-  // Ping Pong Direction State: +1 = forward (0 -> 1 -> 2 -> 3), -1 = backward (3 -> 2 -> 1 -> 0)
-  direction: 1 | -1 = 1;
   timer: any;
 
   ngOnInit() {
-    this.startAutoPingPong();
+    this.startAutoSlider();
   }
 
   ngOnDestroy() {
     this.stopTimer();
   }
 
-  startAutoPingPong() {
+  /**
+   * AUTOMATIC CONTINUOUS LOOPING SLIDER (EVERY 2 SECONDS = 2000MS)
+   */
+  startAutoSlider() {
     this.stopTimer();
     this.timer = setInterval(() => {
-      this.stepPingPong();
-    }, 3000); // 3 SECONDS AUTOMATIC INTERVAL
+      this.currentIndex = (this.currentIndex + 1) % this.slides.length;
+    }, 2000); // 2 SECONDS AUTOMATIC INTERVAL
   }
 
-  /**
-   * PING-PONG AUTOMATIC SLIDE SEQUENCE:
-   * 0 (Img 1) -> 1 (Img 2) -> 2 (Img 3) -> 3 (Img 4)
-   * Reaches 3 -> direction switches to -1
-   * 3 (Img 4) -> 2 (Img 3) -> 1 (Img 2) -> 0 (Img 1)
-   * Reaches 0 -> direction switches to +1
-   * NEVER jumps 3 -> 0 directly.
-   */
-  stepPingPong() {
-    if (this.direction === 1) {
-      if (this.currentIndex < this.slides.length - 1) {
-        this.currentIndex++;
-      } else {
-        // Reached Image 4 (Index 3), reverse direction backward
-        this.direction = -1;
-        this.currentIndex--;
-      }
-    } else {
-      if (this.currentIndex > 0) {
-        this.currentIndex--;
-      } else {
-        // Reached Image 1 (Index 0), reverse direction forward
-        this.direction = 1;
-        this.currentIndex++;
-      }
-    }
+  goToSlide(index: number) {
+    this.currentIndex = index;
+    this.startAutoSlider(); // Reset 2s timer on manual click
   }
 
   stopTimer() {

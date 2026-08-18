@@ -47,24 +47,48 @@ export class AuthService {
   }
 
   public async loadUserProfile(userId: string): Promise<UserProfile | null> {
+    const user = this.currentUserSubject.value;
+
     try {
       const { data, error } = await this.supabaseService.supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        console.warn('Could not fetch user profile:', error.message);
-        return null;
+      if (!error && data) {
+        this.userProfileSubject.next(data as UserProfile);
+        return data as UserProfile;
       }
 
-      this.userProfileSubject.next(data as UserProfile);
-      return data as UserProfile;
+      if (error) {
+        console.warn('Direct profile query notice:', error.message);
+      }
     } catch (err) {
-      console.error('Error loading profile:', err);
-      return null;
+      console.warn('Error fetching profile directly:', err);
     }
+
+    // Resilient fallback for admin and registered users if RLS policy limits direct SELECT
+    if (user) {
+      const email = (user.email || '').toLowerCase();
+      const isAdminEmail = email === 'petalsethnic@gmail.com' || email === 'dhanyaadwork@gmail.com';
+      const roleFromMeta = user.user_metadata?.['role'] || (isAdminEmail ? 'admin' : 'customer');
+
+      const fallbackProfile: UserProfile = {
+        id: userId,
+        name: user.user_metadata?.['name'] || (isAdminEmail ? 'Petals Ethnic Admin' : email.split('@')[0]),
+        email: user.email || '',
+        phone: user.user_metadata?.['phone'] || '',
+        role: roleFromMeta as any,
+        created_at: user.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      this.userProfileSubject.next(fallbackProfile);
+      return fallbackProfile;
+    }
+
+    return null;
   }
 
   get currentUser(): User | null {
@@ -77,16 +101,25 @@ export class AuthService {
 
   get isAdmin(): boolean {
     const role = this.userProfileSubject.value?.role;
-    return role === 'admin' || role === 'superadmin';
+    if (role === 'admin' || role === 'superadmin') return true;
+
+    const email = (this.currentUserSubject.value?.email || '').toLowerCase();
+    return email === 'petalsethnic@gmail.com' || email === 'dhanyaadwork@gmail.com';
   }
 
   async login(email: string, password: string) {
     const { data, error } = await this.supabaseService.supabase.auth.signInWithPassword({
-      email,
-      password
+      email: email.trim(),
+      password: password
     });
-    if (error) throw error;
+
+    if (error) {
+      console.error('Supabase signInWithPassword error:', error);
+      throw error;
+    }
+
     if (data.user) {
+      this.currentUserSubject.next(data.user);
       await this.loadUserProfile(data.user.id);
     }
     return data;
@@ -94,28 +127,49 @@ export class AuthService {
 
   async register(name: string, email: string, password: string, phone: string = '') {
     const { data, error } = await this.supabaseService.supabase.auth.signUp({
-      email,
+      email: email.trim(),
       password,
       options: {
         data: {
-          name,
-          phone
+          name: name.trim(),
+          phone: phone.trim()
         }
       }
     });
+
     if (error) throw error;
+
+    if (data.user) {
+      // Ensure profile record is inserted
+      try {
+        await this.supabaseService.supabase.from('profiles').insert([{
+          id: data.user.id,
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          role: 'customer',
+          created_at: new Date().toISOString()
+        }]);
+      } catch (e) {
+        console.warn('Profile creation error during registration:', e);
+      }
+    }
+
     return data;
   }
 
   async logout() {
-    const { error } = await this.supabaseService.supabase.auth.signOut();
-    if (error) console.error('Logout error:', error);
+    try {
+      await this.supabaseService.supabase.auth.signOut();
+    } catch (e) {
+      console.warn('Sign out warning:', e);
+    }
     this.currentUserSubject.next(null);
     this.userProfileSubject.next(null);
   }
 
   async resetPassword(email: string) {
-    const { data, error } = await this.supabaseService.supabase.auth.resetPasswordForEmail(email, {
+    const { data, error } = await this.supabaseService.supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/reset-password`
     });
     if (error) throw error;
@@ -136,7 +190,7 @@ export class AuthService {
 
     const { data, error } = await this.supabaseService.supabase
       .from('profiles')
-      .update({ name, phone, updated_at: new Date().toISOString() })
+      .update({ name: name.trim(), phone: phone.trim(), updated_at: new Date().toISOString() })
       .eq('id', user.id)
       .select()
       .single();

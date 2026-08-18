@@ -12,9 +12,11 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="auth-page">
       <div class="auth-card">
         <div class="auth-header">
-          <img src="https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" class="auth-logo" />
+          <div class="logo-circle-wrapper">
+            <img src="https://i.ibb.co/hFWrXZQC/petals-ethnic-logo.png" alt="Petals Ethnic Logo" class="auth-logo" />
+          </div>
           <h1 class="auth-title">Welcome Back</h1>
-          <p class="auth-subtitle">Log in to your Petals Ethnic account to place orders and manage your profile.</p>
+          <p class="auth-subtitle">Log in to your Petals Ethnic account to manage orders, catalog, and profile.</p>
         </div>
 
         <div *ngIf="errorMessage" class="auth-alert error">
@@ -52,7 +54,7 @@ import { AuthService } from '../../core/services/auth.service';
           </div>
 
           <button type="submit" [disabled]="isLoading" class="btn-primary auth-submit-btn">
-            {{ isLoading ? 'Logging in...' : 'Sign In' }}
+            {{ isLoading ? 'Signing In...' : 'Sign In' }}
           </button>
         </form>
 
@@ -84,9 +86,22 @@ import { AuthService } from '../../core/services/auth.service';
       text-align: center;
       margin-bottom: 28px;
     }
+    .logo-circle-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 0 auto 16px auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     .auth-logo {
-      height: 48px;
-      margin-bottom: 12px;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .auth-title {
       font-size: 28px;
@@ -148,12 +163,12 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.redirectUrl = this.route.snapshot.queryParams['redirect'] || '/account';
+    this.redirectUrl = this.route.snapshot.queryParams['redirect'] || '';
   }
 
   async onSubmit() {
     if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter your email and password.';
+      this.errorMessage = 'Please enter both your email address and password.';
       return;
     }
 
@@ -161,11 +176,35 @@ export class LoginComponent implements OnInit {
     this.errorMessage = '';
 
     try {
-      await this.authService.login(this.email, this.password);
-      this.router.navigateByUrl(this.redirectUrl);
+      const res = await this.authService.login(this.email, this.password);
+      
+      if (!res.user) {
+        throw new Error('Authentication succeeded but no user session was returned.');
+      }
+
+      const profile = await this.authService.loadUserProfile(res.user.id);
+      
+      const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin' || this.authService.isAdmin;
+
+      if (isAdmin) {
+        this.router.navigateByUrl(this.redirectUrl || '/admin');
+      } else {
+        this.router.navigateByUrl(this.redirectUrl || '/account');
+      }
+
     } catch (err: any) {
-      console.error('Login error:', err);
-      this.errorMessage = err.message || 'Invalid credentials. Please try again.';
+      console.error('Login submit error:', err);
+      
+      const rawMsg = err.message || '';
+      if (rawMsg.includes('Invalid login credentials')) {
+        this.errorMessage = 'Invalid email address or password. Please check your credentials and try again.';
+      } else if (rawMsg.includes('Email not confirmed')) {
+        this.errorMessage = 'Your email address has not been confirmed yet. Please check your inbox.';
+      } else if (rawMsg.includes('Database error')) {
+        this.errorMessage = 'An authentication service error occurred. Please try again in a moment.';
+      } else {
+        this.errorMessage = rawMsg || 'Login failed. Please verify your credentials and try again.';
+      }
     } finally {
       this.isLoading = false;
     }

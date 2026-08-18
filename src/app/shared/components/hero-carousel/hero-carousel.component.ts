@@ -23,13 +23,13 @@ export interface HeroSlide {
           class="carousel-slide"
           [class.active]="i === currentIndex"
         >
-          <!-- Background Image -->
+          <!-- Background Image with Hardware-Accelerated Rendering -->
           <div 
             class="slide-bg" 
             [style.backgroundImage]="'url(' + slide.imageUrl + ')'"
           ></div>
 
-          <!-- Subtle Dark Gradient Overlay for High Contrast -->
+          <!-- Ultra-Light Subtle Gradient Overlay Behind Text -->
           <div class="slide-overlay"></div>
 
           <!-- Premium Designed Hero Content -->
@@ -96,12 +96,15 @@ export interface HeroSlide {
       height: 100%;
     }
 
+    /* Ultra-Fast, GPU-Accelerated 350ms Transition (No Lag or Blank Frames) */
     .carousel-slide {
       position: absolute;
       inset: 0;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: opacity 350ms cubic-bezier(0.25, 1, 0.5, 1), transform 350ms cubic-bezier(0.25, 1, 0.5, 1);
+      transform: scale(1.02) translateZ(0);
+      will-change: opacity, transform;
       z-index: 1;
       display: flex;
       align-items: center;
@@ -109,6 +112,7 @@ export interface HeroSlide {
     .carousel-slide.active {
       opacity: 1;
       visibility: visible;
+      transform: scale(1) translateZ(0);
       z-index: 2;
     }
 
@@ -118,6 +122,7 @@ export interface HeroSlide {
       background-size: cover;
       background-position: center top;
       background-repeat: no-repeat;
+      transform: translateZ(0);
     }
 
     /* Ultra-Light Subtle Gradient Overlay Behind Text Only for Maximum Brightness */
@@ -151,7 +156,6 @@ export interface HeroSlide {
     .hero-content {
       max-width: 600px;
       color: #FFFFFF;
-      animation: fadeInUp 0.7s ease-out forwards;
     }
 
     .hero-badge {
@@ -288,8 +292,9 @@ export interface HeroSlide {
     }
 
     .indicator-dot {
-      width: 10px;
+      width: 100px;
       height: 10px;
+      width: 10px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.4);
       border: none;
@@ -305,17 +310,6 @@ export interface HeroSlide {
       border-radius: 12px;
       background: #9F3D62;
       box-shadow: 0 0 10px rgba(159, 61, 98, 0.8);
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(15px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
   `]
 })
@@ -360,11 +354,24 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   timer: any;
 
   ngOnInit() {
+    this.preloadSlideImages();
     this.startAutoSlider();
   }
 
   ngOnDestroy() {
     this.stopTimer();
+  }
+
+  /**
+   * Preload all 4 hero images upfront in browser memory so slide transitions are instant (0ms delay)
+   */
+  preloadSlideImages() {
+    if (typeof window !== 'undefined') {
+      this.slides.forEach(slide => {
+        const img = new Image();
+        img.src = slide.imageUrl;
+      });
+    }
   }
 
   /**

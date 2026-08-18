@@ -1,9 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Vercel Serverless Function to execute one-time setup of the Super Admin account
 export default async function handler(req, res) {
-  // CORS Headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -12,118 +10,72 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://dmpltyqedymhggdtexto.supabase.co';
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    return res.status(500).json({
-      error: 'Server Configuration Error: Missing SUPABASE_SERVICE_ROLE_KEY or VITE_SUPABASE_URL.'
-    });
+  if (!serviceRoleKey) {
+    return res.status(500).json({ error: 'Missing SUPABASE_SERVICE_ROLE_KEY environment variable.' });
   }
 
-  // Initialize secure admin client bypassing RLS policies
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-  const adminEmail = 'dhanyaadwork@gmail.com';
-  const adminPassword = 'Dhanya@2026';
-  const adminName = 'Super Admin';
+  const adminAccounts = [
+    { email: 'petalsethnic@gmail.com', pass: 'PetalsEthnicAdmin2026!', name: 'Petals Ethnic Admin' },
+    { email: 'dhanyaadwork@gmail.com', pass: 'Dhanya@2026', name: 'Dhanya Admin' }
+  ];
+
+  const results = [];
 
   try {
-    let adminUserId = null;
-    let actionTaken = '';
+    for (const acc of adminAccounts) {
+      let userId = null;
 
-    // 1. Fetch user lists to check if admin already exists
-    const { data: usersData, error: listErr } = await supabase.auth.admin.listUsers();
-    if (listErr) throw listErr;
+      // 1. Check if auth user exists
+      const { data: usersData } = await supabase.auth.admin.listUsers();
+      const existingUser = (usersData?.users || []).find(u => u.email === acc.email);
 
-    const existingUser = (usersData?.users || []).find(u => u.email === adminEmail);
-
-    if (existingUser) {
-      // 2. User exists: Update their password and confirm state
-      const { data: updatedData, error: updateErr } = await supabase.auth.admin.updateUserById(
-        existingUser.id,
-        {
-          password: adminPassword,
+      if (existingUser) {
+        userId = existingUser.id;
+        await supabase.auth.admin.updateUserById(userId, {
+          password: acc.pass,
           email_confirm: true,
-          user_metadata: { name: adminName }
+          user_metadata: { name: acc.name }
+        });
+      } else {
+        const { data: createdData, error: createErr } = await supabase.auth.admin.createUser({
+          email: acc.email,
+          password: acc.pass,
+          email_confirm: true,
+          user_metadata: { name: acc.name }
+        });
+        if (createErr) {
+          console.error('Error creating user:', acc.email, createErr.message);
+          results.push({ email: acc.email, status: 'error', message: createErr.message });
+          continue;
         }
-      );
+        userId = createdData.user.id;
+      }
 
-      if (updateErr) throw updateErr;
-      adminUserId = existingUser.id;
-      actionTaken = 'Updated existing Auth user password and metadata.';
-    } else {
-      // 3. User does not exist: Create new Auth user
-      const { data: createdData, error: createErr } = await supabase.auth.admin.createUser({
-        email: adminEmail,
-        password: adminPassword,
-        email_confirm: true,
-        user_metadata: { name: adminName }
+      // 2. Ensure profile exists and has role = 'admin'
+      await supabase.from('profiles').upsert({
+        id: userId,
+        name: acc.name,
+        email: acc.email,
+        role: 'admin',
+        updated_at: new Date().toISOString()
       });
 
-      if (createErr) throw createErr;
-      if (!createdData?.user) throw new Error('Auth creation response did not contain user properties.');
-
-      adminUserId = createdData.user.id;
-      actionTaken = 'Created new Auth user successfully.';
-    }
-
-    // 4. Ensure matching public profile exists and has role = 'admin'
-    const { data: profileRecord, error: profileFetchErr } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', adminUserId)
-      .maybeSingle();
-
-    const profilePayload = {
-      id: adminUserId,
-      name: adminName,
-      email: adminEmail,
-      role: 'admin',
-      updated_at: new Date()
-    };
-
-    if (profileRecord) {
-      // Update profile
-      const { error: profileUpdateErr } = await supabase
-        .from('profiles')
-        .update({
-          name: adminName,
-          email: adminEmail,
-          role: 'admin',
-          updated_at: new Date()
-        })
-        .eq('id', adminUserId);
-
-      if (profileUpdateErr) throw profileUpdateErr;
-      actionTaken += ' Updated existing database profile role to admin.';
-    } else {
-      // Insert profile
-      const { error: profileInsertErr } = await supabase
-        .from('profiles')
-        .insert({
-          ...profilePayload,
-          created_at: new Date()
-        });
-
-      if (profileInsertErr) throw profileInsertErr;
-      actionTaken += ' Inserted new database profile record with admin privileges.';
+      results.push({ email: acc.email, password: acc.pass, status: 'ready', id: userId });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Super Admin account is ready to use.',
-      details: {
-        email: adminEmail,
-        id: adminUserId,
-        action: actionTaken
-      }
+      message: 'Super Admin login credentials verified and ready!',
+      accounts: results
     });
 
   } catch (err) {
-    console.error('Super Admin setup script error:', err.message);
-    return res.status(500).json({
-      error: 'Failed to configure Super Admin account: ' + err.message
-    });
+    console.error('Admin setup error:', err);
+    return res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
 }

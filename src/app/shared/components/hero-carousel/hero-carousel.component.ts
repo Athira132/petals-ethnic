@@ -116,6 +116,7 @@ export interface HeroSlide {
       z-index: 2;
     }
 
+    /* Desktop Background Position: Center Top */
     .slide-bg {
       position: absolute;
       inset: 0;
@@ -123,6 +124,13 @@ export interface HeroSlide {
       background-position: center top;
       background-repeat: no-repeat;
       transform: translateZ(0);
+    }
+
+    /* Mobile Background Position: Focus on RIGHT Side of the Image */
+    @media (max-width: 768px) {
+      .slide-bg {
+        background-position: right center; /* Shows more of the RIGHT side on mobile screens */
+      }
     }
 
     /* Ultra-Light Subtle Gradient Overlay Behind Text Only for Maximum Brightness */
@@ -136,6 +144,17 @@ export interface HeroSlide {
         rgba(0, 0, 0, 0) 100%
       );
       z-index: 2;
+    }
+
+    @media (max-width: 768px) {
+      .slide-overlay {
+        background: linear-gradient(
+          180deg, 
+          rgba(0, 0, 0, 0.40) 0%, 
+          rgba(0, 0, 0, 0.15) 50%, 
+          rgba(0, 0, 0, 0.35) 100%
+        );
+      }
     }
 
     /* Hero Text & Button Container */
@@ -351,7 +370,6 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   currentIndex = 0;
   timer: any;
-  initialTimeout: any;
 
   ngOnInit() {
     this.preloadSlideImages();
@@ -376,17 +394,13 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   /**
    * AUTOMATIC CONTINUOUS LOOPING SLIDER:
-   * - 1st transition starts after EXACTLY 1 SECOND (1000ms)
-   * - Subsequent transitions repeat every 2 SECONDS (2000ms)
+   * - Slides automatically to the next image once EVERY 1 SECOND (1000ms)
    */
   startAutoSlider() {
     this.stopTimer();
-    this.initialTimeout = setTimeout(() => {
-      this.currentIndex = 1;
-      this.timer = setInterval(() => {
-        this.currentIndex = (this.currentIndex + 1) % this.slides.length;
-      }, 2000);
-    }, 1000);
+    this.timer = setInterval(() => {
+      this.currentIndex = (this.currentIndex + 1) % this.slides.length;
+    }, 1000); // 1-SECOND CONTINUOUS AUTO-SLIDE INTERVAL
   }
 
   goToSlide(index: number) {
@@ -395,10 +409,6 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   stopTimer() {
-    if (this.initialTimeout) {
-      clearTimeout(this.initialTimeout);
-      this.initialTimeout = null;
-    }
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;

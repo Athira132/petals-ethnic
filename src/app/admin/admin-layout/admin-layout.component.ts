@@ -14,7 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="sidebar-header">
           <a routerLink="/" class="sidebar-logo">
             <div class="logo-circle-sm">
-              <img src="https://i.ibb.co/GQ2GstYF/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" />
+              <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" />
             </div>
             <div class="logo-text">
               <strong>PETALS ETHNIC</strong>

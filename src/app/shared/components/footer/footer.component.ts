@@ -13,7 +13,7 @@ import { RouterModule } from '@angular/router';
         <div class="footer-col brand-col">
           <div class="footer-brand">
             <div class="footer-logo-circle">
-              <img src="https://i.ibb.co/GQ2GstYF/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="footer-logo-img" />
+              <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="footer-logo-img" />
             </div>
             <span class="footer-brand-title">PETALS ETHNIC</span>
           </div>

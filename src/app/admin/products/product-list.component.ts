@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -38,8 +38,14 @@ import { Category } from '../../core/models/category.model';
         </select>
       </div>
 
-      <!-- Products Table -->
-      <div class="table-card">
+      <!-- Error State -->
+      <div *ngIf="errorMessage" class="error-card">
+        <p>⚠️ {{ errorMessage }}</p>
+        <button (click)="loadData()" class="btn-outline btn-sm">Retry Loading</button>
+      </div>
+
+      <!-- Products Table / Loading -->
+      <div class="table-card" *ngIf="!errorMessage">
         <div class="table-responsive">
           <table class="admin-table">
             <thead>
@@ -55,6 +61,15 @@ import { Category } from '../../core/models/category.model';
               </tr>
             </thead>
             <tbody>
+              <!-- Loading Skeleton / Spinner State -->
+              <tr *ngIf="isLoading">
+                <td colspan="8" class="text-center loading-cell">
+                  <div class="spinner"></div>
+                  <span>Loading products...</span>
+                </td>
+              </tr>
+
+              <!-- Product Data Rows -->
               <tr *ngFor="let prod of filteredProducts">
                 <td>
                   <img [src]="getPrimaryImage(prod)" [alt]="prod.name" class="table-thumb" />
@@ -92,8 +107,10 @@ import { Category } from '../../core/models/category.model';
                   </div>
                 </td>
               </tr>
-              <tr *ngIf="filteredProducts.length === 0">
-                <td colspan="8" class="text-center">No products found.</td>
+
+              <!-- Genuine Empty State (Only after loading completes) -->
+              <tr *ngIf="!isLoading && filteredProducts.length === 0">
+                <td colspan="8" class="text-center empty-cell">No products found matching your filter criteria.</td>
               </tr>
             </tbody>
           </table>
@@ -208,11 +225,20 @@ import { Category } from '../../core/models/category.model';
     .filter-input { flex: 2; }
     .filter-select { flex: 1; }
 
+    .error-card { background: #FFEBEE; border: 1px solid #FFCDD2; color: #C62828; padding: 20px; border-radius: var(--radius-md); margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
     .table-card { background: #FFFFFF; border: 1px solid var(--color-border-light); border-radius: var(--radius-md); }
     .table-responsive { overflow-x: auto; }
     .admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid var(--color-border-light); text-align: left; }
     .admin-table th { background-color: var(--color-bg-alt); font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-muted); }
+
+    .loading-cell { padding: 40px 16px !important; color: var(--color-muted); font-size: 14px; }
+    .empty-cell { padding: 30px 16px !important; color: var(--color-muted); }
+
+    .spinner { width: 24px; height: 24px; border: 3px solid rgba(192, 86, 118, 0.2); border-top-color: #C05676; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .table-thumb { width: 44px; height: 56px; object-fit: cover; border-radius: 4px; }
     .sku-text { font-size: 11px; color: var(--color-muted); }
@@ -255,7 +281,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
   categories: Category[] = [];
 
   searchQuery = '';
-  selectedCategory = '';
+  selectedCategory = ''; // Default "All Categories"
+
+  isLoading = true; // Initial loading state set to true!
+  errorMessage = '';
 
   isModalOpen = false;
   editingProduct: Product | null = null;
@@ -285,12 +314,17 @@ export class ProductListComponent implements OnInit, OnDestroy {
     { size: 'XXL', stock: 5 }
   ];
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
     this.catSub = this.productService.categories$.subscribe(cats => {
       this.categories = cats;
+      this.cdr.markForCheck();
     });
+
     await this.loadData();
   }
 
@@ -299,9 +333,27 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   async loadData() {
-    this.categories = await this.productService.getCategories(false);
-    this.products = await this.productService.getProducts({ activeOnly: false });
-    this.onSearch();
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.cdr.markForCheck();
+
+    try {
+      // 1. Load categories
+      this.categories = await this.productService.getCategories(false);
+      
+      // 2. Load all active and inactive products immediately
+      this.products = await this.productService.getProducts({ activeOnly: false });
+      
+      // 3. Filter with default 'All Categories'
+      this.onSearch();
+
+    } catch (err: any) {
+      console.error('Error loading products in admin:', err);
+      this.errorMessage = 'Unable to load products. Please try again.';
+    } finally {
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    }
   }
 
   onSearch() {
@@ -314,6 +366,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
       return matchesSearch && matchesCat;
     });
+    this.cdr.markForCheck();
   }
 
   getPrimaryImage(prod: Product): string {
@@ -347,6 +400,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
       { size: 'XXL', stock: 5 }
     ];
     this.isModalOpen = true;
+    this.cdr.markForCheck();
   }
 
   async openEditModal(prod: Product) {
@@ -364,6 +418,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     }
 
     this.isModalOpen = true;
+    this.cdr.markForCheck();
   }
 
   autoGenerateSlug() {
@@ -378,6 +433,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   closeModal() {
     this.isModalOpen = false;
     this.isSaving = false;
+    this.cdr.markForCheck();
   }
 
   async saveProduct() {
@@ -387,6 +443,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     }
 
     this.isSaving = true;
+    this.cdr.markForCheck();
 
     try {
       const imagesList = this.imageUrlsText
@@ -422,6 +479,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
       alert(err.message || 'Error saving product');
     } finally {
       this.isSaving = false;
+      this.cdr.markForCheck();
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../core/services/product.service';
@@ -41,7 +41,13 @@ export interface FlattenedInventoryItem {
         </label>
       </div>
 
-      <div class="table-card">
+      <!-- Error State -->
+      <div *ngIf="errorMessage" class="error-card">
+        <p>⚠️ {{ errorMessage }}</p>
+        <button (click)="loadInventory()" class="btn-outline btn-sm">Retry Loading</button>
+      </div>
+
+      <div class="table-card" *ngIf="!errorMessage">
         <div class="table-responsive">
           <table class="admin-table">
             <thead>
@@ -55,6 +61,15 @@ export interface FlattenedInventoryItem {
               </tr>
             </thead>
             <tbody>
+              <!-- Loading Spinner State -->
+              <tr *ngIf="isLoading">
+                <td colspan="6" class="text-center loading-cell">
+                  <div class="spinner"></div>
+                  <span>Loading inventory...</span>
+                </td>
+              </tr>
+
+              <!-- Inventory Rows -->
               <tr *ngFor="let item of filteredItems">
                 <td><strong>{{ item.productName }}</strong></td>
                 <td>{{ item.sku || 'N/A' }}</td>
@@ -81,8 +96,10 @@ export interface FlattenedInventoryItem {
                   </div>
                 </td>
               </tr>
-              <tr *ngIf="filteredItems.length === 0">
-                <td colspan="6" class="text-center">No inventory matching criteria.</td>
+
+              <!-- Empty State after loading -->
+              <tr *ngIf="!isLoading && filteredItems.length === 0">
+                <td colspan="6" class="text-center empty-cell">No inventory items matching criteria.</td>
               </tr>
             </tbody>
           </table>
@@ -99,11 +116,20 @@ export interface FlattenedInventoryItem {
     .filter-input { max-width: 360px; }
     .checkbox-label { font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
+    .error-card { background: #FFEBEE; border: 1px solid #FFCDD2; color: #C62828; padding: 20px; border-radius: var(--radius-md); margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
     .table-card { background: #FFFFFF; border: 1px solid var(--color-border-light); border-radius: var(--radius-md); }
     .table-responsive { overflow-x: auto; }
     .admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid var(--color-border-light); text-align: left; }
     .admin-table th { background-color: var(--color-bg-alt); font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-muted); }
+
+    .loading-cell { padding: 40px 16px !important; color: var(--color-muted); font-size: 14px; }
+    .empty-cell { padding: 30px 16px !important; color: var(--color-muted); }
+
+    .spinner { width: 24px; height: 24px; border: 3px solid rgba(192, 86, 118, 0.2); border-top-color: #C05676; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .size-pill { padding: 4px 8px; background: var(--color-bg-alt); border: 1px solid var(--color-border); border-radius: 4px; font-weight: 700; font-size: 12px; }
     .text-danger { color: #C62828; }
@@ -123,46 +149,65 @@ export class InventoryComponent implements OnInit {
   searchQuery = '';
   lowStockOnly = false;
 
-  constructor(private productService: ProductService) {}
+  isLoading = true; // Initial loading state set to true!
+  errorMessage = '';
+
+  constructor(
+    private productService: ProductService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
     await this.loadInventory();
   }
 
   async loadInventory() {
-    this.products = await this.productService.getProducts({ activeOnly: false });
-    this.inventoryList = [];
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.cdr.markForCheck();
 
-    const defaultSizes: Array<'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL'> = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    try {
+      this.products = await this.productService.getProducts({ activeOnly: false });
+      this.inventoryList = [];
 
-    this.products.forEach(p => {
-      if (p.sizes && p.sizes.length > 0) {
-        p.sizes.forEach(s => {
-          this.inventoryList.push({
-            sizeId: s.id,
-            productId: p.id,
-            productName: p.name,
-            sku: p.sku,
-            size: s.size,
-            stock: s.stock,
-            status: s.status
+      const defaultSizes: Array<'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL'> = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+      this.products.forEach(p => {
+        if (p.sizes && p.sizes.length > 0) {
+          p.sizes.forEach(s => {
+            this.inventoryList.push({
+              sizeId: s.id,
+              productId: p.id,
+              productName: p.name,
+              sku: p.sku,
+              size: s.size,
+              stock: s.stock,
+              status: s.status
+            });
           });
-        });
-      } else {
-        defaultSizes.forEach(size => {
-          this.inventoryList.push({
-            productId: p.id,
-            productName: p.name,
-            sku: p.sku,
-            size,
-            stock: p.stock,
-            status: p.stock > 0 ? 'available' : 'sold_out'
+        } else {
+          defaultSizes.forEach(size => {
+            this.inventoryList.push({
+              productId: p.id,
+              productName: p.name,
+              sku: p.sku,
+              size,
+              stock: p.stock,
+              status: p.stock > 0 ? 'available' : 'sold_out'
+            });
           });
-        });
-      }
-    });
+        }
+      });
 
-    this.filterItems();
+      this.filterItems();
+
+    } catch (err: any) {
+      console.error('Error loading inventory in admin:', err);
+      this.errorMessage = 'Unable to load inventory. Please try again.';
+    } finally {
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    }
   }
 
   filterItems() {
@@ -175,6 +220,7 @@ export class InventoryComponent implements OnInit {
 
       return matchesQuery && matchesLowStock;
     });
+    this.cdr.markForCheck();
   }
 
   async saveStock(item: FlattenedInventoryItem) {
@@ -188,10 +234,10 @@ export class InventoryComponent implements OnInit {
       if (item.sizeId) {
         await this.productService.updateSizeStock(item.sizeId, item.stock);
       } else {
-        // Fallback: update main product
         await this.productService.updateProduct(item.productId, { stock: item.stock });
       }
       alert(`Updated stock for ${item.productName} (Size: ${item.size}) to ${item.stock}`);
+      this.cdr.markForCheck();
     } catch (e: any) {
       alert(e.message || 'Error updating stock');
     }

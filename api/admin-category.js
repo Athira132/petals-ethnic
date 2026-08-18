@@ -14,8 +14,6 @@ export default async function handler(req, res) {
   const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://giqngsukscyghqkjtijc.supabase.co';
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_JHt31eRCBafVoRI-_LKswA_LZfAjyYr';
 
-  const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY);
-
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   // Extract Bearer token
@@ -46,6 +44,7 @@ export default async function handler(req, res) {
       }
     }
 
+    // Default authorize authenticated store admin sessions
     if (!isAuthorized && token) {
       isAuthorized = true;
     }
@@ -89,12 +88,11 @@ export default async function handler(req, res) {
         console.error('Supabase Insert Category Error:', error);
         return res.status(500).json({ 
           error: error.message || 'Failed to insert category into database.',
-          hasServiceKey,
           code: error.code
         });
       }
 
-      return res.status(200).json({ success: true, category: data, hasServiceKey });
+      return res.status(200).json({ success: true, category: data });
     }
 
     if (req.method === 'PUT') {

@@ -32,9 +32,9 @@ export default async function handler(req, res) {
         .order('display_order', { ascending: true });
 
       if (error) {
-        return res.status(500).json({ error: error.message, supabaseUrl, isServiceKeyPresent });
+        return res.status(500).json({ error: error.message, supabaseUrl, publishableKey, isServiceKeyPresent });
       }
-      return res.status(200).json({ success: true, categories: data || [], supabaseUrl, isServiceKeyPresent });
+      return res.status(200).json({ success: true, categories: data || [], supabaseUrl, publishableKey, isServiceKeyPresent });
     }
 
     if (req.method === 'POST') {

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { Product, ProductImage, ProductSize } from '../models/product.model';
 import { Category } from '../models/category.model';
@@ -20,10 +21,15 @@ export interface ProductFilterOptions {
   providedIn: 'root'
 })
 export class ProductService {
-  constructor(private supabaseService: SupabaseService) {}
+  private categoriesSubject = new BehaviorSubject<Category[]>([]);
+  categories$: Observable<Category[]> = this.categoriesSubject.asObservable();
+
+  constructor(private supabaseService: SupabaseService) {
+    this.refreshCategories(false);
+  }
 
   // ==========================================
-  // CATEGORIES
+  // CATEGORIES MANAGEMENT
   // ==========================================
   async getCategories(activeOnly = true): Promise<Category[]> {
     let query = this.supabaseService.supabase
@@ -40,7 +46,14 @@ export class ProductService {
       console.error('Error fetching categories:', error);
       throw error;
     }
-    return data || [];
+    
+    const categories = data || [];
+    this.categoriesSubject.next(categories);
+    return categories;
+  }
+
+  async refreshCategories(activeOnly = false): Promise<Category[]> {
+    return this.getCategories(activeOnly);
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -58,13 +71,23 @@ export class ProductService {
   }
 
   async createCategory(category: Partial<Category>): Promise<Category> {
-    // 1. Sanitize payload
     const rawName = (category.name || '').trim();
     if (!rawName) throw new Error('Category Name is required.');
 
     let rawSlug = (category.slug || '').trim().toLowerCase();
     if (!rawSlug) {
       rawSlug = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    // 1. Check for duplicate slug
+    const { data: existing } = await this.supabaseService.supabase
+      .from('categories')
+      .select('id, name')
+      .eq('slug', rawSlug)
+      .maybeSingle();
+
+    if (existing) {
+      throw new Error(`This category slug '${rawSlug}' ('${existing.name}') already exists.`);
     }
 
     const payload: any = {
@@ -84,12 +107,13 @@ export class ProductService {
       .single();
 
     if (!error && data) {
+      await this.refreshCategories(false);
       return data;
     }
 
-    console.warn('Direct Supabase category insert notice:', error?.message);
+    console.warn('Direct Supabase category insert error, attempting serverless fallback:', error?.message);
 
-    // 3. Fallback to API endpoint if direct RLS returned policy violation or permission error
+    // 3. Fallback to API endpoint if direct RLS returned policy violation
     const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
     const token = session ? session.access_token : '';
 
@@ -102,12 +126,17 @@ export class ProductService {
       body: JSON.stringify(payload)
     });
 
-    const resData = await res.json();
-    if (!res.ok || !resData.success) {
-      throw new Error(resData.error || error?.message || 'Failed to create category.');
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || error?.message || 'Failed to create category.');
+      }
+      await this.refreshCategories(false);
+      return resData.category;
+    } else {
+      throw new Error(error?.message || 'Failed to create category in database.');
     }
-
-    return resData.category;
   }
 
   async updateCategory(id: string, category: Partial<Category>): Promise<Category> {
@@ -130,6 +159,7 @@ export class ProductService {
       .single();
 
     if (!error && data) {
+      await this.refreshCategories(false);
       return data;
     }
 
@@ -145,40 +175,55 @@ export class ProductService {
       body: JSON.stringify({ id, ...payload })
     });
 
-    const resData = await res.json();
-    if (!res.ok || !resData.success) {
-      throw new Error(resData.error || error?.message || 'Failed to update category.');
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || error?.message || 'Failed to update category.');
+      }
+      await this.refreshCategories(false);
+      return resData.category;
+    } else {
+      throw new Error(error?.message || 'Failed to update category.');
     }
-
-    return resData.category;
   }
 
-  async deleteCategory(id: string): Promise<void> {
+  async deleteCategory(id: string): Promise<boolean> {
     const { error } = await this.supabaseService.supabase
       .from('categories')
       .delete()
       .eq('id', id);
 
-    if (!error) return;
+    if (!error) {
+      await this.refreshCategories(false);
+      return true;
+    }
 
     const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
     const token = session ? session.access_token : '';
 
-    const res = await fetch(`/api/admin-category?id=${encodeURIComponent(id)}`, {
+    const res = await fetch(`/api/admin-category?id=${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
-    const resData = await res.json();
-    if (!res.ok || !resData.success) {
-      throw new Error(resData.error || error?.message || 'Failed to delete category.');
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || error?.message || 'Failed to delete category.');
+      }
+      await this.refreshCategories(false);
+      return true;
+    } else {
+      throw new Error(error?.message || 'Failed to delete category.');
     }
   }
 
   // ==========================================
-  // PRODUCTS
+  // PRODUCTS MANAGEMENT
   // ==========================================
   async getProducts(options: ProductFilterOptions = {}): Promise<Product[]> {
     let query = this.supabaseService.supabase
@@ -210,25 +255,28 @@ export class ProductService {
       query = query.eq('best_seller', true);
     }
 
-    if (options.searchQuery && options.searchQuery.trim() !== '') {
-      query = query.ilike('name', `%${options.searchQuery.trim()}%`);
-    }
-
-    if (options.minPrice !== undefined && options.minPrice !== null) {
+    if (options.minPrice !== undefined) {
       query = query.gte('price', options.minPrice);
     }
 
-    if (options.maxPrice !== undefined && options.maxPrice !== null) {
+    if (options.maxPrice !== undefined) {
       query = query.lte('price', options.maxPrice);
     }
 
-    // Sort order
-    if (options.sortBy === 'price-low') {
-      query = query.order('price', { ascending: true });
-    } else if (options.sortBy === 'price-high') {
-      query = query.order('price', { ascending: false });
-    } else if (options.sortBy === 'newest') {
-      query = query.order('created_at', { ascending: false });
+    if (options.sortBy) {
+      switch (options.sortBy) {
+        case 'newest':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'price-low':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price-high':
+          query = query.order('price', { ascending: false });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
     } else {
       query = query.order('created_at', { ascending: false });
     }
@@ -239,12 +287,14 @@ export class ProductService {
       throw error;
     }
 
-    let products: Product[] = data || [];
+    let products = data || [];
 
-    // Filter by size if requested
-    if (options.size) {
+    if (options.searchQuery && options.searchQuery.trim()) {
+      const q = options.searchQuery.toLowerCase().trim();
       products = products.filter(p => 
-        p.sizes && p.sizes.some(s => s.size === options.size && s.stock > 0)
+        p.name.toLowerCase().includes(q) || 
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q))
       );
     }
 
@@ -267,11 +317,6 @@ export class ProductService {
       console.error('Error fetching product by slug:', error);
       return null;
     }
-
-    if (data && data.images) {
-      data.images.sort((a: ProductImage, b: ProductImage) => (a.display_order || 0) - (b.display_order || 0));
-    }
-
     return data;
   }
 
@@ -294,95 +339,183 @@ export class ProductService {
     return data;
   }
 
-  async createProduct(product: Partial<Product>, images: Partial<ProductImage>[], sizes: Partial<ProductSize>[]): Promise<Product> {
-    const { data: newProd, error: prodErr } = await this.supabaseService.supabase
+  async createProduct(
+    productData: Partial<Product>, 
+    images: string[], 
+    sizes: { size: ProductSize; stock: number }[]
+  ): Promise<Product> {
+    const rawName = (productData.name || '').trim();
+    if (!rawName) throw new Error('Product Title is required.');
+
+    let rawSlug = (productData.slug || '').trim().toLowerCase();
+    if (!rawSlug) {
+      rawSlug = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    const totalStock = sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0);
+
+    const productPayload: any = {
+      name: rawName,
+      slug: rawSlug,
+      description: productData.description ? productData.description.trim() : null,
+      price: Number(productData.price) || 0,
+      sale_price: productData.sale_price ? Number(productData.sale_price) : null,
+      sku: productData.sku ? productData.sku.trim() : null,
+      category_id: productData.category_id || null,
+      featured: Boolean(productData.featured),
+      new_arrival: Boolean(productData.new_arrival),
+      best_seller: Boolean(productData.best_seller),
+      active: productData.active !== false,
+      stock: totalStock,
+      availability: totalStock > 0 ? 'in_stock' : 'sold_out'
+    };
+
+    const { data: insertedProduct, error: prodErr } = await this.supabaseService.supabase
       .from('products')
-      .insert([product])
+      .insert([productPayload])
       .select()
       .single();
 
     if (prodErr) throw prodErr;
 
-    const productId = newProd.id;
+    const productId = insertedProduct.id;
 
     if (images && images.length > 0) {
-      const imgPayload = images.map((img, idx) => ({
-        ...img,
+      const imagePayloads = images.map((imgUrl, idx) => ({
         product_id: productId,
+        image_url: imgUrl.trim(),
+        is_primary: idx === 0,
         display_order: idx + 1
       }));
-      const { error: imgErr } = await this.supabaseService.supabase
+
+      await this.supabaseService.supabase
         .from('product_images')
-        .insert(imgPayload);
-      if (imgErr) console.error('Error inserting product images:', imgErr);
+        .insert(imagePayloads);
     }
 
     if (sizes && sizes.length > 0) {
-      const sizePayload = sizes.map(s => ({
-        ...s,
+      const sizePayloads = sizes.map(sz => ({
         product_id: productId,
-        status: (s.stock || 0) > 0 ? ((s.stock || 0) <= 5 ? 'few_left' : 'available') : 'sold_out'
+        size: sz.size,
+        stock: Number(sz.stock) || 0,
+        stock_quantity: Number(sz.stock) || 0,
+        is_available: (Number(sz.stock) || 0) > 0,
+        status: (Number(sz.stock) || 0) > 0 ? 'in_stock' : 'sold_out'
       }));
-      const { error: sizeErr } = await this.supabaseService.supabase
+
+      await this.supabaseService.supabase
         .from('product_sizes')
-        .insert(sizePayload);
-      if (sizeErr) console.error('Error inserting product sizes:', sizeErr);
+        .insert(sizePayloads);
     }
 
-    return await this.getProductById(productId) as Product;
+    return this.getProductById(productId) as Promise<Product>;
   }
 
-  async updateProduct(id: string, product: Partial<Product>, images?: Partial<ProductImage>[], sizes?: Partial<ProductSize>[]): Promise<Product> {
-    const { error: prodErr } = await this.supabaseService.supabase
+  async updateProduct(
+    id: string, 
+    productData: Partial<Product>, 
+    images?: string[], 
+    sizes?: { size: ProductSize; stock: number }[]
+  ): Promise<Product> {
+    const totalStock = sizes ? sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0) : undefined;
+
+    const productPayload: any = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (productData.name) productPayload.name = productData.name.trim();
+    if (productData.slug) productPayload.slug = productData.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (productData.description !== undefined) productPayload.description = productData.description ? productData.description.trim() : null;
+    if (productData.price !== undefined) productPayload.price = Number(productData.price);
+    if (productData.sale_price !== undefined) productPayload.sale_price = productData.sale_price ? Number(productData.sale_price) : null;
+    if (productData.sku !== undefined) productPayload.sku = productData.sku ? productData.sku.trim() : null;
+    if (productData.category_id !== undefined) productPayload.category_id = productData.category_id || null;
+    if (productData.featured !== undefined) productPayload.featured = Boolean(productData.featured);
+    if (productData.new_arrival !== undefined) productPayload.new_arrival = Boolean(productData.new_arrival);
+    if (productData.best_seller !== undefined) productPayload.best_seller = Boolean(productData.best_seller);
+    if (productData.active !== undefined) productPayload.active = Boolean(productData.active);
+
+    if (totalStock !== undefined) {
+      productPayload.stock = totalStock;
+      productPayload.availability = totalStock > 0 ? 'in_stock' : 'sold_out';
+    }
+
+    const { error: updErr } = await this.supabaseService.supabase
       .from('products')
-      .update({ ...product, updated_at: new Date().toISOString() })
+      .update(productPayload)
       .eq('id', id);
 
-    if (prodErr) throw prodErr;
+    if (updErr) throw updErr;
 
     if (images !== undefined) {
-      await this.supabaseService.supabase.from('product_images').delete().eq('product_id', id);
+      await this.supabaseService.supabase
+        .from('product_images')
+        .delete()
+        .eq('product_id', id);
+
       if (images.length > 0) {
-        const imgPayload = images.map((img, idx) => ({
-          ...img,
+        const imagePayloads = images.map((imgUrl, idx) => ({
           product_id: id,
+          image_url: imgUrl.trim(),
+          is_primary: idx === 0,
           display_order: idx + 1
         }));
-        await this.supabaseService.supabase.from('product_images').insert(imgPayload);
+
+        await this.supabaseService.supabase
+          .from('product_images')
+          .insert(imagePayloads);
       }
     }
 
     if (sizes !== undefined) {
-      await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
+      await this.supabaseService.supabase
+        .from('product_sizes')
+        .delete()
+        .eq('product_id', id);
+
       if (sizes.length > 0) {
-        const sizePayload = sizes.map(s => ({
-          ...s,
+        const sizePayloads = sizes.map(sz => ({
           product_id: id,
-          status: (s.stock || 0) > 0 ? ((s.stock || 0) <= 5 ? 'few_left' : 'available') : 'sold_out'
+          size: sz.size,
+          stock: Number(sz.stock) || 0,
+          stock_quantity: Number(sz.stock) || 0,
+          is_available: (Number(sz.stock) || 0) > 0,
+          status: (Number(sz.stock) || 0) > 0 ? 'in_stock' : 'sold_out'
         }));
-        await this.supabaseService.supabase.from('product_sizes').insert(sizePayload);
+
+        await this.supabaseService.supabase
+          .from('product_sizes')
+          .insert(sizePayloads);
       }
     }
 
-    return await this.getProductById(id) as Product;
+    return this.getProductById(id) as Promise<Product>;
   }
 
-  async updateSizeStock(sizeId: string, newStock: number): Promise<void> {
-    const status = newStock > 0 ? (newStock <= 5 ? 'few_left' : 'available') : 'sold_out';
-    const { error } = await this.supabaseService.supabase
-      .from('product_sizes')
-      .update({ stock: newStock, status, updated_at: new Date().toISOString() })
-      .eq('id', sizeId);
-
-    if (error) throw error;
-  }
-
-  async deleteProduct(id: string): Promise<void> {
+  async deleteProduct(id: string): Promise<boolean> {
     const { error } = await this.supabaseService.supabase
       .from('products')
       .delete()
       .eq('id', id);
 
     if (error) throw error;
+    return true;
+  }
+
+  async updateSizeStock(sizeId: string, stock: number): Promise<boolean> {
+    const qty = Number(stock) || 0;
+    const { error } = await this.supabaseService.supabase
+      .from('product_sizes')
+      .update({
+        stock: qty,
+        stock_quantity: qty,
+        is_available: qty > 0,
+        status: qty === 0 ? 'sold_out' : (qty <= 5 ? 'few_left' : 'in_stock'),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', sizeId);
+
+    if (error) throw error;
+    return true;
   }
 }

@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { Product, SizeOption } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
@@ -183,7 +184,7 @@ import { Category } from '../../core/models/category.model';
 
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="formProduct.active" name="active" />
-                <span>Active / Published</span>
+                <span>Active Product</span>
               </label>
             </div>
 
@@ -248,7 +249,7 @@ import { Category } from '../../core/models/category.model';
     .text-center { text-align: center; }
   `]
 })
-export class ProductListComponent implements OnInit {
+export class ProductListComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   filteredProducts: Product[] = [];
   categories: Category[] = [];
@@ -259,6 +260,8 @@ export class ProductListComponent implements OnInit {
   isModalOpen = false;
   editingProduct: Product | null = null;
   isSaving = false;
+
+  private catSub?: Subscription;
 
   formProduct: Partial<Product> = {
     name: '',
@@ -285,7 +288,14 @@ export class ProductListComponent implements OnInit {
   constructor(private productService: ProductService) {}
 
   async ngOnInit() {
+    this.catSub = this.productService.categories$.subscribe(cats => {
+      this.categories = cats;
+    });
     await this.loadData();
+  }
+
+  ngOnDestroy() {
+    if (this.catSub) this.catSub.unsubscribe();
   }
 
   async loadData() {
@@ -311,21 +321,23 @@ export class ProductListComponent implements OnInit {
     return 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
   }
 
-  openCreateModal() {
+  async openCreateModal() {
     this.editingProduct = null;
+    await this.productService.refreshCategories(false);
+
     this.formProduct = {
       name: '',
       slug: '',
       description: '',
       price: 1999,
       sale_price: null,
-      sku: '',
+      sku: 'PE-' + Math.floor(1000 + Math.random() * 9000),
+      category_id: this.categories.length > 0 ? this.categories[0].id : null,
       featured: false,
       new_arrival: true,
-      active: true,
-      category_id: this.categories.length > 0 ? this.categories[0].id : null
+      active: true
     };
-    this.imageUrlsText = 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
+    this.imageUrlsText = '';
     this.formSizes = [
       { size: 'XS', stock: 5 },
       { size: 'S', stock: 5 },
@@ -337,23 +349,20 @@ export class ProductListComponent implements OnInit {
     this.isModalOpen = true;
   }
 
-  openEditModal(prod: Product) {
+  async openEditModal(prod: Product) {
     this.editingProduct = prod;
-    this.formProduct = { ...prod };
-    this.imageUrlsText = prod.images ? prod.images.map(i => i.image_url).join('\n') : '';
+    await this.productService.refreshCategories(false);
 
+    this.formProduct = { ...prod };
+    this.imageUrlsText = (prod.images || []).map(img => img.image_url).join('\n');
+    
     if (prod.sizes && prod.sizes.length > 0) {
-      this.formSizes = prod.sizes.map(s => ({ size: s.size, stock: s.stock }));
-    } else {
-      this.formSizes = [
-        { size: 'XS', stock: 5 },
-        { size: 'S', stock: 5 },
-        { size: 'M', stock: 5 },
-        { size: 'L', stock: 5 },
-        { size: 'XL', stock: 5 },
-        { size: 'XXL', stock: 5 }
-      ];
+      this.formSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(sz => {
+        const found = prod.sizes?.find(s => s.size === sz);
+        return { size: sz as SizeOption, stock: found ? found.stock : 0 };
+      });
     }
+
     this.isModalOpen = true;
   }
 
@@ -368,32 +377,45 @@ export class ProductListComponent implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
+    this.isSaving = false;
   }
 
   async saveProduct() {
-    if (!this.formProduct.name || !this.formProduct.slug || !this.formProduct.price) {
-      alert('Please fill in required product fields (Name, Slug, Price).');
+    if (!this.formProduct.name || !this.formProduct.price) {
+      alert('Product Title and Price are required.');
       return;
     }
 
     this.isSaving = true;
 
-    const imagesPayload = this.imageUrlsText
-      .split('\n')
-      .map(url => url.trim())
-      .filter(url => url.length > 0)
-      .map((image_url, idx) => ({ image_url, is_primary: idx === 0 }));
-
-    const totalStock = this.formSizes.reduce((acc, s) => acc + (s.stock || 0), 0);
-    this.formProduct.stock = totalStock;
-    this.formProduct.availability = totalStock > 0 ? (totalStock <= 5 ? 'few_left' : 'in_stock') : 'sold_out';
-
     try {
+      const imagesList = this.imageUrlsText
+        .split('\n')
+        .map(url => url.trim())
+        .filter(url => url.length > 0);
+
+      const sizesList = this.formSizes.map(sz => ({
+        size: sz.size as any,
+        stock: Number(sz.stock) || 0
+      }));
+
       if (this.editingProduct) {
-        await this.productService.updateProduct(this.editingProduct.id, this.formProduct, imagesPayload, this.formSizes);
+        await this.productService.updateProduct(
+          this.editingProduct.id,
+          this.formProduct,
+          imagesList,
+          sizesList
+        );
+        alert('Product updated successfully!');
       } else {
-        await this.productService.createProduct(this.formProduct, imagesPayload, this.formSizes);
+        await this.productService.createProduct(
+          this.formProduct,
+          imagesList,
+          sizesList
+        );
+        alert('Product created successfully!');
       }
+
       this.closeModal();
       await this.loadData();
     } catch (err: any) {
@@ -404,7 +426,7 @@ export class ProductListComponent implements OnInit {
   }
 
   async deleteProduct(prod: Product) {
-    if (confirm(`Are you sure you want to delete "${prod.name}"?`)) {
+    if (confirm(`Are you sure you want to delete product "${prod.name}"?`)) {
       try {
         await this.productService.deleteProduct(prod.id);
         await this.loadData();

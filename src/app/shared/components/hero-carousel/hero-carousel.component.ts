@@ -402,11 +402,13 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * CONTINUOUS AUTOPLAY SLIDER:
+   * PRECISE CONTINUOUS AUTOPLAY SLIDER:
    * - Starts automatically on initial component mount.
-   * - Changes to the next image continuously EVERY 2 SECONDS (2000ms).
-   * - The slide animation takes 400ms (0.4s).
-   * - Sequence: Image 1 -> Image 2 -> Image 3 -> Image 4 -> Image 3 -> Image 2 -> Image 1 ...
+   * - 0.0s - 2.0s: Image 1 visible (2.0s full display time)
+   * - 2.0s - 2.4s: Fast 400ms transition to Image 2
+   * - 2.4s - 4.4s: Image 2 visible (2.0s full display time)
+   * - 4.4s - 4.8s: Fast 400ms transition to Image 3 ...
+   * - Total step interval: 2400ms (2000ms display hold + 400ms fast slide).
    */
   startAutoSlider() {
     if (!this.isBrowser) return;
@@ -416,7 +418,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       this.ngZone.run(() => {
         this.nextSlide();
       });
-    }, 2000);
+    }, 2400);
   }
 
   nextSlide() {

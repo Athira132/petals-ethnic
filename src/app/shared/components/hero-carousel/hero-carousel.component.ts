@@ -93,12 +93,12 @@ export interface HeroSlide {
       }
     }
 
-    /* Horizontal Flex Track with Fast 600ms GPU-Accelerated Transform Transition */
+    /* Horizontal Flex Track with Smooth 400ms GPU-Accelerated Transform Transition */
     .carousel-track {
       display: flex;
       width: 100%;
       height: 100%;
-      transition: transform 600ms cubic-bezier(0.25, 1, 0.5, 1);
+      transition: transform 400ms cubic-bezier(0.25, 1, 0.5, 1);
       will-change: transform;
     }
 
@@ -404,9 +404,8 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   /**
    * FAST CONTINUOUS PING-PONG / REVERSE SLIDER:
    * - Starts automatically on initial component mount.
-   * - Each image remains visually displayed for ONLY 1 SECOND (1000ms).
-   * - The slide animation takes 600ms (0.6s).
-   * - Total step interval: 1600ms (1000ms hold + 600ms slide).
+   * - Changes to the next image continuously EVERY 1 SECOND (1000ms).
+   * - The slide animation takes 400ms (0.4s).
    * - Sequence: 0 -> 1 -> 2 -> 3 -> 2 -> 1 -> 0 -> 1 -> 2 -> 3 ...
    */
   startAutoSlider() {
@@ -417,7 +416,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       this.ngZone.run(() => {
         this.nextSlide();
       });
-    }, 1600);
+    }, 1000);
   }
 
   nextSlide() {

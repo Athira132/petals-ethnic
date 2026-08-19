@@ -402,13 +402,10 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * EXACT FAST HORIZONTAL AUTOPLAY SLIDER:
+   * EXACT FORWARD CONTINUOUS AUTOPLAY SLIDER:
    * - Starts automatically on initial component mount with zero user interaction.
-   * - 0.0s - 1.0s: Image 1 visible (1.0s full display time)
-   * - 1.0s - 1.4s: Fast 400ms slide LEFT (Image 1 exits LEFT, Image 2 enters RIGHT)
-   * - 1.4s - 2.4s: Image 2 visible (1.0s full display time)
-   * - 2.4s - 2.8s: Fast 400ms slide LEFT (Image 2 exits LEFT, Image 3 enters RIGHT)...
-   * - Total step interval: 1400ms (1000ms display hold + 400ms fast slide).
+   * - Sequence: Image 1 (idx 0) -> Image 2 (idx 1) -> Image 3 (idx 2) -> Image 4 (idx 3) -> Image 1 (idx 0) ...
+   * - 1.0s static display hold + 400ms fast slide LEFT (total interval 1400ms).
    */
   startAutoSlider() {
     if (!this.isBrowser) return;
@@ -424,36 +421,20 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   nextSlide() {
     if (!this.slides || this.slides.length <= 1) return;
 
-    let nextIndex = this.currentIndex + this.direction;
+    // Strict forward progression: Image 1 -> Image 2 -> Image 3 -> Image 4 -> Image 1 -> repeat
+    this.currentIndex = (this.currentIndex + 1) % this.slides.length;
 
-    // Boundary check for last slide -> reverse direction backward
-    if (nextIndex >= this.slides.length) {
-      this.direction = -1;
-      nextIndex = this.slides.length - 2;
-    } 
-    // Boundary check for first slide -> reverse direction forward
-    else if (nextIndex < 0) {
-      this.direction = 1;
-      nextIndex = 1;
-    }
-
-    this.currentIndex = nextIndex;
     this.cdr.markForCheck();
     this.cdr.detectChanges();
   }
 
   goToSlide(index: number) {
-    this.currentIndex = index;
-
-    // Adjust direction based on boundary
-    if (index >= this.slides.length - 1) {
-      this.direction = -1;
-    } else if (index <= 0) {
-      this.direction = 1;
+    if (index >= 0 && index < this.slides.length) {
+      this.currentIndex = index;
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
+      this.startAutoSlider();
     }
-
-    this.cdr.markForCheck();
-    this.startAutoSlider();
   }
 
   stopTimer() {

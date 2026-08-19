@@ -20,7 +20,7 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
 
         <div *ngIf="errorMessage" class="auth-alert error">
-          ⚠️ {{ errorMessage }}
+          {{ errorMessage }}
         </div>
 
         <form (ngSubmit)="onSubmit()" class="auth-form">
@@ -31,7 +31,6 @@ import { AuthService } from '../../core/services/auth.service';
               id="email" 
               [(ngModel)]="email" 
               name="email" 
-              required 
               placeholder="you@example.com" 
               class="form-control"
             />
@@ -47,14 +46,13 @@ import { AuthService } from '../../core/services/auth.service';
               id="password" 
               [(ngModel)]="password" 
               name="password" 
-              required 
               placeholder="••••••••" 
               class="form-control"
             />
           </div>
 
           <button type="submit" [disabled]="isLoading" class="btn-primary auth-submit-btn">
-            {{ isLoading ? 'Signing In...' : 'Sign In' }}
+            {{ isLoading ? 'Signing in...' : 'Sign In' }}
           </button>
         </form>
 
@@ -167,19 +165,26 @@ export class LoginComponent implements OnInit {
   }
 
   async onSubmit() {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter both your email address and password.';
+    this.errorMessage = '';
+
+    if (!this.email || !this.email.trim()) {
+      this.errorMessage = 'Please enter your email.';
+      return;
+    }
+
+    if (!this.password || !this.password.trim()) {
+      this.errorMessage = 'Please enter your password.';
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
 
     try {
-      const res = await this.authService.login(this.email, this.password);
+      const res = await this.authService.login(this.email.trim(), this.password);
       
-      if (!res.user) {
-        throw new Error('Authentication failed.');
+      if (!res?.user) {
+        this.errorMessage = 'Incorrect email or password.';
+        return;
       }
 
       // Determine admin status and navigate immediately without artificial delays or setTimeout
@@ -189,15 +194,8 @@ export class LoginComponent implements OnInit {
       this.router.navigateByUrl(this.redirectUrl || (isAdmin ? '/admin' : '/account'));
 
     } catch (err: any) {
-      console.error('Login submit error:', err);
-      
-      const rawMsg = (err?.message || '').toLowerCase();
-      if (rawMsg.includes('email not confirmed')) {
-        this.errorMessage = 'Your email address has not been confirmed yet. Please check your inbox.';
-      } else {
-        // Direct exact required message for invalid credentials
-        this.errorMessage = 'Incorrect email or password.';
-      }
+      // Map all authentication failure responses directly to user-facing error
+      this.errorMessage = 'Incorrect email or password.';
     } finally {
       this.isLoading = false;
     }

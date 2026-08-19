@@ -402,13 +402,13 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * PRECISE CONTINUOUS AUTOPLAY SLIDER:
-   * - Starts automatically on initial component mount.
-   * - 0.0s - 2.0s: Image 1 visible (2.0s full display time)
-   * - 2.0s - 2.4s: Fast 400ms transition to Image 2
-   * - 2.4s - 4.4s: Image 2 visible (2.0s full display time)
-   * - 4.4s - 4.8s: Fast 400ms transition to Image 3 ...
-   * - Total step interval: 2400ms (2000ms display hold + 400ms fast slide).
+   * EXACT FAST HORIZONTAL AUTOPLAY SLIDER:
+   * - Starts automatically on initial component mount with zero user interaction.
+   * - 0.0s - 1.0s: Image 1 visible (1.0s full display time)
+   * - 1.0s - 1.4s: Fast 400ms slide LEFT (Image 1 exits LEFT, Image 2 enters RIGHT)
+   * - 1.4s - 2.4s: Image 2 visible (1.0s full display time)
+   * - 2.4s - 2.8s: Fast 400ms slide LEFT (Image 2 exits LEFT, Image 3 enters RIGHT)...
+   * - Total step interval: 1400ms (1000ms display hold + 400ms fast slide).
    */
   startAutoSlider() {
     if (!this.isBrowser) return;
@@ -418,7 +418,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       this.ngZone.run(() => {
         this.nextSlide();
       });
-    }, 2400);
+    }, 1400);
   }
 
   nextSlide() {

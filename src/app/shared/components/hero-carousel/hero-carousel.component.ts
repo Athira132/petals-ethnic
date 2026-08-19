@@ -402,11 +402,11 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * FAST CONTINUOUS PING-PONG / REVERSE SLIDER:
+   * CONTINUOUS AUTOPLAY SLIDER:
    * - Starts automatically on initial component mount.
-   * - Changes to the next image continuously EVERY 1 SECOND (1000ms).
+   * - Changes to the next image continuously EVERY 2 SECONDS (2000ms).
    * - The slide animation takes 400ms (0.4s).
-   * - Sequence: 0 -> 1 -> 2 -> 3 -> 2 -> 1 -> 0 -> 1 -> 2 -> 3 ...
+   * - Sequence: Image 1 -> Image 2 -> Image 3 -> Image 4 -> Image 3 -> Image 2 -> Image 1 ...
    */
   startAutoSlider() {
     if (!this.isBrowser) return;
@@ -416,7 +416,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       this.ngZone.run(() => {
         this.nextSlide();
       });
-    }, 1000);
+    }, 2000);
   }
 
   nextSlide() {

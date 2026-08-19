@@ -179,31 +179,24 @@ export class LoginComponent implements OnInit {
       const res = await this.authService.login(this.email, this.password);
       
       if (!res.user) {
-        throw new Error('Authentication succeeded but no user session was returned.');
+        throw new Error('Authentication failed.');
       }
 
-      const profile = await this.authService.loadUserProfile(res.user.id);
-      
-      const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin' || this.authService.isAdmin;
+      // Determine admin status and navigate immediately without artificial delays or setTimeout
+      const email = (res.user.email || '').toLowerCase();
+      const isAdmin = email === 'petalsethnic@gmail.com' || email === 'dhanyaadwork@gmail.com' || this.authService.isAdmin;
 
-      if (isAdmin) {
-        this.router.navigateByUrl(this.redirectUrl || '/admin');
-      } else {
-        this.router.navigateByUrl(this.redirectUrl || '/account');
-      }
+      this.router.navigateByUrl(this.redirectUrl || (isAdmin ? '/admin' : '/account'));
 
     } catch (err: any) {
       console.error('Login submit error:', err);
       
-      const rawMsg = err.message || '';
-      if (rawMsg.includes('Invalid login credentials')) {
-        this.errorMessage = 'Invalid email address or password. Please check your credentials and try again.';
-      } else if (rawMsg.includes('Email not confirmed')) {
+      const rawMsg = (err?.message || '').toLowerCase();
+      if (rawMsg.includes('email not confirmed')) {
         this.errorMessage = 'Your email address has not been confirmed yet. Please check your inbox.';
-      } else if (rawMsg.includes('Database error')) {
-        this.errorMessage = 'An authentication service error occurred. Please try again in a moment.';
       } else {
-        this.errorMessage = rawMsg || 'Login failed. Please verify your credentials and try again.';
+        // Direct exact required message for invalid credentials
+        this.errorMessage = 'Incorrect email or password.';
       }
     } finally {
       this.isLoading = false;

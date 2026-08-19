@@ -120,7 +120,8 @@ export class AuthService {
 
     if (data.user) {
       this.currentUserSubject.next(data.user);
-      await this.loadUserProfile(data.user.id);
+      // Asynchronously fetch profile without delaying immediate authentication response
+      this.loadUserProfile(data.user.id).catch(err => console.warn('Background profile load note:', err));
     }
     return data;
   }
@@ -140,19 +141,15 @@ export class AuthService {
     if (error) throw error;
 
     if (data.user) {
-      // Ensure profile record is inserted
-      try {
-        await this.supabaseService.supabase.from('profiles').insert([{
-          id: data.user.id,
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          role: 'customer',
-          created_at: new Date().toISOString()
-        }]);
-      } catch (e) {
-        console.warn('Profile creation error during registration:', e);
-      }
+      // Asynchronously create profile record without delaying registration completion
+      this.supabaseService.supabase.from('profiles').insert([{
+        id: data.user.id,
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        role: 'customer',
+        created_at: new Date().toISOString()
+      }]).then(() => {}, (err: any) => console.warn('Profile creation note during registration:', err));
     }
 
     return data;

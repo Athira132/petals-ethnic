@@ -19,6 +19,10 @@ import { AuthService } from '../../core/services/auth.service';
           <p class="auth-subtitle">Join Petals Ethnic to enjoy fast checkouts, track orders, and receive exclusive offers.</p>
         </div>
 
+        <div *ngIf="successMessage" class="auth-alert success">
+          ✅ {{ successMessage }}
+        </div>
+
         <div *ngIf="errorMessage" class="auth-alert error">
           ⚠️ {{ errorMessage }}
         </div>
@@ -167,6 +171,7 @@ export class RegisterComponent implements OnInit {
   phone = '';
   password = '';
   isLoading = false;
+  successMessage = '';
   errorMessage = '';
   redirectUrl = '';
 
@@ -193,13 +198,20 @@ export class RegisterComponent implements OnInit {
 
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     try {
       await this.authService.register(this.name, this.email, this.password, this.phone);
+      this.successMessage = 'Account created successfully.';
       this.router.navigateByUrl(this.redirectUrl);
     } catch (err: any) {
       console.error('Registration error:', err);
-      this.errorMessage = err.message || 'Could not complete registration. Please try again.';
+      const msg = (err?.message || '').toLowerCase();
+      if (msg.includes('already registered') || msg.includes('user_already_exists') || msg.includes('unique constraint') || msg.includes('already exists')) {
+        this.errorMessage = 'This email is already registered. Please log in instead.';
+      } else {
+        this.errorMessage = err.message || 'Could not complete registration. Please try again.';
+      }
     } finally {
       this.isLoading = false;
     }

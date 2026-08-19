@@ -152,11 +152,11 @@ export class ForgotPasswordComponent {
 
     try {
       await this.authService.resetPassword(this.email);
-      this.successMessage = 'Password reset link has been sent to your email. Please check your inbox.';
     } catch (err: any) {
-      console.error('Forgot password error:', err);
-      this.errorMessage = err.message || 'Error requesting password reset link.';
+      console.error('Forgot password request log:', err);
     } finally {
+      // Safe generic message without account enumeration risk
+      this.successMessage = 'If an account exists for this email, a password reset link has been sent. Please check your email.';
       this.isLoading = false;
     }
   }

@@ -17,7 +17,10 @@ export interface HeroSlide {
   imports: [CommonModule, RouterModule],
   template: `
     <section class="hero-carousel-section">
-      <div class="carousel-track">
+      <div 
+        class="carousel-track"
+        [style.transform]="'translate3d(-' + (currentIndex * 100) + '%, 0, 0)'"
+      >
         <div 
           *ngFor="let slide of slides; let i = index"
           class="carousel-slide"
@@ -90,30 +93,26 @@ export interface HeroSlide {
       }
     }
 
+    /* Horizontal Flex Track with Smooth 700ms GPU-Accelerated Transform Transition */
     .carousel-track {
-      position: relative;
+      display: flex;
       width: 100%;
       height: 100%;
+      transition: transform 700ms cubic-bezier(0.25, 1, 0.5, 1);
+      will-change: transform;
     }
 
-    /* Ultra-Fast 300ms GPU-Accelerated Transition (No Delay or Blank Frames) */
+    /* Side-by-Side Horizontal Slides */
     .carousel-slide {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 300ms cubic-bezier(0.25, 1, 0.5, 1), transform 300ms cubic-bezier(0.25, 1, 0.5, 1);
-      transform: scale(1.02) translateZ(0);
-      will-change: opacity, transform;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-    }
-    .carousel-slide.active {
+      flex: 0 0 100%;
+      min-width: 100%;
+      width: 100%;
+      height: 100%;
+      position: relative;
       opacity: 1;
       visibility: visible;
-      transform: scale(1) translateZ(0);
-      z-index: 2;
+      display: flex;
+      align-items: center;
     }
 
     /* Desktop Background Position: Center Top */
@@ -332,7 +331,7 @@ export interface HeroSlide {
   `]
 })
 export class HeroCarouselComponent implements OnInit, OnDestroy {
-  // 4 Required Hero Fashion Slides with Original Uploaded Images & Content
+  // Existing Hero Fashion Slides Unchanged
   slides: HeroSlide[] = [
     { 
       id: 1, 
@@ -369,6 +368,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   ];
 
   currentIndex = 0;
+  direction = 1; // 1 for forward (+), -1 for backward (-)
   timer: any;
 
   ngOnInit() {
@@ -380,9 +380,6 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     this.stopTimer();
   }
 
-  /**
-   * Preload all 4 hero images upfront in browser memory so slide transitions are instant (0ms delay)
-   */
   preloadSlideImages() {
     if (typeof window !== 'undefined') {
       this.slides.forEach(slide => {
@@ -393,18 +390,48 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * AUTOMATIC CONTINUOUS LOOPING SLIDER:
-   * - Slides automatically to the next image once EVERY 1 SECOND (1000ms)
+   * CONTINUOUS PING-PONG / REVERSE SLIDER:
+   * - Each image remains visible for EXACTLY 2 seconds (2000ms).
+   * - The slide animation takes 700ms (0.7s).
+   * - Total step interval: 2700ms (2000ms hold + 700ms slide).
+   * - Sequence: 0 -> 1 -> 2 -> 3 -> 2 -> 1 -> 0 -> 1 -> 2 -> 3 ...
    */
   startAutoSlider() {
     this.stopTimer();
     this.timer = setInterval(() => {
-      this.currentIndex = (this.currentIndex + 1) % this.slides.length;
-    }, 1000); // 1-SECOND CONTINUOUS AUTO-SLIDE INTERVAL
+      this.nextSlide();
+    }, 2700);
+  }
+
+  nextSlide() {
+    if (!this.slides || this.slides.length <= 1) return;
+
+    let nextIndex = this.currentIndex + this.direction;
+
+    // Boundary check for last slide -> reverse direction backward
+    if (nextIndex >= this.slides.length) {
+      this.direction = -1;
+      nextIndex = this.slides.length - 2;
+    } 
+    // Boundary check for first slide -> reverse direction forward
+    else if (nextIndex < 0) {
+      this.direction = 1;
+      nextIndex = 1;
+    }
+
+    this.currentIndex = nextIndex;
   }
 
   goToSlide(index: number) {
     this.currentIndex = index;
+
+    // Adjust direction based on boundary
+    if (index >= this.slides.length - 1) {
+      this.direction = -1;
+    } else if (index <= 0) {
+      this.direction = 1;
+    }
+
     this.startAutoSlider();
   }
 
@@ -415,3 +442,4 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     }
   }
 }
+

@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { SupabaseService } from '../../core/services/supabase.service';
 
 @Component({
   selector: 'app-reset-password',
@@ -27,7 +28,7 @@ import { AuthService } from '../../core/services/auth.service';
           ⚠️ {{ errorMessage }}
         </div>
 
-        <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="!successMessage">
+        <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="!successMessage && !isLinkExpired">
           <div class="form-group">
             <label class="form-label" for="password">New Password</label>
             <input 
@@ -55,12 +56,16 @@ import { AuthService } from '../../core/services/auth.service';
           </div>
 
           <button type="submit" [disabled]="isLoading" class="btn-primary auth-submit-btn">
-            {{ isLoading ? 'Updating...' : 'Update Password' }}
+            {{ isLoading ? 'Updating Password...' : 'Update Password' }}
           </button>
         </form>
 
         <div class="auth-footer" *ngIf="successMessage">
           <a routerLink="/login" class="btn-primary">Proceed to Sign In →</a>
+        </div>
+
+        <div class="auth-footer" *ngIf="isLinkExpired">
+          <a routerLink="/forgot-password" class="btn-primary">Request New Reset Link →</a>
         </div>
       </div>
     </div>
@@ -139,17 +144,44 @@ import { AuthService } from '../../core/services/auth.service';
     }
   `]
 })
-export class ResetPasswordComponent {
+export class ResetPasswordComponent implements OnInit, OnDestroy {
   newPassword = '';
   confirmPassword = '';
   isLoading = false;
+  isLinkExpired = false;
   successMessage = '';
   errorMessage = '';
+  private authSubscription: any;
 
   constructor(
     private authService: AuthService,
+    private supabaseService: SupabaseService,
     private router: Router
   ) {}
+
+  async ngOnInit() {
+    // Check current auth session
+    const { data: { session } } = await this.supabaseService.supabase.auth.getSession();
+
+    const { data: listener } = this.supabaseService.supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || session) {
+        this.isLinkExpired = false;
+        this.errorMessage = '';
+      }
+    });
+    this.authSubscription = listener.subscription;
+
+    if (!session && !window.location.hash.includes('access_token') && !window.location.href.includes('type=recovery')) {
+      this.isLinkExpired = true;
+      this.errorMessage = 'This password reset link is invalid or has expired. Please request a new link.';
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+  }
 
   async onSubmit() {
     if (!this.newPassword || !this.confirmPassword) {
@@ -173,12 +205,19 @@ export class ResetPasswordComponent {
 
     try {
       await this.authService.updatePassword(this.newPassword);
-      this.successMessage = 'Your password has been successfully updated!';
+      this.successMessage = 'Your password has been successfully updated! You can now log in with your new password.';
     } catch (err: any) {
       console.error('Reset password error:', err);
-      this.errorMessage = err.message || 'Error updating password. Please try again.';
+      const msg = (err?.message || '').toLowerCase();
+      if (msg.includes('jwt expired') || msg.includes('token expired') || msg.includes('session expired') || msg.includes('auth event')) {
+        this.isLinkExpired = true;
+        this.errorMessage = 'Your password reset link has expired. Please request a new link.';
+      } else {
+        this.errorMessage = err.message || 'Error updating password. Please try again.';
+      }
     } finally {
       this.isLoading = false;
     }
   }
 }
+

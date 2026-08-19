@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, ChangeDetectorRef, NgZone } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 export interface HeroSlide {
@@ -370,10 +370,22 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   currentIndex = 0;
   direction = 1; // 1 for forward (+), -1 for backward (-)
   timer: any;
+  private isBrowser: boolean;
+
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit() {
-    this.preloadSlideImages();
-    this.startAutoSlider();
+    if (this.isBrowser) {
+      this.preloadSlideImages();
+      // Immediately start autoplay on component mount without waiting for user interaction or tab focus
+      this.startAutoSlider();
+    }
   }
 
   ngOnDestroy() {
@@ -381,7 +393,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   preloadSlideImages() {
-    if (typeof window !== 'undefined') {
+    if (this.isBrowser) {
       this.slides.forEach(slide => {
         const img = new Image();
         img.src = slide.imageUrl;
@@ -391,15 +403,20 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   /**
    * FAST CONTINUOUS PING-PONG / REVERSE SLIDER:
+   * - Starts automatically on initial component mount.
    * - Each image remains visually displayed for ONLY 1 SECOND (1000ms).
    * - The slide animation takes 600ms (0.6s).
    * - Total step interval: 1600ms (1000ms hold + 600ms slide).
    * - Sequence: 0 -> 1 -> 2 -> 3 -> 2 -> 1 -> 0 -> 1 -> 2 -> 3 ...
    */
   startAutoSlider() {
+    if (!this.isBrowser) return;
     this.stopTimer();
+
     this.timer = setInterval(() => {
-      this.nextSlide();
+      this.ngZone.run(() => {
+        this.nextSlide();
+      });
     }, 1600);
   }
 
@@ -420,6 +437,8 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     }
 
     this.currentIndex = nextIndex;
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   goToSlide(index: number) {
@@ -432,6 +451,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       this.direction = 1;
     }
 
+    this.cdr.markForCheck();
     this.startAutoSlider();
   }
 
@@ -442,4 +462,5 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     }
   }
 }
+
 

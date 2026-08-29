@@ -135,8 +135,9 @@ import { Category } from '../../core/models/category.model';
           <div *ngIf="!isLoading; else loadingBlock">
             <div class="product-grid" *ngIf="products.length > 0; else emptyState">
               <app-product-card 
-                *ngFor="let prod of products" 
+                *ngFor="let prod of products; let i = index" 
                 [product]="prod"
+                [priority]="i < 4"
                 (quickAdd)="onQuickAdd($event)"
               ></app-product-card>
             </div>

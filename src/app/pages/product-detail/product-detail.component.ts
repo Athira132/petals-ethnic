@@ -37,6 +37,9 @@ import { extractProductImages, handleImageError, ImageItem, DEFAULT_FALLBACK_IMA
                 [alt]="product.name" 
                 class="pd-main-img"
                 [class.visible]="isMainLoaded"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
                 (load)="isMainLoaded = true"
                 (error)="onImageError($event); isMainLoaded = true"
               />

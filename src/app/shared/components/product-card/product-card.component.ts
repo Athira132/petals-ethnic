@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product, SizeOption } from '../../../core/models/product.model';
@@ -21,7 +21,9 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
             [alt]="product.name" 
             class="product-img main-img"
             [class.visible]="isMainLoaded"
-            loading="lazy"
+            [attr.loading]="priority ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="priority ? 'high' : 'auto'"
+            decoding="async"
             (load)="isMainLoaded = true"
             (error)="onImageError($event); isMainLoaded = true"
           />
@@ -31,6 +33,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
             [alt]="product.name" 
             class="product-img hover-img" 
             loading="lazy"
+            decoding="async"
             (error)="onImageError($event)"
           />
         </a>
@@ -133,7 +136,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
       object-fit: cover;
       object-position: top center;
       opacity: 0;
-      transition: opacity 0.4s ease, transform 0.4s ease;
+      transition: opacity 0.3s ease, transform 0.3s ease;
       z-index: 2;
     }
     .product-img.visible {
@@ -261,24 +264,29 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
     }
   `]
 })
-export class ProductCardComponent {
+export class ProductCardComponent implements OnInit, OnChanges {
   @Input({ required: true }) product!: Product;
+  @Input() priority: boolean = false;
   @Output() quickAdd = new EventEmitter<{ product: Product; size: SizeOption }>();
 
   isMainLoaded = false;
+  primaryImageUrl: string = DEFAULT_FALLBACK_IMAGE;
+  secondaryImageUrl: string | null = null;
 
-  get allImages() {
-    return extractProductImages(this.product);
+  ngOnInit() {
+    this.updateImages();
   }
 
-  get primaryImageUrl(): string {
-    const images = this.allImages;
-    return images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['product']) {
+      this.updateImages();
+    }
   }
 
-  get secondaryImageUrl(): string | null {
-    const images = this.allImages;
-    return images.length > 1 ? images[1].image_url : null;
+  private updateImages() {
+    const images = extractProductImages(this.product);
+    this.primaryImageUrl = images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
+    this.secondaryImageUrl = images.length > 1 ? images[1].image_url : null;
   }
 
   get discountPercentage(): number {

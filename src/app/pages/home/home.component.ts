@@ -66,8 +66,9 @@ import { handleImageError } from '../../core/utils/image.utils';
 
           <div class="product-grid" *ngIf="newArrivals.length > 0; else loadingState">
             <app-product-card 
-              *ngFor="let prod of newArrivals" 
+              *ngFor="let prod of newArrivals; let i = index" 
               [product]="prod"
+              [priority]="i < 4"
               (quickAdd)="onQuickAdd($event)"
             ></app-product-card>
           </div>
@@ -85,8 +86,9 @@ import { handleImageError } from '../../core/utils/image.utils';
 
           <div class="product-grid" *ngIf="featuredProducts.length > 0; else loadingState">
             <app-product-card 
-              *ngFor="let prod of featuredProducts" 
+              *ngFor="let prod of featuredProducts; let i = index" 
               [product]="prod"
+              [priority]="i < 4"
               (quickAdd)="onQuickAdd($event)"
             ></app-product-card>
           </div>

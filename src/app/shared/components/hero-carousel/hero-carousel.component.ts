@@ -34,6 +34,7 @@ export interface HeroSlide {
             class="slide-img" 
             [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
             [loading]="i === 0 ? 'eager' : 'lazy'"
+            decoding="async"
             (error)="onImageError($event)"
           />
 

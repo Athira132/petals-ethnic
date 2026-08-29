@@ -535,19 +535,20 @@ export class HomeComponent implements OnInit {
   async ngOnInit() {
     try {
       this.categories = await this.productService.getCategories();
-      this.newArrivals = await this.productService.getProducts({ newArrivalOnly: true });
-      this.featuredProducts = await this.productService.getProducts({ featuredOnly: true });
-      
-      if (this.newArrivals.length === 0) {
-        this.newArrivals = this.getFallbackProducts();
-      }
-      if (this.featuredProducts.length === 0) {
-        this.featuredProducts = this.getFallbackProducts();
+      const allProds = await this.productService.getProducts();
+
+      if (allProds.length > 0) {
+        const newArr = allProds.filter(p => p.new_arrival);
+        this.newArrivals = newArr.length > 0 ? newArr : allProds.slice(0, 4);
+
+        const feat = allProds.filter(p => p.featured);
+        this.featuredProducts = feat.length > 0 ? feat : allProds.slice(0, Math.min(allProds.length, 4));
+      } else {
+        this.newArrivals = [];
+        this.featuredProducts = [];
       }
     } catch (e) {
       console.error('Error loading home data:', e);
-      this.newArrivals = this.getFallbackProducts();
-      this.featuredProducts = this.getFallbackProducts();
     }
   }
 

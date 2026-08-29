@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { Category } from '../../core/models/category.model';
-import { handleImageError, sanitizeImageUrl } from '../../core/utils/image.utils';
+import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-category-list',
@@ -282,6 +282,10 @@ export class CategoryListComponent implements OnInit, OnDestroy {
 
     if (this.formCat.image_url) {
       this.formCat.image_url = sanitizeImageUrl(this.formCat.image_url);
+      if (isIbbShareUrl(this.formCat.image_url)) {
+        alert('Please use the direct image URL, not the ImgBB share-page URL.');
+        return;
+      }
     }
 
     this.isSaving = true;

@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { Product, SizeOption } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
-import { extractProductImages, parseImageUrlsInput, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
+import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShareUrl, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-product-list',
@@ -458,6 +458,13 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
     try {
       const imagesList = parseImageUrlsInput(this.imageUrlsText);
+
+      const invalidShareUrl = imagesList.find(url => isIbbShareUrl(url));
+      if (invalidShareUrl) {
+        alert('Please use the direct image URL, not the ImgBB share-page URL.');
+        this.isSaving = false;
+        return;
+      }
 
       const sizesList = this.formSizes.map(sz => ({
         size: sz.size as any,

@@ -7,25 +7,25 @@ export interface ImageItem {
 }
 
 /**
+ * Checks if a given string is an ImgBB webpage/share URL (e.g. https://ibb.co/XXXXXX)
+ * rather than a direct image resource (e.g. https://i.ibb.co/XXXXXX/image.jpg).
+ */
+export function isIbbShareUrl(rawUrl: string | null | undefined): boolean {
+  if (!rawUrl) return false;
+  const str = rawUrl.trim();
+  // Matches ibb.co/ or www.ibb.co/ BUT NOT i.ibb.co/
+  return /^https?:\/\/(www\.)?ibb\.co\//i.test(str);
+}
+
+/**
  * Sanitizes an image URL:
  * 1. Trims whitespace.
- * 2. Converts ImgBB webpage/share URLs (e.g. https://ibb.co/xyz) to direct image URLs.
- * 3. Ensures valid HTTP/HTTPS protocol.
+ * 2. Keeps valid direct image URLs (e.g. https://i.ibb.co/...) exactly as provided.
+ * 3. Does NOT invent or transform ibb.co share URLs automatically.
  */
 export function sanitizeImageUrl(rawUrl: string | null | undefined): string {
   if (!rawUrl) return '';
-  let url = rawUrl.trim();
-  if (!url) return '';
-
-  // Handle ImgBB webpage share URLs (https://ibb.co/XXXXXX -> https://i.ibb.co/XXXXXX/image.jpg)
-  const ibbShareRegex = /^https?:\/\/(www\.)?ibb\.co\/([a-zA-Z0-9]+)\/?$/i;
-  const match = url.match(ibbShareRegex);
-  if (match) {
-    const code = match[2];
-    url = `https://i.ibb.co/${code}/image.jpg`;
-  }
-
-  return url;
+  return rawUrl.trim();
 }
 
 /**

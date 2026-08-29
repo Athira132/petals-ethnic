@@ -9,6 +9,7 @@ import { PaymentService } from '../../core/services/payment.service';
 import { CartSummary } from '../../core/models/cart.model';
 import { UserProfile } from '../../core/models/user.model';
 import { Order } from '../../core/models/order.model';
+import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-checkout',
@@ -201,7 +202,7 @@ import { Order } from '../../core/models/order.model';
 
               <div class="order-items-mini">
                 <div *ngFor="let item of summary.items" class="mini-item">
-                  <img [src]="getItemImage(item)" [alt]="item.product.name" class="mini-img" />
+                  <img [src]="getItemImage(item)" [alt]="item.product.name" class="mini-img" (error)="onImageError($event)" />
                   <div class="mini-info">
                     <span class="mini-title">{{ item.product.name }}</span>
                     <span class="mini-size">Size: {{ item.selectedSize }} | Qty: {{ item.quantity }}</span>
@@ -597,10 +598,12 @@ export class CheckoutComponent implements OnInit {
   }
 
   getItemImage(item: any): string {
-    if (item.product.images && item.product.images.length > 0) {
-      return item.product.images[0].image_url;
-    }
-    return 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
+    const images = extractProductImages(item.product);
+    return images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
+  }
+
+  onImageError(event: Event) {
+    handleImageError(event);
   }
 
   async placeOrder() {

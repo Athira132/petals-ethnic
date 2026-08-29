@@ -6,6 +6,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { Product, ProductImage, SizeOption } from '../../core/models/product.model';
+import { extractProductImages, handleImageError, ImageItem, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-product-detail',
@@ -27,8 +28,18 @@ import { Product, ProductImage, SizeOption } from '../../core/models/product.mod
         <div class="pd-grid">
           <!-- Image Gallery Column -->
           <div class="pd-gallery">
-            <div class="main-image-box">
-              <img [src]="activeImageUrl" [alt]="product.name" class="pd-main-img" />
+            <div class="main-image-box" [class.loaded]="isMainLoaded">
+              <!-- Loading Skeleton -->
+              <div class="img-skeleton" *ngIf="!isMainLoaded"></div>
+
+              <img 
+                [src]="activeImageUrl" 
+                [alt]="product.name" 
+                class="pd-main-img"
+                [class.visible]="isMainLoaded"
+                (load)="isMainLoaded = true"
+                (error)="onImageError($event); isMainLoaded = true"
+              />
             </div>
 
             <!-- Thumbnail List -->
@@ -37,9 +48,14 @@ import { Product, ProductImage, SizeOption } from '../../core/models/product.mod
                 *ngFor="let img of images"
                 class="thumb-btn"
                 [class.active]="img.image_url === activeImageUrl"
-                (click)="activeImageUrl = img.image_url"
+                (click)="activeImageUrl = img.image_url; isMainLoaded = false"
               >
-                <img [src]="img.image_url" [alt]="product.name" class="thumb-img" />
+                <img 
+                  [src]="img.image_url" 
+                  [alt]="product.name" 
+                  class="thumb-img" 
+                  (error)="onImageError($event)"
+                />
               </button>
             </div>
           </div>
@@ -194,10 +210,24 @@ import { Product, ProductImage, SizeOption } from '../../core/models/product.mod
       width: 100%;
       padding-top: 125%;
       position: relative;
-      background-color: var(--color-bg-alt);
+      background-color: var(--color-bg-alt, #F8F9FA);
       border-radius: var(--radius-md);
       overflow: hidden;
     }
+
+    .img-skeleton {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, #F0E6EC 25%, #FBF6F8 50%, #F0E6EC 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      z-index: 1;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     .pd-main-img {
       position: absolute;
       inset: 0;
@@ -205,6 +235,12 @@ import { Product, ProductImage, SizeOption } from '../../core/models/product.mod
       height: 100%;
       object-fit: cover;
       object-position: top center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 2;
+    }
+    .pd-main-img.visible {
+      opacity: 1;
     }
 
     .thumbnail-row {
@@ -219,6 +255,8 @@ import { Product, ProductImage, SizeOption } from '../../core/models/product.mod
       overflow: hidden;
       border: 2px solid transparent;
       padding: 0;
+      background: #F8F9FA;
+      cursor: pointer;
     }
     .thumb-btn.active {
       border-color: var(--color-pink-dark);
@@ -429,8 +467,9 @@ import { Product, ProductImage, SizeOption } from '../../core/models/product.mod
 })
 export class ProductDetailComponent implements OnInit {
   product: Product | null = null;
-  images: ProductImage[] = [];
+  images: ImageItem[] = [];
   activeImageUrl = '';
+  isMainLoaded = false;
   
   sizeList: { size: SizeOption; stock: number }[] = [];
   selectedSize: SizeOption = 'M';
@@ -455,20 +494,16 @@ export class ProductDetailComponent implements OnInit {
   }
 
   async loadProductDetails(slug: string) {
+    this.isMainLoaded = false;
     this.product = await this.productService.getProductBySlug(slug);
     if (!this.product) {
       this.router.navigate(['/shop']);
       return;
     }
 
-    // Build Images
-    if (this.product.images && this.product.images.length > 0) {
-      this.images = this.product.images;
-      this.activeImageUrl = this.images[0].image_url;
-    } else {
-      this.activeImageUrl = 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
-      this.images = [{ image_url: this.activeImageUrl }];
-    }
+    // Build Images using robust extractor
+    this.images = extractProductImages(this.product);
+    this.activeImageUrl = this.images[0].image_url;
 
     // Build Sizes
     const availableSizesList: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -491,6 +526,10 @@ export class ProductDetailComponent implements OnInit {
       const allCategoryProducts = await this.productService.getProducts({ categoryId: this.product.category_id });
       this.relatedProducts = allCategoryProducts.filter(p => p.id !== this.product!.id).slice(0, 4);
     }
+  }
+
+  onImageError(event: Event) {
+    handleImageError(event);
   }
 
   get selectedSizeConfig() {

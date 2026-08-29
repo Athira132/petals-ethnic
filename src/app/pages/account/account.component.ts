@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { OrderService } from '../../core/services/order.service';
 import { UserProfile } from '../../core/models/user.model';
 import { Order } from '../../core/models/order.model';
+import { handleImageError } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-account',
@@ -67,7 +68,7 @@ import { Order } from '../../core/models/order.model';
                 <div class="order-card-body">
                   <div class="order-items-preview">
                     <div *ngFor="let item of order.order_items" class="order-item-mini">
-                      <img [src]="item.product_image || fallbackImg" [alt]="item.product_name" class="mini-img" />
+                      <img [src]="item.product_image || fallbackImg" [alt]="item.product_name" class="mini-img" (error)="onImageError($event)" />
                       <div class="mini-details">
                         <span class="item-title">{{ item.product_name }}</span>
                         <span class="item-meta">Size: {{ item.size }} | Qty: {{ item.quantity }}</span>
@@ -379,6 +380,10 @@ export class AccountComponent implements OnInit {
       this.editPhone = this.profile.phone || '';
       this.orders = await this.orderService.getMyOrders(user.id);
     }
+  }
+
+  onImageError(event: Event) {
+    handleImageError(event);
   }
 
   get isAdmin(): boolean {

@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import { CartSummary } from '../../../core/models/cart.model';
 import { User } from '@supabase/supabase-js';
 import { UserProfile } from '../../../core/models/user.model';
+import { handleImageError } from '../../../core/utils/image.utils';
 
 @Component({
   selector: 'app-navbar',
@@ -28,7 +29,7 @@ import { UserProfile } from '../../../core/models/user.model';
         <!-- Brand Logo with Circular Frame -->
         <a routerLink="/" class="brand-logo">
           <div class="logo-circle">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="logo-img" />
+            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="logo-img" (error)="onImageError($event)" />
           </div>
           <div class="brand-text">
             <span class="brand-name">PETALS ETHNIC</span>
@@ -103,7 +104,7 @@ import { UserProfile } from '../../../core/models/user.model';
     <aside class="mobile-drawer" [class.open]="isMobileMenuOpen">
       <div class="mobile-drawer-header">
         <div class="logo-circle drawer-logo-circle">
-          <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" class="drawer-logo" />
+          <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" class="drawer-logo" (error)="onImageError($event)" />
         </div>
         <button (click)="toggleMobileMenu()" class="close-btn">&times;</button>
       </div>
@@ -471,6 +472,10 @@ export class NavbarComponent implements OnInit {
     if (this.isSearchOpen && this.searchQuery) {
       this.onSearch();
     }
+  }
+
+  onImageError(event: Event) {
+    handleImageError(event);
   }
 
   onSearch() {

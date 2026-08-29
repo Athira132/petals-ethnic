@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { Product, SizeOption } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
+import { extractProductImages, parseImageUrlsInput, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-product-list',
@@ -72,7 +73,7 @@ import { Category } from '../../core/models/category.model';
               <!-- Product Data Rows -->
               <tr *ngFor="let prod of filteredProducts">
                 <td>
-                  <img [src]="getPrimaryImage(prod)" [alt]="prod.name" class="table-thumb" />
+                  <img [src]="getPrimaryImage(prod)" [alt]="prod.name" class="table-thumb" (error)="onImageError($event)" />
                 </td>
                 <td>
                   <strong>{{ prod.name }}</strong>
@@ -376,8 +377,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   getPrimaryImage(prod: Product): string {
-    if (prod.images && prod.images.length > 0) return prod.images[0].image_url;
-    return 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
+    const images = extractProductImages(prod);
+    return images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
+  }
+
+  onImageError(event: Event) {
+    handleImageError(event);
   }
 
   async openCreateModal() {
@@ -452,10 +457,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     try {
-      const imagesList = this.imageUrlsText
-        .split('\n')
-        .map(url => url.trim())
-        .filter(url => url.length > 0);
+      const imagesList = parseImageUrlsInput(this.imageUrlsText);
 
       const sizesList = this.formSizes.map(sz => ({
         size: sz.size as any,

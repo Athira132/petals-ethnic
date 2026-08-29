@@ -7,6 +7,7 @@ import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { Product, SizeOption } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
+import { handleImageError } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-home',
@@ -14,7 +15,7 @@ import { Category } from '../../core/models/category.model';
   imports: [CommonModule, RouterModule, HeroCarouselComponent, ProductCardComponent],
   template: `
     <main class="home-page">
-      <!-- 1. Hero Fashion Showcase (85-90% Viewport Height, Auto 2s Slider) -->
+      <!-- 1. Hero Fashion Showcase (85-90% Viewport Height, ~3s Auto Slider) -->
       <app-hero-carousel></app-hero-carousel>
 
       <!-- 2. Featured Categories -->
@@ -33,7 +34,13 @@ import { Category } from '../../core/models/category.model';
             >
               <a [routerLink]="['/shop']" [queryParams]="{category: cat.slug}" class="category-link">
                 <div class="category-img-wrapper">
-                  <img [src]="cat.image_url" [alt]="cat.name" class="category-img" loading="lazy" />
+                  <img 
+                    [src]="cat.image_url" 
+                    [alt]="cat.name" 
+                    class="category-img" 
+                    loading="lazy"
+                    (error)="onImageError($event)"
+                  />
                   <div class="category-overlay"></div>
                 </div>
                 <div class="category-info">
@@ -98,6 +105,7 @@ import { Category } from '../../core/models/category.model';
                   alt="Petals Ethnic Boutique Craftsmanship" 
                   class="story-img" 
                   loading="lazy"
+                  (error)="onImageError($event)"
                 />
                 <div class="story-badge-floating">
                   <span>HANDWORKED ELEGANCE</span>
@@ -141,7 +149,7 @@ import { Category } from '../../core/models/category.model';
 
           <div class="insta-grid">
             <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
-              <img src="https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg" alt="Petals Ethnic Anarkali Style" />
+              <img src="https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg" alt="Petals Ethnic Anarkali Style" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -150,7 +158,7 @@ import { Category } from '../../core/models/category.model';
               </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
-              <img src="https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" alt="Petals Ethnic Kasavu Style" />
+              <img src="https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" alt="Petals Ethnic Kasavu Style" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -159,7 +167,7 @@ import { Category } from '../../core/models/category.model';
               </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
-              <img src="https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg" alt="Petals Ethnic Midi Dress" />
+              <img src="https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg" alt="Petals Ethnic Midi Dress" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -168,7 +176,7 @@ import { Category } from '../../core/models/category.model';
               </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
-              <img src="https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png" alt="Petals Ethnic Codeset" />
+              <img src="https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png" alt="Petals Ethnic Codeset" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -335,7 +343,7 @@ import { Category } from '../../core/models/category.model';
       width: 100%;
       height: 480px;
       object-fit: cover;
-      object-position: center top; /* Positioned from top to show subject clearly */
+      object-position: center top;
       display: block;
       transition: transform 0.6s ease;
     }
@@ -541,6 +549,10 @@ export class HomeComponent implements OnInit {
       this.newArrivals = this.getFallbackProducts();
       this.featuredProducts = this.getFallbackProducts();
     }
+  }
+
+  onImageError(event: Event) {
+    handleImageError(event);
   }
 
   onQuickAdd(event: { product: Product; size: SizeOption }) {

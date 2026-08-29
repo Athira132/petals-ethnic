@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { handleImageError } from '../../../core/utils/image.utils';
 
 export interface HeroSlide {
   id: number;
@@ -26,11 +27,15 @@ export interface HeroSlide {
           class="carousel-slide"
           [class.active]="i === currentIndex"
         >
-          <!-- Background Image with Hardware-Accelerated Rendering -->
-          <div 
-            class="slide-bg" 
-            [style.backgroundImage]="'url(' + slide.imageUrl + ')'"
-          ></div>
+          <!-- Semantic High-Priority First Hero Image + Selective Lazy Preload -->
+          <img 
+            [src]="slide.imageUrl" 
+            [alt]="slide.title"
+            class="slide-img" 
+            [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
+            [loading]="i === 0 ? 'eager' : 'lazy'"
+            (error)="onImageError($event)"
+          />
 
           <!-- Ultra-Light Subtle Gradient Overlay Behind Text -->
           <div class="slide-overlay"></div>
@@ -69,7 +74,6 @@ export interface HeroSlide {
     </section>
   `,
   styles: [`
-    /* 85-90% Viewport Height Hero Banner */
     .hero-carousel-section {
       position: relative;
       width: 100%;
@@ -93,16 +97,14 @@ export interface HeroSlide {
       }
     }
 
-    /* Horizontal Flex Track with Smooth 400ms GPU-Accelerated Transform Transition */
     .carousel-track {
       display: flex;
       width: 100%;
       height: 100%;
-      transition: transform 400ms cubic-bezier(0.25, 1, 0.5, 1);
+      transition: transform 500ms cubic-bezier(0.25, 1, 0.5, 1);
       will-change: transform;
     }
 
-    /* Side-by-Side Horizontal Slides */
     .carousel-slide {
       flex: 0 0 100%;
       min-width: 100%;
@@ -115,24 +117,21 @@ export interface HeroSlide {
       align-items: center;
     }
 
-    /* Desktop Background Position: Center Top */
-    .slide-bg {
+    .slide-img {
       position: absolute;
       inset: 0;
-      background-size: cover;
-      background-position: center top;
-      background-repeat: no-repeat;
-      transform: translateZ(0);
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
     }
 
-    /* Mobile Background Position: Focus on RIGHT Side of the Image */
     @media (max-width: 768px) {
-      .slide-bg {
-        background-position: right center; /* Shows more of the RIGHT side on mobile screens */
+      .slide-img {
+        object-position: right center;
       }
     }
 
-    /* Ultra-Light Subtle Gradient Overlay Behind Text Only for Maximum Brightness */
     .slide-overlay {
       position: absolute;
       inset: 0;
@@ -156,7 +155,6 @@ export interface HeroSlide {
       }
     }
 
-    /* Hero Text & Button Container */
     .hero-container {
       position: relative;
       z-index: 3;
@@ -292,7 +290,6 @@ export interface HeroSlide {
       }
     }
 
-    /* Minimal Unobtrusive Bottom Indicators */
     .carousel-indicators {
       position: absolute;
       bottom: 20px;
@@ -310,7 +307,7 @@ export interface HeroSlide {
     }
 
     .indicator-dot {
-      width: 10px;
+      width: 100px;
       height: 10px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.4);
@@ -331,7 +328,6 @@ export interface HeroSlide {
   `]
 })
 export class HeroCarouselComponent implements OnInit, OnDestroy {
-  // Existing Hero Fashion Slides Unchanged
   slides: HeroSlide[] = [
     { 
       id: 1, 
@@ -368,7 +364,6 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   ];
 
   currentIndex = 0;
-  direction = 1; // 1 for forward (+), -1 for backward (-)
   timer: any;
   private isBrowser: boolean;
 
@@ -382,8 +377,9 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (this.isBrowser) {
-      this.preloadSlideImages();
-      // Immediately start autoplay on component mount without waiting for user interaction or tab focus
+      // 1. Immediately preload the FIRST visible hero image for fast LCP
+      this.preloadNextSlideImage(0);
+      // 2. Start ~3-second visibility slider
       this.startAutoSlider();
     }
   }
@@ -392,20 +388,16 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     this.stopTimer();
   }
 
-  preloadSlideImages() {
-    if (this.isBrowser) {
-      this.slides.forEach(slide => {
-        const img = new Image();
-        img.src = slide.imageUrl;
-      });
+  preloadNextSlideImage(nextIdx: number) {
+    if (this.isBrowser && this.slides[nextIdx]) {
+      const img = new Image();
+      img.src = this.slides[nextIdx].imageUrl;
     }
   }
 
   /**
-   * EXACT FORWARD CONTINUOUS AUTOPLAY SLIDER:
-   * - Starts automatically on initial component mount with zero user interaction.
-   * - Sequence: Image 1 (idx 0) -> Image 2 (idx 1) -> Image 3 (idx 2) -> Image 4 (idx 3) -> Image 1 (idx 0) ...
-   * - 1.0s static display hold + 400ms fast slide LEFT (total interval 1400ms).
+   * Automatic hero behavior:
+   * 1 -> 2 -> 3 -> 4 -> 1 with ~3.0s visibility hold.
    */
   startAutoSlider() {
     if (!this.isBrowser) return;
@@ -415,14 +407,15 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       this.ngZone.run(() => {
         this.nextSlide();
       });
-    }, 1400);
+    }, 3000);
   }
 
   nextSlide() {
     if (!this.slides || this.slides.length <= 1) return;
 
-    // Strict forward progression: Image 1 -> Image 2 -> Image 3 -> Image 4 -> Image 1 -> repeat
     this.currentIndex = (this.currentIndex + 1) % this.slides.length;
+    // Preload next image selectively
+    this.preloadNextSlideImage((this.currentIndex + 1) % this.slides.length);
 
     this.cdr.markForCheck();
     this.cdr.detectChanges();
@@ -431,6 +424,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   goToSlide(index: number) {
     if (index >= 0 && index < this.slides.length) {
       this.currentIndex = index;
+      this.preloadNextSlideImage((this.currentIndex + 1) % this.slides.length);
       this.cdr.markForCheck();
       this.cdr.detectChanges();
       this.startAutoSlider();
@@ -443,6 +437,8 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       this.timer = null;
     }
   }
+
+  onImageError(event: Event) {
+    handleImageError(event);
+  }
 }
-
-

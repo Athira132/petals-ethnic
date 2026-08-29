@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
 import { CartItem, CartSummary } from '../../core/models/cart.model';
 import { Observable } from 'rxjs';
+import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-cart',
@@ -39,6 +40,7 @@ import { Observable } from 'rxjs';
                     [src]="getItemImage(item)" 
                     [alt]="item.product.name" 
                     class="item-img" 
+                    (error)="onImageError($event)"
                   />
                   <div>
                     <h3 class="item-name">
@@ -381,10 +383,12 @@ export class CartComponent {
   }
 
   getItemImage(item: CartItem): string {
-    if (item.product.images && item.product.images.length > 0) {
-      return item.product.images[0].image_url;
-    }
-    return 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
+    const images = extractProductImages(item.product);
+    return images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
+  }
+
+  onImageError(event: Event) {
+    handleImageError(event);
   }
 
   updateQuantity(itemId: string, newQty: number) {

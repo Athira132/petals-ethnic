@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { handleImageError } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-about',
@@ -27,6 +28,7 @@ import { RouterModule } from '@angular/router';
                 src="https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" 
                 alt="Petals Ethnic Boutique Heritage" 
                 class="about-photo-img" 
+                (error)="onImageError($event)"
               />
               <div class="photo-badge">
                 <span>PETALS ETHNIC BOUTIQUE</span>
@@ -169,7 +171,7 @@ import { RouterModule } from '@angular/router';
       width: 100%;
       height: 520px;
       object-fit: cover;
-      object-position: center top; /* Subject visible from top without zoom */
+      object-position: center top;
       display: block;
       transition: transform 0.6s ease;
     }
@@ -274,4 +276,8 @@ import { RouterModule } from '@angular/router';
     }
   `]
 })
-export class AboutComponent {}
+export class AboutComponent {
+  onImageError(event: Event) {
+    handleImageError(event);
+  }
+}

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { Category } from '../../core/models/category.model';
+import { handleImageError, sanitizeImageUrl } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-category-list',
@@ -39,7 +40,7 @@ import { Category } from '../../core/models/category.model';
             <tbody>
               <tr *ngFor="let cat of categories">
                 <td>
-                  <img [src]="cat.image_url || fallbackImg" [alt]="cat.name" class="cat-thumb" />
+                  <img [src]="cat.image_url || fallbackImg" [alt]="cat.name" class="cat-thumb" (error)="onImageError($event)" />
                 </td>
                 <td>
                   <strong>{{ cat.name }}</strong>
@@ -265,6 +266,10 @@ export class CategoryListComponent implements OnInit, OnDestroy {
     this.isSaving = false;
   }
 
+  onImageError(event: Event) {
+    handleImageError(event);
+  }
+
   async saveCategory() {
     if (!this.formCat.name || !this.formCat.name.trim()) {
       alert('Please enter a Category Name.');
@@ -273,6 +278,10 @@ export class CategoryListComponent implements OnInit, OnDestroy {
 
     if (!this.formCat.slug || !this.formCat.slug.trim()) {
       this.autoSlug();
+    }
+
+    if (this.formCat.image_url) {
+      this.formCat.image_url = sanitizeImageUrl(this.formCat.image_url);
     }
 
     this.isSaving = true;

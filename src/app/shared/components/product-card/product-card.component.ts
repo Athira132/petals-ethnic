@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product, SizeOption } from '../../../core/models/product.model';
+import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/image.utils';
 
 @Component({
   selector: 'app-product-card',
@@ -10,13 +11,19 @@ import { Product, SizeOption } from '../../../core/models/product.model';
   template: `
     <div class="product-card" [class.out-of-stock]="product.stock === 0">
       <!-- Product Image Container -->
-      <div class="card-media">
+      <div class="card-media" [class.loaded]="isMainLoaded">
+        <!-- Skeleton Placeholder Shimmer -->
+        <div class="img-skeleton" *ngIf="!isMainLoaded"></div>
+
         <a [routerLink]="['/product', product.slug]">
           <img 
             [src]="primaryImageUrl" 
             [alt]="product.name" 
-            class="product-img main-img" 
+            class="product-img main-img"
+            [class.visible]="isMainLoaded"
             loading="lazy"
+            (load)="isMainLoaded = true"
+            (error)="onImageError($event); isMainLoaded = true"
           />
           <img 
             *ngIf="secondaryImageUrl" 
@@ -24,6 +31,7 @@ import { Product, SizeOption } from '../../../core/models/product.model';
             [alt]="product.name" 
             class="product-img hover-img" 
             loading="lazy"
+            (error)="onImageError($event)"
           />
         </a>
 
@@ -98,10 +106,25 @@ import { Product, SizeOption } from '../../../core/models/product.model';
     .card-media {
       position: relative;
       width: 100%;
-      padding-top: 133%; /* 3:4 aspect ratio */
+      padding-top: 133%; /* 3:4 aspect ratio reserved space */
       overflow: hidden;
-      background-color: var(--color-bg-alt);
+      background-color: var(--color-bg-alt, #F8F9FA);
     }
+
+    /* Lightweight Skeleton Shimmer */
+    .img-skeleton {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, #F0E6EC 25%, #FBF6F8 50%, #F0E6EC 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      z-index: 1;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     .product-img {
       position: absolute;
       inset: 0;
@@ -109,12 +132,18 @@ import { Product, SizeOption } from '../../../core/models/product.model';
       height: 100%;
       object-fit: cover;
       object-position: top center;
-      transition: opacity 0.5s ease, transform 0.5s ease;
+      opacity: 0;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 2;
+    }
+    .product-img.visible {
+      opacity: 1;
     }
     .hover-img {
       opacity: 0;
+      z-index: 3;
     }
-    .product-card:hover .main-img {
+    .product-card:hover .main-img.visible {
       transform: scale(1.05);
     }
     .product-card:hover .hover-img {
@@ -129,7 +158,7 @@ import { Product, SizeOption } from '../../../core/models/product.model';
       display: flex;
       flex-direction: column;
       gap: 6px;
-      z-index: 2;
+      z-index: 4;
     }
 
     .size-quick-bar {
@@ -146,7 +175,7 @@ import { Product, SizeOption } from '../../../core/models/product.model';
       gap: 6px;
       transform: translateY(100%);
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 3;
+      z-index: 5;
     }
     .product-card:hover .size-quick-bar {
       transform: translateY(0);
@@ -236,19 +265,20 @@ export class ProductCardComponent {
   @Input({ required: true }) product!: Product;
   @Output() quickAdd = new EventEmitter<{ product: Product; size: SizeOption }>();
 
+  isMainLoaded = false;
+
+  get allImages() {
+    return extractProductImages(this.product);
+  }
+
   get primaryImageUrl(): string {
-    if (this.product.images && this.product.images.length > 0) {
-      const primary = this.product.images.find(img => img.is_primary);
-      return primary ? primary.image_url : this.product.images[0].image_url;
-    }
-    return 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
+    const images = this.allImages;
+    return images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
   }
 
   get secondaryImageUrl(): string | null {
-    if (this.product.images && this.product.images.length > 1) {
-      return this.product.images[1].image_url;
-    }
-    return null;
+    const images = this.allImages;
+    return images.length > 1 ? images[1].image_url : null;
   }
 
   get discountPercentage(): number {
@@ -263,8 +293,11 @@ export class ProductCardComponent {
     if (this.product.sizes && this.product.sizes.length > 0) {
       return this.product.sizes.map(s => ({ size: s.size, stock: s.stock }));
     }
-    // Default fallback sizes
     return allSizes.map(size => ({ size, stock: this.product.stock > 0 ? 5 : 0 }));
+  }
+
+  onImageError(event: Event) {
+    handleImageError(event);
   }
 
   onQuickAdd(size: SizeOption) {

@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product, SizeOption } from '../../../core/models/product.model';
-import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/image.utils';
+import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/image.utils';
 
 @Component({
   selector: 'app-product-card',
@@ -18,6 +18,8 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
         <a [routerLink]="['/product', product.slug]">
           <img 
             [src]="primaryImageUrl" 
+            [srcset]="primaryImageSrcset"
+            sizes="(max-width: 576px) 180px, (max-width: 992px) 300px, 400px"
             [alt]="product.name" 
             class="product-img main-img"
             [class.visible]="isMainLoaded"
@@ -30,6 +32,8 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
           <img 
             *ngIf="secondaryImageUrl" 
             [src]="secondaryImageUrl" 
+            [srcset]="secondaryImageSrcset"
+            sizes="(max-width: 576px) 180px, (max-width: 992px) 300px, 400px"
             [alt]="product.name" 
             class="product-img hover-img" 
             loading="lazy"
@@ -272,6 +276,8 @@ export class ProductCardComponent implements OnInit, OnChanges {
   isMainLoaded = false;
   primaryImageUrl: string = DEFAULT_FALLBACK_IMAGE;
   secondaryImageUrl: string | null = null;
+  primaryImageSrcset: string = '';
+  secondaryImageSrcset: string = '';
 
   ngOnInit() {
     this.updateImages();
@@ -285,8 +291,21 @@ export class ProductCardComponent implements OnInit, OnChanges {
 
   private updateImages() {
     const images = extractProductImages(this.product);
-    this.primaryImageUrl = images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
-    this.secondaryImageUrl = images.length > 1 ? images[1].image_url : null;
+    const primary = images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
+    const secondary = images.length > 1 ? images[1].image_url : null;
+
+    this.primaryImageUrl = primary;
+    this.secondaryImageUrl = secondary;
+
+    this.primaryImageSrcset = this.generateSrcset(primary);
+    this.secondaryImageSrcset = secondary ? this.generateSrcset(secondary) : '';
+  }
+
+  private generateSrcset(url: string): string {
+    if (!url) return '';
+    // Optimized responsive width boundaries
+    const widths = [300, 500, 800];
+    return widths.map(w => `${getResponsiveImageUrl(url, w)} ${w}w`).join(', ');
   }
 
   get discountPercentage(): number {

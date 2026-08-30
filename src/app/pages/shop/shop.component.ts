@@ -57,7 +57,7 @@ import { Category } from '../../core/models/category.model';
                 />
                 <span>All Categories</span>
               </label>
-              <label *ngFor="let cat of categories" class="radio-label">
+              <label *ngFor="let cat of categories; trackBy: trackByCategoryId" class="radio-label">
                 <input 
                   type="radio" 
                   name="category" 
@@ -75,7 +75,7 @@ import { Category } from '../../core/models/category.model';
             <label class="filter-label">Select Size</label>
             <div class="size-filter-chips">
               <button 
-                *ngFor="let sz of availableSizes"
+                *ngFor="let sz of availableSizes; trackBy: trackBySize"
                 class="size-filter-chip"
                 [class.active]="selectedSize === sz"
                 (click)="toggleSizeFilter(sz)"
@@ -135,7 +135,7 @@ import { Category } from '../../core/models/category.model';
           <div *ngIf="!isLoading; else loadingBlock">
             <div class="product-grid" *ngIf="products.length > 0; else emptyState">
               <app-product-card 
-                *ngFor="let prod of products; let i = index" 
+                *ngFor="let prod of products; let i = index; trackBy: trackByProductId" 
                 [product]="prod"
                 [priority]="i < 4"
                 (quickAdd)="onQuickAdd($event)"
@@ -148,7 +148,7 @@ import { Category } from '../../core/models/category.model';
 
     <ng-template #loadingBlock>
       <div class="product-grid">
-        <div class="skeleton-card" *ngFor="let s of [1,2,3,4,5,6]">
+        <div class="skeleton-card" *ngFor="let s of [1,2,3,4,5,6]; trackBy: trackByIndex">
           <div class="skeleton-img"></div>
           <div class="skeleton-content">
             <div class="skeleton-line short"></div>
@@ -517,6 +517,22 @@ export class ShopComponent implements OnInit {
 
   toggleMobileFilter() {
     this.isMobileFilterOpen = !this.isMobileFilterOpen;
+  }
+
+  trackByCategoryId(index: number, category: Category): string {
+    return category.id;
+  }
+
+  trackByProductId(index: number, product: Product): string {
+    return product.id;
+  }
+
+  trackBySize(index: number, size: string): string {
+    return size;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
   }
 
   onQuickAdd(event: { product: Product; size: SizeOption }) {

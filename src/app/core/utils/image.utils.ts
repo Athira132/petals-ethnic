@@ -129,3 +129,25 @@ export function handleImageError(event: Event, fallbackUrl: string = DEFAULT_FAL
     }
   }
 }
+
+/**
+ * Generates an optimized responsive image URL using wsrv.nl image proxy.
+ * This does not modify or replace the original image on ImgBB.
+ * It dynamically resizes, converts to WebP, and serves from Cloudflare CDN cache.
+ */
+export function getResponsiveImageUrl(url: string | null | undefined, width: number): string {
+  if (!url) return DEFAULT_FALLBACK_IMAGE;
+  const cleanUrl = url.trim();
+  if (!cleanUrl || cleanUrl.includes('localhost') || cleanUrl.startsWith('data:')) {
+    return cleanUrl;
+  }
+  
+  // For relative local assets (like /images/hero1.png), serve them directly (they benefit from Vercel's caching)
+  if (cleanUrl.startsWith('/')) {
+    return cleanUrl;
+  }
+  
+  // Proxy external images through wsrv.nl for WebP formatting and specific width constraints
+  const encodedUrl = encodeURIComponent(cleanUrl);
+  return `https://images.weserv.nl/?url=${encodedUrl}&w=${width}&output=webp&q=85`;
+}

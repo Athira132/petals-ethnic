@@ -332,7 +332,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   slides: HeroSlide[] = [
     { 
       id: 1, 
-      imageUrl: 'https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png',
+      imageUrl: '/images/hero1.png',
       title: 'Elevate Your Ethnic Style',
       subtitle: 'Discover our latest collection of premium handcrafted sarees, kurtis, and designer festive wear tailored for perfection.',
       ctaText: 'Shop New Collection',
@@ -340,7 +340,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     },
     { 
       id: 2, 
-      imageUrl: 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png',
+      imageUrl: '/images/hero2.png',
       title: 'Grace & Elegance in Every Thread',
       subtitle: 'Handpicked fabrics, soft watercolor florals, and timeless ethnic silhouettes designed for effortless celebration.',
       ctaText: 'Explore Kurtis & Sets',
@@ -348,7 +348,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     },
     { 
       id: 3, 
-      imageUrl: 'https://i.ibb.co/5ZcYbZx/Chat-GPT-Image-Aug-13-2026-12-15-54-PM.png',
+      imageUrl: '/images/hero3.png',
       title: 'Royal Festive Anarkalis & Co-Ords',
       subtitle: 'Step into joyous occasions with regal flare Anarkalis, intricate embroideries, and modern ethnic two-piece sets.',
       ctaText: 'View Festive Edits',
@@ -356,7 +356,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     },
     { 
       id: 4, 
-      imageUrl: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png',
+      imageUrl: '/images/hero4.png',
       title: 'Authentic Kerala Kasavu & Tissue Silk',
       subtitle: 'Traditional golden zari Kasavu weaves combined with shimmering tissue silk kurtas for timeless elegance.',
       ctaText: 'Shop Kasavu Series',

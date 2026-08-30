@@ -303,7 +303,11 @@ export class ProductCardComponent implements OnInit, OnChanges {
 
   private generateSrcset(url: string): string {
     if (!url) return '';
-    // Optimized responsive width boundaries
+    // Skip generating srcset for local Vercel-hosted assets to serve at full original quality
+    if (url.startsWith('/')) {
+      return '';
+    }
+    // Optimized responsive width boundaries for external images
     const widths = [300, 500, 800];
     return widths.map(w => `${getResponsiveImageUrl(url, w)} ${w}w`).join(', ');
   }

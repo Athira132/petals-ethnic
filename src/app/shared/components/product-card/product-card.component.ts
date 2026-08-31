@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product, SizeOption } from '../../../core/models/product.model';
 import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/image.utils';
+import { ImageLoaderService } from '../../../core/services/image-loader.service';
 
 @Component({
   selector: 'app-product-card',
@@ -13,19 +14,19 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
       <!-- Product Image Container with Dual-Layer Low-Res & Full-Res Same-Product Photo Loader -->
       <div class="card-media">
         <a [routerLink]="['/product', product.slug]">
-          <!-- Layer 1: Low-Res Version of the EXACT SAME Product Photo (rendered immediately) -->
+          <!-- Layer 1: Low-Res Version of EXACT SAME Product Photo (rendered ONLY if full image is not yet cached) -->
           <img 
+            *ngIf="!isFullLoaded"
             [src]="lowResPrimaryUrl" 
             [alt]="product.name" 
             class="product-img low-res-img"
-            [class.faded-out]="isFullLoaded"
             [attr.loading]="priority ? 'eager' : 'lazy'"
             [attr.fetchpriority]="priority ? 'high' : 'auto'"
             decoding="async"
             (error)="onLowResError($event)"
           />
 
-          <!-- Layer 2: Full-Res Direct Version of the EXACT SAME Product Photo (smoothly dissolves over low-res) -->
+          <!-- Layer 2: Full-Res Direct Version of EXACT SAME Product Photo (smoothly dissolves over low-res or shows immediately if cached) -->
           <img 
             [src]="primaryImageUrl" 
             [alt]="product.name" 
@@ -34,7 +35,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
             [attr.loading]="priority ? 'eager' : 'lazy'"
             [attr.fetchpriority]="priority ? 'high' : 'auto'"
             decoding="async"
-            (load)="isFullLoaded = true"
+            (load)="onFullResLoaded()"
             (error)="onFullResError($event)"
           />
 
@@ -141,16 +142,12 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
       opacity: 1;
       transition: opacity 500ms ease-in-out;
     }
-    .low-res-img.faded-out {
-      opacity: 0;
-      pointer-events: none;
-    }
 
-    /* Layer 2: Full-Res Direct Version of EXACT SAME Product Photo (Fades in over Low-Res) */
+    /* Layer 2: Full-Res Direct Version of EXACT SAME Product Photo (Fades in over Low-Res or displays instantly if cached) */
     .full-res-img {
       z-index: 2;
       opacity: 0;
-      transition: opacity 500ms ease-in-out, transform 0.3s ease;
+      transition: opacity 400ms ease-in-out, transform 0.3s ease;
     }
     .full-res-img.loaded {
       opacity: 1;
@@ -293,6 +290,8 @@ export class ProductCardComponent implements OnInit, OnChanges {
   secondaryImageUrl: string | null = null;
   lowResSecondaryUrl: string | null = null;
 
+  constructor(private imageLoader: ImageLoaderService) {}
+
   ngOnInit() {
     this.updateImages();
   }
@@ -309,13 +308,18 @@ export class ProductCardComponent implements OnInit, OnChanges {
     const secondary = images.length > 1 ? images[1].image_url : null;
 
     this.primaryImageUrl = primary;
-    // Derive low-res URL using helper or fallback to direct origin URL
     this.lowResPrimaryUrl = getResponsiveImageUrl(primary, 240) || primary;
 
     this.secondaryImageUrl = secondary;
     this.lowResSecondaryUrl = secondary ? (getResponsiveImageUrl(secondary, 240) || secondary) : null;
 
-    this.isFullLoaded = false;
+    // Check if the primary image is already cached in memory across route navigations
+    if (this.imageLoader.isLoaded(primary) || this.imageLoader.checkImageLoadedInBrowser(primary)) {
+      this.isFullLoaded = true;
+      this.imageLoader.markLoaded(primary);
+    } else {
+      this.isFullLoaded = false;
+    }
   }
 
   get discountPercentage(): number {
@@ -334,16 +338,21 @@ export class ProductCardComponent implements OnInit, OnChanges {
   }
 
   onLowResError(event: Event) {
-    // If low-res URL fails to load, fallback to direct origin primary image URL
     const imgElement = event.target as HTMLImageElement;
     if (imgElement && imgElement.src !== this.primaryImageUrl) {
       imgElement.src = this.primaryImageUrl;
     }
   }
 
+  onFullResLoaded() {
+    this.isFullLoaded = true;
+    this.imageLoader.markLoaded(this.primaryImageUrl);
+  }
+
   onFullResError(event: Event) {
     handleImageError(event);
     this.isFullLoaded = true;
+    this.imageLoader.markLoaded(this.primaryImageUrl);
   }
 
   onImageError(event: Event) {

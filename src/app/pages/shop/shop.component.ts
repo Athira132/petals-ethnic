@@ -445,9 +445,9 @@ export class ShopComponent implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe(async params => {
-      if (params['category']) this.selectedCategorySlug = params['category'];
-      if (params['search']) this.searchQuery = params['search'];
-      if (params['size']) this.selectedSize = params['size'] as SizeOption;
+      this.selectedCategorySlug = params['category'] || '';
+      this.searchQuery = params['search'] || '';
+      this.selectedSize = (params['size'] as SizeOption) || '';
       
       await this.loadInitialData();
     });

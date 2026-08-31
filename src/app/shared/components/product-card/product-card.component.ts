@@ -14,14 +14,14 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       <!-- Product Image Container -->
       <div class="card-media">
         <a [routerLink]="['/product', product.slug]">
-          <!-- Direct Product Image: ALWAYS rendered with opacity 1 by default so browser decodes and displays naturally -->
+          <!-- Direct Product Image: ALWAYS loading="eager" & opacity 1 so browser downloads & displays immediately during SPA route transitions -->
           <img 
             #fullImg
             [src]="primaryImageUrl" 
             [alt]="product.name" 
             class="product-img full-res-img"
-            [attr.loading]="priority ? 'eager' : 'lazy'"
-            [attr.fetchpriority]="priority ? 'high' : 'auto'"
+            loading="eager"
+            fetchpriority="high"
             decoding="async"
             (load)="onFullResLoaded()"
             (error)="onFullResError($event)"
@@ -124,14 +124,14 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       object-position: top center;
     }
 
-    /* Direct Product Image: ALWAYS VISIBLE (opacity: 1) by default! Never hidden behind opacity 0 */
+    /* Direct Product Image: ALWAYS VISIBLE (opacity: 1) by default */
     .full-res-img {
       z-index: 2;
       opacity: 1;
       transition: transform 0.3s ease;
     }
 
-    /* Layer 3: Secondary Hover Image */
+    /* Secondary Hover Image */
     .hover-img {
       opacity: 0;
       z-index: 3;

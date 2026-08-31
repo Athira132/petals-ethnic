@@ -445,6 +445,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.uploadHasError = false;
     this.isUploadingImages = false;
 
+    // Reset DOM file input element to prevent stale file selection state
+    setTimeout(() => {
+      const fileInput = document.querySelector('.form-control-file') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    }, 0);
+
     this.formSizes = [
       { size: 'XS', stock: 5 },
       { size: 'S', stock: 5 },
@@ -462,10 +468,22 @@ export class ProductListComponent implements OnInit, OnDestroy {
     await this.productService.refreshCategories(false);
 
     this.formProduct = { ...prod };
-    this.imageUrlsText = (prod.images || []).map(img => img.image_url).join('\n');
+
+    // Extract exact image URLs for editing product
+    const extractedImgs = extractProductImages(prod);
+    const validUrls = extractedImgs
+      .map(img => img.image_url)
+      .filter(url => url && url !== DEFAULT_FALLBACK_IMAGE);
+    this.imageUrlsText = validUrls.join('\n');
+
     this.uploadStatusText = '';
     this.uploadHasError = false;
     this.isUploadingImages = false;
+
+    setTimeout(() => {
+      const fileInput = document.querySelector('.form-control-file') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    }, 0);
 
     if (prod.sizes && prod.sizes.length > 0) {
       this.formSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(sz => {
@@ -528,10 +546,27 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   closeModal() {
     this.isModalOpen = false;
-    this.isSaving = false;
-    this.isUploadingImages = false;
+    this.editingProduct = null;
+    this.formProduct = {
+      name: '',
+      slug: '',
+      description: '',
+      price: 0,
+      sale_price: null,
+      sku: '',
+      featured: false,
+      new_arrival: true,
+      active: true
+    };
+    this.imageUrlsText = '';
     this.uploadStatusText = '';
     this.uploadHasError = false;
+    this.isUploadingImages = false;
+    this.isSaving = false;
+
+    const fileInput = document.querySelector('.form-control-file') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+
     this.cdr.markForCheck();
   }
 
@@ -582,6 +617,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
         alert('Product created successfully!');
       }
 
+      // Close modal & reset form state completely
       this.closeModal();
 
       // 1. Clear ProductService memory cache
@@ -590,13 +626,25 @@ export class ProductListComponent implements OnInit, OnDestroy {
       // 2. Fetch fresh products from database
       await this.loadData();
 
-      // 3. Guarantee immediate UI update
+      // 3. Ensure explicit image array association on saved product object
       if (savedProduct && savedProduct.id) {
+        if (!savedProduct.images || savedProduct.images.length === 0) {
+          savedProduct.images = imagesList.map((url, idx) => ({
+            product_id: savedProduct.id,
+            image_url: url,
+            is_primary: idx === 0,
+            display_order: idx + 1
+          }));
+        }
+        if (!savedProduct.image_url && imagesList.length > 0) {
+          savedProduct.image_url = imagesList[0];
+        }
+
         const existingIdx = this.products.findIndex(p => p.id === savedProduct.id);
         if (existingIdx >= 0) {
-          this.products[existingIdx] = savedProduct;
+          this.products[existingIdx] = { ...savedProduct };
         } else {
-          this.products = [savedProduct, ...this.products];
+          this.products = [{ ...savedProduct }, ...this.products];
         }
         this.onSearch();
       }

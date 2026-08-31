@@ -40,4 +40,6 @@ export interface Product {
   category?: Category;
   images?: ProductImage[];
   sizes?: ProductSize[];
+  image_url?: string | null;
+  additional_image_urls?: string | null;
 }

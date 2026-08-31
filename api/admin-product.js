@@ -44,6 +44,11 @@ export default async function handler(req, res) {
       }
 
       let payload = { ...productPayload };
+      if (images && images.length > 0) {
+        payload.image_url = images[0].trim();
+        payload.additional_image_urls = images.length > 1 ? images.slice(1).map(u => u.trim()).join('\n') : null;
+      }
+
       let insertedProduct = null;
 
       let { data: inserted, error: prodErr } = await supabase
@@ -72,14 +77,15 @@ export default async function handler(req, res) {
       insertedProduct = inserted;
       const productId = insertedProduct.id;
 
+      let formattedImages = [];
       if (images && images.length > 0) {
-        const imagePayloads = images.map((imgUrl, idx) => ({
+        formattedImages = images.map((imgUrl, idx) => ({
           product_id: productId,
           image_url: imgUrl.trim(),
           is_primary: idx === 0,
           display_order: idx + 1
         }));
-        await supabase.from('product_images').insert(imagePayloads);
+        await supabase.from('product_images').insert(formattedImages);
       }
 
       if (sizes && sizes.length > 0) {
@@ -94,6 +100,9 @@ export default async function handler(req, res) {
         await supabase.from('product_sizes').insert(sizePayloads);
       }
 
+      // Attach images to returned product object so caller receives complete representation
+      insertedProduct.images = formattedImages;
+
       return res.status(200).json({ success: true, product: insertedProduct });
     }
 
@@ -105,6 +114,16 @@ export default async function handler(req, res) {
       }
 
       let payload = { ...productPayload };
+      if (images !== undefined) {
+        if (images.length > 0) {
+          payload.image_url = images[0].trim();
+          payload.additional_image_urls = images.length > 1 ? images.slice(1).map(u => u.trim()).join('\n') : null;
+        } else {
+          payload.image_url = null;
+          payload.additional_image_urls = null;
+        }
+      }
+
       let updatedProduct = null;
 
       let { data: updated, error: updErr } = await supabase
@@ -134,16 +153,17 @@ export default async function handler(req, res) {
 
       updatedProduct = updated;
 
+      let formattedImages = [];
       if (images !== undefined) {
         await supabase.from('product_images').delete().eq('product_id', id);
         if (images.length > 0) {
-          const imagePayloads = images.map((imgUrl, idx) => ({
+          formattedImages = images.map((imgUrl, idx) => ({
             product_id: id,
             image_url: imgUrl.trim(),
             is_primary: idx === 0,
             display_order: idx + 1
           }));
-          await supabase.from('product_images').insert(imagePayloads);
+          await supabase.from('product_images').insert(formattedImages);
         }
       }
 
@@ -160,6 +180,11 @@ export default async function handler(req, res) {
           }));
           await supabase.from('product_sizes').insert(sizePayloads);
         }
+      }
+
+      // Attach images to returned product object
+      if (images !== undefined) {
+        updatedProduct.images = formattedImages;
       }
 
       return res.status(200).json({ success: true, product: updatedProduct });

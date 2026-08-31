@@ -625,4 +625,41 @@ export class ProductService {
     if (error) throw error;
     return true;
   }
+
+  /**
+   * Uploads product image file to ImgBB securely via backend serverless endpoint
+   */
+  async uploadProductImage(file: File): Promise<string> {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      throw new Error('Unsupported image format. Allowed formats: JPG, PNG, WEBP.');
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      throw new Error('Image is too large. Maximum allowed file size is 10MB.');
+    }
+
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+
+    const res = await fetch('/api/imgbb-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ image: base64 })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success || !data.url) {
+      throw new Error(data.error || 'ImgBB upload request failed.');
+    }
+
+    return data.url;
+  }
 }

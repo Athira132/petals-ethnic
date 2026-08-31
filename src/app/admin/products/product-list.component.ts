@@ -172,10 +172,35 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
               <textarea [(ngModel)]="formProduct.description" name="description" rows="3" class="form-control"></textarea>
             </div>
 
-            <!-- Image URLs -->
+            <!-- Secure Product Image Upload & Direct URLs -->
+            <div class="form-group">
+              <label class="form-label">Upload Product Images (JPG, PNG, WEBP — Max 10MB)</label>
+              <div class="file-upload-container">
+                <input 
+                  type="file" 
+                  accept="image/jpeg,image/png,image/webp" 
+                  multiple 
+                  (change)="onFileSelected($event)" 
+                  [disabled]="isUploadingImages || isSaving"
+                  class="form-control-file"
+                />
+                <div *ngIf="uploadStatusText" class="upload-status-badge" [class.error]="uploadHasError">
+                  <span *ngIf="isUploadingImages" class="inline-spinner"></span>
+                  {{ uploadStatusText }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Image Direct URLs List -->
             <div class="form-group">
               <label class="form-label">Product Image Direct URLs (1 per line)</label>
-              <textarea [(ngModel)]="imageUrlsText" name="imageUrlsText" rows="3" class="form-control" placeholder="https://i.ibb.co/..."></textarea>
+              <textarea 
+                [(ngModel)]="imageUrlsText" 
+                name="imageUrlsText" 
+                rows="3" 
+                class="form-control" 
+                placeholder="https://i.ibb.co/..."
+              ></textarea>
             </div>
 
             <!-- Size Specific Stock Grid -->
@@ -214,8 +239,8 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
 
             <div class="modal-footer">
               <button type="button" (click)="closeModal()" class="btn-outline">Cancel</button>
-              <button type="submit" [disabled]="isSaving" class="btn-primary">
-                {{ isSaving ? 'Saving...' : 'Save Product' }}
+              <button type="submit" [disabled]="isSaving || isUploadingImages" class="btn-primary">
+                {{ isSaving ? 'Saving...' : (isUploadingImages ? 'Uploading Images...' : 'Save Product') }}
               </button>
             </div>
           </form>
@@ -270,6 +295,13 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
     .flex-1 { flex: 1; }
     .flex-2 { flex: 2; }
 
+    .file-upload-container { display: flex; flex-direction: column; gap: 8px; }
+    .form-control-file { padding: 8px; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg-alt); width: 100%; cursor: pointer; }
+
+    .upload-status-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; padding: 8px 12px; border-radius: var(--radius-sm); background: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9; }
+    .upload-status-badge.error { background: #FFEBEE; color: #C62828; border-color: #FFCDD2; }
+    .inline-spinner { width: 14px; height: 14px; border: 2px solid rgba(46, 125, 50, 0.2); border-top-color: #2E7D32; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
     .size-inputs-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
     .size-input-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .sz-name { font-size: 12px; font-weight: 700; }
@@ -288,14 +320,18 @@ export class ProductListComponent implements OnInit, OnDestroy {
   categories: Category[] = [];
 
   searchQuery = '';
-  selectedCategory = ''; // Default "All Categories"
+  selectedCategory = '';
 
-  isLoading = true; // Initial loading state set to true!
+  isLoading = true;
   errorMessage = '';
 
   isModalOpen = false;
   editingProduct: Product | null = null;
   isSaving = false;
+
+  isUploadingImages = false;
+  uploadStatusText = '';
+  uploadHasError = false;
 
   private catSub?: Subscription;
 
@@ -345,15 +381,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     try {
-      // 1. Load categories
       this.categories = await this.productService.getCategories(false);
-      
-      // 2. Load all active and inactive products immediately
       this.products = await this.productService.getProducts({ activeOnly: false });
-      
-      // 3. Filter with default 'All Categories'
       this.onSearch();
-
     } catch (err: any) {
       console.error('Error loading products in admin:', err);
       this.errorMessage = 'Unable to load products. Please try again.';
@@ -402,6 +432,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
       active: true
     };
     this.imageUrlsText = '';
+    this.uploadStatusText = '';
+    this.uploadHasError = false;
+    this.isUploadingImages = false;
+
     this.formSizes = [
       { size: 'XS', stock: 5 },
       { size: 'S', stock: 5 },
@@ -420,7 +454,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
     this.formProduct = { ...prod };
     this.imageUrlsText = (prod.images || []).map(img => img.image_url).join('\n');
-    
+    this.uploadStatusText = '';
+    this.uploadHasError = false;
+    this.isUploadingImages = false;
+
     if (prod.sizes && prod.sizes.length > 0) {
       this.formSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(sz => {
         const found = prod.sizes?.find(s => s.size === sz);
@@ -430,6 +467,45 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
     this.isModalOpen = true;
     this.cdr.markForCheck();
+  }
+
+  async onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const files = Array.from(input.files);
+    this.isUploadingImages = true;
+    this.uploadHasError = false;
+    this.uploadStatusText = `Starting upload of ${files.length} image(s)...`;
+    this.cdr.markForCheck();
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        this.uploadStatusText = `Uploading image ${i + 1} of ${files.length}... (${file.name})`;
+        this.cdr.markForCheck();
+
+        const url = await this.productService.uploadProductImage(file);
+        uploadedUrls.push(url);
+      }
+
+      const currentList = parseImageUrlsInput(this.imageUrlsText);
+      const combined = [...currentList, ...uploadedUrls];
+      this.imageUrlsText = combined.join('\n');
+
+      this.uploadStatusText = `✓ Successfully uploaded ${files.length} image(s)!`;
+      this.uploadHasError = false;
+    } catch (err: any) {
+      console.error('Error uploading product images:', err);
+      this.uploadStatusText = `⚠️ Upload failed: ${err.message || 'Image upload request failed.'}`;
+      this.uploadHasError = true;
+    } finally {
+      this.isUploadingImages = false;
+      input.value = '';
+      this.cdr.markForCheck();
+    }
   }
 
   autoGenerateSlug() {
@@ -444,10 +520,18 @@ export class ProductListComponent implements OnInit, OnDestroy {
   closeModal() {
     this.isModalOpen = false;
     this.isSaving = false;
+    this.isUploadingImages = false;
+    this.uploadStatusText = '';
+    this.uploadHasError = false;
     this.cdr.markForCheck();
   }
 
   async saveProduct() {
+    if (this.isUploadingImages) {
+      alert('Please wait for image uploads to complete before saving.');
+      return;
+    }
+
     if (!this.formProduct.name || !this.formProduct.price) {
       alert('Product Title and Price are required.');
       return;
@@ -461,7 +545,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
       const invalidShareUrl = imagesList.find(url => isIbbShareUrl(url));
       if (invalidShareUrl) {
-        alert('Please use the direct image URL, not the ImgBB share-page URL.');
+        alert('Please use direct image URLs (e.g. https://i.ibb.co/...).');
         this.isSaving = false;
         return;
       }

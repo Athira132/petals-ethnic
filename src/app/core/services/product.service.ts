@@ -726,4 +726,11 @@ export class ProductService {
 
     return data.url;
   }
+
+  /**
+   * Uploads category banner image file to ImgBB securely via backend serverless endpoint
+   */
+  async uploadCategoryImage(file: File): Promise<string> {
+    return this.uploadProductImage(file);
+  }
 }

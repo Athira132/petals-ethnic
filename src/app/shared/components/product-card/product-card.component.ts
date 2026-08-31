@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, AfterViewInit, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product, SizeOption } from '../../../core/models/product.model';
@@ -11,7 +11,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
   imports: [CommonModule, RouterModule],
   template: `
     <div class="product-card" [class.out-of-stock]="product.stock === 0">
-      <!-- Product Image Container with Dual-Layer Low-Res & Full-Res Same-Product Photo Loader -->
+      <!-- Product Image Container with Progressive Same-Product Dual-Layer Loader -->
       <div class="card-media">
         <a [routerLink]="['/product', product.slug]">
           <!-- Layer 1: Low-Res Version of EXACT SAME Product Photo (rendered ONLY if full image is not yet cached) -->
@@ -26,8 +26,9 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
             (error)="onLowResError($event)"
           />
 
-          <!-- Layer 2: Full-Res Direct Version of EXACT SAME Product Photo (smoothly dissolves over low-res or shows immediately if cached) -->
+          <!-- Layer 2: Full-Res Direct Version of EXACT SAME Product Photo (smoothly dissolves over low-res or displays instantly if cached) -->
           <img 
+            #fullImg
             [src]="primaryImageUrl" 
             [alt]="product.name" 
             class="product-img full-res-img"
@@ -277,10 +278,12 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     }
   `]
 })
-export class ProductCardComponent implements OnInit, OnChanges {
+export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   @Input({ required: true }) product!: Product;
   @Input() priority: boolean = false;
   @Output() quickAdd = new EventEmitter<{ product: Product; size: SizeOption }>();
+
+  @ViewChild('fullImg') fullImgRef?: ElementRef<HTMLImageElement>;
 
   isFullLoaded = false;
 
@@ -296,9 +299,14 @@ export class ProductCardComponent implements OnInit, OnChanges {
     this.updateImages();
   }
 
+  ngAfterViewInit() {
+    this.checkNativeImageStatus();
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['product']) {
       this.updateImages();
+      setTimeout(() => this.checkNativeImageStatus(), 0);
     }
   }
 
@@ -313,12 +321,20 @@ export class ProductCardComponent implements OnInit, OnChanges {
     this.secondaryImageUrl = secondary;
     this.lowResSecondaryUrl = secondary ? (getResponsiveImageUrl(secondary, 240) || secondary) : null;
 
-    // Check if the primary image is already cached in memory across route navigations
-    if (this.imageLoader.isLoaded(primary) || this.imageLoader.checkImageLoadedInBrowser(primary)) {
+    // Synchronously check if the primary image URL is already in our global ImageLoaderService cache
+    if (this.imageLoader.isLoaded(primary)) {
       this.isFullLoaded = true;
-      this.imageLoader.markLoaded(primary);
     } else {
       this.isFullLoaded = false;
+    }
+  }
+
+  private checkNativeImageStatus() {
+    if (this.fullImgRef?.nativeElement) {
+      const img = this.fullImgRef.nativeElement;
+      if (img.complete && img.naturalWidth > 0) {
+        this.onFullResLoaded();
+      }
     }
   }
 

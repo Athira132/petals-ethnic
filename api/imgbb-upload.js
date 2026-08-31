@@ -22,6 +22,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Bad Request: Missing image parameter (base64 string).' });
   }
 
+  // Safely normalize & trim environment variable (remove quotes, trailing spaces, newlines)
+  let apiKey = (process.env.IMGBB_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+  
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Server Configuration Error: Missing IMGBB_API_KEY environment variable.' });
+  }
+
   // Validate file size limit (Maximum 10MB approx 14MB base64 string length)
   if (image.length > 15 * 1024 * 1024) {
     return res.status(400).json({ error: 'Image is too large. Maximum allowed file size is 10MB.' });
@@ -39,11 +46,6 @@ export default async function handler(req, res) {
     }
   }
 
-  const apiKey = process.env.IMGBB_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'Server Configuration Error: Missing IMGBB_API_KEY environment variable.' });
-  }
-
   try {
     // Strip data URI prefix if present (e.g. "data:image/png;base64,...")
     let cleanBase64 = image;
@@ -52,9 +54,10 @@ export default async function handler(req, res) {
     }
 
     const bodyParams = new URLSearchParams();
+    bodyParams.append('key', apiKey);
     bodyParams.append('image', cleanBase64);
 
-    const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+    const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${encodeURIComponent(apiKey)}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -65,6 +68,11 @@ export default async function handler(req, res) {
     const data = await imgbbRes.json();
     
     if (!imgbbRes.ok || !data.success) {
+      if (data.error && data.error.message && data.error.message.includes('Invalid API v1 key')) {
+        return res.status(400).json({
+          error: 'ImgBB API Key Error: The server IMGBB_API_KEY configured in Vercel is invalid or expired. Please generate a free key from https://api.imgbb.com and set IMGBB_API_KEY in Vercel project settings.'
+        });
+      }
       return res.status(imgbbRes.status || 400).json({
         error: data.error?.message || 'ImgBB upload request failed.'
       });

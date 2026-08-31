@@ -150,15 +150,11 @@ import { Category } from '../../core/models/category.model';
 
         <!-- Main Product Listing Content -->
         <main class="shop-main-content">
-          <!-- Top Bar (Mobile Filter Toggle + Sorting + Counter) -->
+          <!-- Top Bar (Mobile Filter Toggle + Sorting) -->
           <div class="shop-toolbar">
             <button class="mobile-filter-btn" (click)="toggleMobileFilter()">
               ⚡ Filter & Refine
             </button>
-
-            <span class="results-count" *ngIf="!isLoading">
-              Showing <strong>{{ products.length }}</strong> {{ products.length === 1 ? 'style' : 'styles' }}
-            </span>
 
             <div class="sort-box">
               <label for="sortBy">Sort By:</label>
@@ -499,6 +495,7 @@ import { Category } from '../../core/models/category.model';
       align-items: center;
       gap: 8px;
       font-size: 14px;
+      margin-left: auto;
     }
     .sort-select {
       padding: 8px 12px;

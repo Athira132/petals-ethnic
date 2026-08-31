@@ -44,10 +44,8 @@ export default async function handler(req, res) {
       }
 
       let payload = { ...productPayload };
-      if (images && images.length > 0) {
-        payload.image_url = images[0].trim();
-        payload.additional_image_urls = images.length > 1 ? images.slice(1).map(u => u.trim()).join('\n') : null;
-      }
+      delete payload.image_url;
+      delete payload.additional_image_urls;
 
       let insertedProduct = null;
 
@@ -57,10 +55,12 @@ export default async function handler(req, res) {
         .select()
         .single();
 
-      // If best_seller column is missing in DB schema cache, retry without best_seller
-      if (prodErr && prodErr.message && prodErr.message.includes('best_seller')) {
-        console.warn('best_seller column missing in schema cache, retrying insert without best_seller');
+      // If best_seller column or image columns missing in DB schema cache, retry sanitized
+      if (prodErr && prodErr.message) {
+        console.warn('Initial product insert notice, retrying sanitized payload:', prodErr.message);
         delete payload.best_seller;
+        delete payload.image_url;
+        delete payload.additional_image_urls;
         const retryRes = await supabase
           .from('products')
           .insert([payload])
@@ -114,15 +114,8 @@ export default async function handler(req, res) {
       }
 
       let payload = { ...productPayload };
-      if (images !== undefined) {
-        if (images.length > 0) {
-          payload.image_url = images[0].trim();
-          payload.additional_image_urls = images.length > 1 ? images.slice(1).map(u => u.trim()).join('\n') : null;
-        } else {
-          payload.image_url = null;
-          payload.additional_image_urls = null;
-        }
-      }
+      delete payload.image_url;
+      delete payload.additional_image_urls;
 
       let updatedProduct = null;
 
@@ -133,10 +126,12 @@ export default async function handler(req, res) {
         .select()
         .single();
 
-      // If best_seller column is missing in DB schema cache, retry without best_seller
-      if (updErr && updErr.message && updErr.message.includes('best_seller')) {
-        console.warn('best_seller column missing in schema cache, retrying update without best_seller');
+      // If best_seller column or image columns missing in DB schema cache, retry sanitized
+      if (updErr && updErr.message) {
+        console.warn('Initial product update notice, retrying sanitized payload:', updErr.message);
         delete payload.best_seller;
+        delete payload.image_url;
+        delete payload.additional_image_urls;
         const retryRes = await supabase
           .from('products')
           .update(payload)

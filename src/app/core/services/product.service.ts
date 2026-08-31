@@ -427,9 +427,7 @@ export class ProductService {
       best_seller: Boolean(productData.best_seller),
       active: productData.active !== false,
       stock: totalStock,
-      availability: totalStock > 0 ? 'in_stock' : 'sold_out',
-      image_url: images && images.length > 0 ? images[0].trim() : null,
-      additional_image_urls: images && images.length > 1 ? images.slice(1).map(u => u.trim()).join('\n') : null
+      availability: totalStock > 0 ? 'in_stock' : 'sold_out'
     };
 
     // 1. Try direct Supabase insert
@@ -542,11 +540,6 @@ export class ProductService {
     if (totalStock !== undefined) {
       productPayload.stock = totalStock;
       productPayload.availability = totalStock > 0 ? 'in_stock' : 'sold_out';
-    }
-
-    if (images !== undefined) {
-      productPayload.image_url = images.length > 0 ? images[0].trim() : null;
-      productPayload.additional_image_urls = images.length > 1 ? images.slice(1).map(u => u.trim()).join('\n') : null;
     }
 
     // 1. Try direct Supabase update

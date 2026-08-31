@@ -6,7 +6,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { Product, ProductImage, SizeOption } from '../../core/models/product.model';
-import { extractProductImages, handleImageError, ImageItem, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
+import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageItem, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-product-detail',
@@ -28,15 +28,25 @@ import { extractProductImages, handleImageError, ImageItem, DEFAULT_FALLBACK_IMA
         <div class="pd-grid">
           <!-- Image Gallery Column -->
           <div class="pd-gallery">
-            <div class="main-image-box" [class.loaded]="isMainLoaded">
-              <!-- Loading Skeleton -->
-              <div class="img-skeleton" *ngIf="!isMainLoaded"></div>
+            <div class="main-image-box">
+              <!-- Layer 1: Low-Resolution Version of EXACT SAME Product Photo (loaded immediately) -->
+              <img 
+                [src]="lowResActiveUrl" 
+                [alt]="product.name" 
+                class="pd-main-img low-res-img"
+                [class.faded-out]="isMainLoaded"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+                (error)="onLowResError($event)"
+              />
 
+              <!-- Layer 2: Full-Resolution Version of EXACT SAME Product Photo (smoothly dissolves over low-res) -->
               <img 
                 [src]="activeImageUrl" 
                 [alt]="product.name" 
-                class="pd-main-img"
-                [class.visible]="isMainLoaded"
+                class="pd-main-img full-res-img"
+                [class.loaded]="isMainLoaded"
                 loading="eager"
                 fetchpriority="high"
                 decoding="async"
@@ -218,19 +228,6 @@ import { extractProductImages, handleImageError, ImageItem, DEFAULT_FALLBACK_IMA
       overflow: hidden;
     }
 
-    .img-skeleton {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, #F0E6EC 25%, #FBF6F8 50%, #F0E6EC 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      z-index: 1;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
     .pd-main-img {
       position: absolute;
       inset: 0;
@@ -238,11 +235,22 @@ import { extractProductImages, handleImageError, ImageItem, DEFAULT_FALLBACK_IMA
       height: 100%;
       object-fit: cover;
       object-position: top center;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 2;
     }
-    .pd-main-img.visible {
+    .pd-main-img.low-res-img {
+      z-index: 1;
+      opacity: 1;
+      transition: opacity 500ms ease-in-out;
+    }
+    .pd-main-img.low-res-img.faded-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .pd-main-img.full-res-img {
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 500ms ease-in-out;
+    }
+    .pd-main-img.full-res-img.loaded {
       opacity: 1;
     }
 
@@ -528,6 +536,17 @@ export class ProductDetailComponent implements OnInit {
     if (this.product.category_id) {
       const allCategoryProducts = await this.productService.getProducts({ categoryId: this.product.category_id });
       this.relatedProducts = allCategoryProducts.filter(p => p.id !== this.product!.id).slice(0, 4);
+    }
+  }
+
+  get lowResActiveUrl(): string {
+    return getResponsiveImageUrl(this.activeImageUrl, 320);
+  }
+
+  onLowResError(event: Event) {
+    const imgElement = event.target as HTMLImageElement;
+    if (imgElement) {
+      imgElement.style.display = 'none';
     }
   }
 

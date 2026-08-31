@@ -10,30 +10,42 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
   imports: [CommonModule, RouterModule],
   template: `
     <div class="product-card" [class.out-of-stock]="product.stock === 0">
-      <!-- Product Image Container -->
-      <div class="card-media" [class.loaded]="isMainLoaded">
-        <!-- Skeleton Placeholder Shimmer -->
-        <div class="img-skeleton" *ngIf="!isMainLoaded"></div>
-
+      <!-- Product Image Container with Progressive Same-Product Dual-Layer Loader -->
+      <div class="card-media">
         <a [routerLink]="['/product', product.slug]">
+          <!-- Layer 1: Low-Resolution Version of the EXACT SAME Product Photo (loaded immediately) -->
           <img 
-            [src]="primaryImageUrl" 
-            [srcset]="primaryImageSrcset"
-            sizes="(max-width: 576px) 180px, (max-width: 992px) 300px, 400px"
+            [src]="lowResPrimaryUrl" 
             [alt]="product.name" 
-            class="product-img main-img"
-            [class.visible]="isMainLoaded"
+            class="product-img low-res-img"
+            [class.faded-out]="isFullLoaded"
             [attr.loading]="priority ? 'eager' : 'lazy'"
             [attr.fetchpriority]="priority ? 'high' : 'auto'"
             decoding="async"
-            (load)="isMainLoaded = true"
-            (error)="onImageError($event); isMainLoaded = true"
+            (error)="onLowResError($event)"
           />
+
+          <!-- Layer 2: Full-Resolution Version of the EXACT SAME Product Photo (smoothly dissolves over low-res) -->
+          <img 
+            [src]="primaryImageUrl" 
+            [srcset]="primaryImageSrcset"
+            sizes="(max-width: 576px) 280px, (max-width: 992px) 360px, 480px"
+            [alt]="product.name" 
+            class="product-img full-res-img"
+            [class.loaded]="isFullLoaded"
+            [attr.loading]="priority ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="priority ? 'high' : 'auto'"
+            decoding="async"
+            (load)="isFullLoaded = true"
+            (error)="onFullResError($event); isFullLoaded = true"
+          />
+
+          <!-- Layer 3: Secondary Hover Image -->
           <img 
             *ngIf="secondaryImageUrl" 
             [src]="secondaryImageUrl" 
             [srcset]="secondaryImageSrcset"
-            sizes="(max-width: 576px) 180px, (max-width: 992px) 300px, 400px"
+            sizes="(max-width: 576px) 280px, (max-width: 992px) 360px, 480px"
             [alt]="product.name" 
             class="product-img hover-img" 
             loading="lazy"
@@ -115,21 +127,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
       width: 100%;
       padding-top: 133%; /* 3:4 aspect ratio reserved space */
       overflow: hidden;
-      background-color: var(--color-bg-alt, #F8F9FA);
-    }
-
-    /* Lightweight Skeleton Shimmer */
-    .img-skeleton {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, #F0E6EC 25%, #FBF6F8 50%, #F0E6EC 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      z-index: 1;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      background-color: var(--color-bg-alt, #FAF8F6);
     }
 
     .product-img {
@@ -139,18 +137,36 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
       height: 100%;
       object-fit: cover;
       object-position: top center;
-      opacity: 0;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      z-index: 2;
     }
-    .product-img.visible {
+
+    /* Layer 1: Low-Resolution Same-Product Photo (Visible Immediately) */
+    .low-res-img {
+      z-index: 1;
+      opacity: 1;
+      transition: opacity 500ms ease-in-out;
+    }
+    .low-res-img.faded-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Layer 2: Full-Resolution Same-Product Photo (Fades in over Low-Res) */
+    .full-res-img {
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 500ms ease-in-out, transform 0.3s ease;
+    }
+    .full-res-img.loaded {
       opacity: 1;
     }
+
+    /* Layer 3: Secondary Hover Image */
     .hover-img {
       opacity: 0;
       z-index: 3;
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    .product-card:hover .main-img.visible {
+    .product-card:hover .full-res-img.loaded {
       transform: scale(1.05);
     }
     .product-card:hover .hover-img {
@@ -273,9 +289,14 @@ export class ProductCardComponent implements OnInit, OnChanges {
   @Input() priority: boolean = false;
   @Output() quickAdd = new EventEmitter<{ product: Product; size: SizeOption }>();
 
-  isMainLoaded = false;
+  isFullLoaded = false;
+
   primaryImageUrl: string = DEFAULT_FALLBACK_IMAGE;
+  lowResPrimaryUrl: string = DEFAULT_FALLBACK_IMAGE;
+
   secondaryImageUrl: string | null = null;
+  lowResSecondaryUrl: string | null = null;
+
   primaryImageSrcset: string = '';
   secondaryImageSrcset: string = '';
 
@@ -295,20 +316,22 @@ export class ProductCardComponent implements OnInit, OnChanges {
     const secondary = images.length > 1 ? images[1].image_url : null;
 
     this.primaryImageUrl = primary;
+    this.lowResPrimaryUrl = getResponsiveImageUrl(primary, 260);
+
     this.secondaryImageUrl = secondary;
+    this.lowResSecondaryUrl = secondary ? getResponsiveImageUrl(secondary, 260) : null;
 
     this.primaryImageSrcset = this.generateSrcset(primary);
     this.secondaryImageSrcset = secondary ? this.generateSrcset(secondary) : '';
+    this.isFullLoaded = false;
   }
 
   private generateSrcset(url: string): string {
     if (!url) return '';
-    // Skip generating srcset for local Vercel-hosted assets to serve at full original quality
     if (url.startsWith('/')) {
       return '';
     }
-    // Optimized responsive width boundaries for external images
-    const widths = [300, 500, 800];
+    const widths = [360, 500, 800];
     return widths.map(w => `${getResponsiveImageUrl(url, w)} ${w}w`).join(', ');
   }
 
@@ -325,6 +348,19 @@ export class ProductCardComponent implements OnInit, OnChanges {
       return this.product.sizes.map(s => ({ size: s.size, stock: s.stock }));
     }
     return allSizes.map(size => ({ size, stock: this.product.stock > 0 ? 5 : 0 }));
+  }
+
+  onLowResError(event: Event) {
+    // If low-res image fails, hide it gracefully
+    const imgElement = event.target as HTMLImageElement;
+    if (imgElement) {
+      imgElement.style.display = 'none';
+    }
+  }
+
+  onFullResError(event: Event) {
+    handleImageError(event);
+    this.isFullLoaded = true;
   }
 
   onImageError(event: Event) {

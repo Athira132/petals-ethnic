@@ -37,6 +37,54 @@ export class ProductService {
     this.cachedCategories = null;
   }
 
+  getCachedCategoriesSync(): Category[] | null {
+    return this.cachedCategories;
+  }
+
+  getProductsSync(options: ProductFilterOptions = {}): Product[] | null {
+    if (!this.cachedProducts) return null;
+    let products = [...this.cachedProducts];
+
+    if (options.activeOnly !== false) {
+      products = products.filter(p => p.active !== false);
+    }
+    if (options.categoryId) {
+      products = products.filter(p => p.category_id === options.categoryId);
+    }
+    if (options.featuredOnly) {
+      products = products.filter(p => p.featured);
+    }
+    if (options.newArrivalOnly) {
+      products = products.filter(p => p.new_arrival);
+    }
+    if (options.bestSellerOnly) {
+      products = products.filter(p => p.best_seller);
+    }
+    if (options.minPrice !== undefined && options.minPrice !== null) {
+      products = products.filter(p => p.price >= options.minPrice!);
+    }
+    if (options.maxPrice !== undefined && options.maxPrice !== null) {
+      products = products.filter(p => p.price <= options.maxPrice!);
+    }
+    if (options.searchQuery && options.searchQuery.trim()) {
+      const q = options.searchQuery.toLowerCase().trim();
+      products = products.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q))
+      );
+    }
+    if (options.sortBy === 'price-low') {
+      products.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (options.sortBy === 'price-high') {
+      products.sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (options.sortBy === 'featured') {
+      products.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    }
+
+    return products;
+  }
+
   // ==========================================
   // CATEGORIES MANAGEMENT
   // ==========================================

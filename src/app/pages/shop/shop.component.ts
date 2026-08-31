@@ -452,6 +452,7 @@ export class ShopComponent implements OnInit, OnDestroy {
       this.searchQuery = params['search'] || '';
       this.selectedSize = (params['size'] as SizeOption) || '';
       
+      this.trySyncCachedProducts();
       await this.loadInitialData();
     });
   }
@@ -461,9 +462,41 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private trySyncCachedProducts() {
+    try {
+      const syncCats = this.productService.getCachedCategoriesSync();
+      if (syncCats && syncCats.length > 0) {
+        this.categories = syncCats;
+      }
+      const syncProds = this.productService.getProductsSync(this.getFilterOptions());
+      if (syncProds && syncProds.length > 0) {
+        this.products = syncProds;
+        this.isLoading = false;
+      }
+    } catch {}
+  }
+
+  private getFilterOptions(): ProductFilterOptions {
+    let catId: string | undefined = undefined;
+    if (this.selectedCategorySlug && this.categories.length > 0) {
+      const found = this.categories.find(c => c.slug === this.selectedCategorySlug);
+      if (found) catId = found.id;
+    }
+    return {
+      categoryId: catId,
+      searchQuery: this.searchQuery,
+      size: this.selectedSize || undefined,
+      minPrice: this.minPrice || undefined,
+      maxPrice: this.maxPrice || undefined,
+      sortBy: this.sortBy,
+      activeOnly: true
+    };
+  }
+
   async loadInitialData() {
     try {
       this.categories = await this.productService.getCategories();
+      this.trySyncCachedProducts();
       await this.fetchFilteredProducts();
     } catch (e) {
       console.error('Error loading shop data:', e);
@@ -477,23 +510,9 @@ export class ShopComponent implements OnInit, OnDestroy {
       this.isLoading = true;
     }
     try {
-      let catId: string | undefined = undefined;
-      if (this.selectedCategorySlug) {
-        const found = this.categories.find(c => c.slug === this.selectedCategorySlug);
-        if (found) catId = found.id;
-      }
-
-      const options: ProductFilterOptions = {
-        categoryId: catId,
-        searchQuery: this.searchQuery,
-        size: this.selectedSize || undefined,
-        minPrice: this.minPrice || undefined,
-        maxPrice: this.maxPrice || undefined,
-        sortBy: this.sortBy,
-        activeOnly: true
-      };
-
-      this.products = await this.productService.getProducts(options);
+      const options = this.getFilterOptions();
+      const freshProds = await this.productService.getProducts(options);
+      this.products = freshProds;
     } catch (err) {
       console.error('Error filtering products:', err);
     } finally {

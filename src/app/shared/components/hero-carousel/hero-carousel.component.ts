@@ -18,17 +18,22 @@ export interface HeroSlide {
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <section class="hero-carousel-section">
+    <section 
+      class="hero-carousel-section"
+      (touchstart)="onTouchStart($event)"
+      (touchend)="onTouchEnd($event)"
+    >
       <div 
         class="carousel-track"
+        [class.no-transition]="!isTransitioning"
         [style.transform]="'translate3d(-' + (currentIndex * 100) + '%, 0, 0)'"
       >
         <div 
-          *ngFor="let slide of slides; let i = index"
+          *ngFor="let slide of displaySlides; let i = index"
           class="carousel-slide"
-          [class.active]="i === currentIndex"
+          [class.active]="(currentIndex % slides.length) === (i % slides.length)"
         >
-          <!-- Semantic High-Priority First Hero Image + Right-Center Biased Crop -->
+          <!-- Semantic High-Priority Hero Image + Right-Center Biased Crop -->
           <img 
             [src]="slide.imageUrl" 
             [alt]="slide.title"
@@ -40,7 +45,7 @@ export interface HeroSlide {
             (error)="onImageError($event)"
           />
 
-          <!-- Elegant Bottom Gradient Overlay Behind Text (Upper Banner Remains Completely Bright) -->
+          <!-- Bottom Gradient Overlay Behind Text -->
           <div class="slide-overlay"></div>
 
           <!-- Hero Content Aligned To Bottom -->
@@ -69,7 +74,7 @@ export interface HeroSlide {
         <button 
           *ngFor="let slide of slides; let i = index"
           class="indicator-dot"
-          [class.active]="i === currentIndex"
+          [class.active]="(currentIndex % slides.length) === i"
           (click)="goToSlide(i)"
           [attr.aria-label]="'Go to slide ' + (i + 1)"
         ></button>
@@ -85,6 +90,7 @@ export interface HeroSlide {
       max-height: 850px;
       overflow: hidden;
       background-color: #0D0D0D;
+      user-select: none;
     }
     @media (max-width: 992px) {
       .hero-carousel-section {
@@ -104,8 +110,11 @@ export interface HeroSlide {
       display: flex;
       width: 100%;
       height: 100%;
-      transition: transform 500ms cubic-bezier(0.25, 1, 0.5, 1);
+      transition: transform 700ms cubic-bezier(0.25, 1, 0.5, 1);
       will-change: transform;
+    }
+    .carousel-track.no-transition {
+      transition: none !important;
     }
 
     .carousel-slide {
@@ -132,7 +141,7 @@ export interface HeroSlide {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: 85% center; /* Biased toward right-center so subjects on right are preserved */
+      object-position: 85% center;
     }
 
     @media (max-width: 768px) {
@@ -141,7 +150,6 @@ export interface HeroSlide {
       }
     }
 
-    /* Bottom Gradient Overlay: Leaves top 60% of fashion photo bright & unshaded */
     .slide-overlay {
       position: absolute;
       inset: 0;
@@ -328,7 +336,7 @@ export interface HeroSlide {
   `]
 })
 export class HeroCarouselComponent implements OnInit, OnDestroy {
-  // 4 Required Hero Fashion Slides with Original Uploaded Images & Custom Right-Biased Object Position
+  // 4 Required Hero Fashion Slides
   slides: HeroSlide[] = [
     { 
       id: 1, 
@@ -368,8 +376,14 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     }
   ];
 
+  displaySlides: HeroSlide[] = [];
   currentIndex = 0;
+  isTransitioning = true;
   timer: any;
+
+  // Touch Swipe Variables
+  private touchStartX = 0;
+  private touchEndX = 0;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -378,6 +392,8 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // Clone first slide to the end for seamless infinite looping
+    this.displaySlides = [...this.slides, { ...this.slides[0], id: 999 }];
     this.startAutoSlider();
   }
 
@@ -386,8 +402,10 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * AUTOMATIC CONTINUOUS LOOPING SLIDER:
-   * - Slides automatically once EVERY 1 SECOND (1000ms)
+   * SEAMLESS INFINITE LOOPING SLIDER:
+   * - Each image remains fully visible for ~2.8 seconds
+   * - Transition duration: ~0.7 seconds
+   * - Total loop step: ~3.5 seconds
    */
   startAutoSlider() {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -396,15 +414,43 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     this.ngZone.runOutsideAngular(() => {
       this.timer = setInterval(() => {
         this.ngZone.run(() => {
-          this.currentIndex = (this.currentIndex + 1) % this.slides.length;
-          this.cdr.markForCheck();
+          this.nextSlide();
         });
-      }, 1000); // 1-SECOND CONTINUOUS AUTO-SLIDE INTERVAL
+      }, 3500); // 2.8s visibility + 0.7s transition
     });
   }
 
+  nextSlide() {
+    this.isTransitioning = true;
+    this.currentIndex++;
+    this.cdr.markForCheck();
+
+    // When transitioning to the cloned slide (index === slides.length)
+    if (this.currentIndex === this.slides.length) {
+      setTimeout(() => {
+        this.ngZone.run(() => {
+          this.isTransitioning = false;
+          this.currentIndex = 0;
+          this.cdr.markForCheck();
+        });
+      }, 700); // Match transition duration (700ms)
+    }
+  }
+
+  prevSlide() {
+    this.isTransitioning = true;
+    if (this.currentIndex === 0) {
+      this.currentIndex = this.slides.length - 1;
+    } else {
+      this.currentIndex--;
+    }
+    this.cdr.markForCheck();
+  }
+
   goToSlide(index: number) {
+    this.isTransitioning = true;
     this.currentIndex = index;
+    this.cdr.markForCheck();
     this.startAutoSlider();
   }
 
@@ -412,6 +458,28 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
+    }
+  }
+
+  // Touch Swipe Support
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.touches[0].clientX;
+  }
+
+  onTouchEnd(event: TouchEvent) {
+    this.touchEndX = event.changedTouches[0].clientX;
+    this.handleSwipe();
+  }
+
+  private handleSwipe() {
+    const deltaX = this.touchStartX - this.touchEndX;
+    if (Math.abs(deltaX) > 40) {
+      if (deltaX > 0) {
+        this.nextSlide();
+      } else {
+        this.prevSlide();
+      }
+      this.startAutoSlider();
     }
   }
 

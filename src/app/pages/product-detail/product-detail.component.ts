@@ -29,8 +29,12 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
           <!-- Image Gallery Column -->
           <div class="pd-gallery">
             <div class="main-image-box">
-              <!-- Layer 1: Low-Resolution Version of EXACT SAME Product Photo (loaded immediately) -->
+              <!-- Lightweight Shimmer Skeleton Placeholder (0 layout shift, matches 4:5 aspect ratio) -->
+              <div class="image-skeleton" [class.hidden]="isMainLoaded"></div>
+
+              <!-- Layer 1: Low-Resolution Progressive Blur Placeholder -->
               <img 
+                *ngIf="lowResActiveUrl"
                 [src]="lowResActiveUrl" 
                 [alt]="product.name" 
                 class="pd-main-img low-res-img"
@@ -41,8 +45,9 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                 (error)="onLowResError($event)"
               />
 
-              <!-- Layer 2: Full-Resolution Version of EXACT SAME Product Photo (smoothly dissolves over low-res) -->
+              <!-- Layer 2: High-Resolution Primary Product Photo (smoothly dissolves over placeholder when loaded) -->
               <img 
+                *ngIf="activeImageUrl"
                 [src]="activeImageUrl" 
                 [alt]="product.name" 
                 class="pd-main-img full-res-img"
@@ -55,7 +60,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               />
             </div>
 
-            <!-- Thumbnail List -->
+            <!-- Thumbnail List (Lazy Loaded) -->
             <div class="thumbnail-row" *ngIf="images.length > 1">
               <button 
                 *ngFor="let img of images"
@@ -67,6 +72,8 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                   [src]="img.image_url" 
                   [alt]="product.name" 
                   class="thumb-img" 
+                  loading="lazy"
+                  decoding="async"
                   (error)="onImageError($event)"
                 />
               </button>
@@ -226,6 +233,27 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       background-color: var(--color-bg-alt, #F8F9FA);
       border-radius: var(--radius-md);
       overflow: hidden;
+    }
+
+    .image-skeleton {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #F0ECE1 25%, #FAF7F0 50%, #F0ECE1 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s infinite;
+      z-index: 1;
+      transition: opacity 400ms ease;
+    }
+    .image-skeleton.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @keyframes skeleton-shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
     }
 
     .pd-main-img {

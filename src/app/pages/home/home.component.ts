@@ -382,6 +382,11 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       border-top: 1px solid var(--color-border-light);
       border-bottom: 1px solid var(--color-border-light);
     }
+    @media (max-width: 768px) {
+      .story-editorial-section {
+        display: none !important;
+      }
+    }
     .story-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;

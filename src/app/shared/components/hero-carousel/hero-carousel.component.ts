@@ -196,13 +196,13 @@ export interface HeroSlide {
     }
 
     .hero-title {
-      font-size: 44px;
-      font-weight: 700;
+      font-size: 48px;
+      font-weight: 800;
       line-height: 1.15;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       letter-spacing: -0.5px;
       color: #FFFFFF;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+      text-shadow: 0 3px 18px rgba(0, 0, 0, 0.85);
     }
     @media (max-width: 992px) {
       .hero-title { font-size: 34px; }
@@ -355,7 +355,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       subtitle: 'Step into joyous occasions with regal flare Anarkalis, intricate embroideries, and modern ethnic two-piece sets.',
       ctaText: 'View Festive Edits',
       ctaLink: '/shop',
-      objectPosition: 'center top'
+      objectPosition: 'right center'
     },
     { 
       id: 4, 

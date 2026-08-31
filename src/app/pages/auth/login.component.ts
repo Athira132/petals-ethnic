@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -19,11 +19,11 @@ import { AuthService } from '../../core/services/auth.service';
           <p class="auth-subtitle">Log in to your Petals Ethnic account to manage orders, catalog, and profile.</p>
         </div>
 
-        <div *ngIf="errorMessage" class="auth-alert error">
-          {{ errorMessage }}
+        <div *ngIf="errorMessage" class="auth-alert error" role="alert">
+          <span>⚠️</span> {{ errorMessage }}
         </div>
 
-        <form (ngSubmit)="onSubmit()" class="auth-form">
+        <form (ngSubmit)="onSubmit()" class="auth-form" novalidate>
           <div class="form-group">
             <label class="form-label" for="email">Email Address</label>
             <input 
@@ -33,6 +33,9 @@ import { AuthService } from '../../core/services/auth.service';
               name="email" 
               placeholder="you@example.com" 
               class="form-control"
+              [disabled]="isLoading"
+              autocomplete="email"
+              required
             />
           </div>
 
@@ -48,10 +51,14 @@ import { AuthService } from '../../core/services/auth.service';
               name="password" 
               placeholder="••••••••" 
               class="form-control"
+              [disabled]="isLoading"
+              autocomplete="current-password"
+              required
             />
           </div>
 
           <button type="submit" [disabled]="isLoading" class="btn-primary auth-submit-btn">
+            <span *ngIf="isLoading" class="spinner-sm"></span>
             {{ isLoading ? 'Signing in...' : 'Sign In' }}
           </button>
         </form>
@@ -110,10 +117,13 @@ import { AuthService } from '../../core/services/auth.service';
       color: var(--color-muted);
     }
     .auth-alert {
-      padding: 12px;
+      padding: 12px 16px;
       border-radius: var(--radius-sm);
       font-size: 13px;
       margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .auth-alert.error {
       background-color: #FFEBEE;
@@ -134,7 +144,20 @@ import { AuthService } from '../../core/services/auth.service';
       width: 100%;
       padding: 14px;
       margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
+    .spinner-sm {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #FFFFFF;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .auth-footer {
       text-align: center;
       margin-top: 24px;
@@ -157,7 +180,8 @@ export class LoginComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -165,39 +189,64 @@ export class LoginComponent implements OnInit {
   }
 
   async onSubmit() {
+    // 1. Clear previous errors & reset state
     this.errorMessage = '';
 
-    if (!this.email || !this.email.trim()) {
-      this.errorMessage = 'Please enter your email.';
+    const cleanEmail = (this.email || '').trim();
+    const cleanPassword = (this.password || '').trim();
+
+    if (!cleanEmail) {
+      this.errorMessage = 'Please enter your email address.';
+      this.cdr.markForCheck();
       return;
     }
 
-    if (!this.password || !this.password.trim()) {
+    if (!cleanPassword) {
       this.errorMessage = 'Please enter your password.';
+      this.cdr.markForCheck();
       return;
     }
+
+    // Prevent multiple rapid clicks while request is pending
+    if (this.isLoading) return;
 
     this.isLoading = true;
+    this.cdr.markForCheck();
 
     try {
-      const res = await this.authService.login(this.email.trim(), this.password);
+      const res = await this.authService.login(cleanEmail, cleanPassword);
       
       if (!res?.user) {
-        this.errorMessage = 'Incorrect email or password.';
+        this.errorMessage = 'Incorrect email address or password. Please check your credentials and try again.';
+        this.cdr.markForCheck();
         return;
       }
 
-      // Determine admin status and navigate immediately without artificial delays or setTimeout
+      // Determine admin status and navigate to target route
       const email = (res.user.email || '').toLowerCase();
       const isAdmin = email === 'petalsethnic@gmail.com' || email === 'dhanyaadwork@gmail.com' || this.authService.isAdmin;
 
       this.router.navigateByUrl(this.redirectUrl || (isAdmin ? '/admin' : '/account'));
 
     } catch (err: any) {
-      // Map all authentication failure responses directly to user-facing error
-      this.errorMessage = 'Incorrect email or password.';
+      console.error('Login authentication notice:', err?.message || err);
+      
+      const msg = (err?.message || '').toLowerCase();
+      
+      if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed to fetch')) {
+        this.errorMessage = 'Unable to sign in right now. Please check your internet connection and try again.';
+      } else if (msg.includes('rate limit') || msg.includes('too many')) {
+        this.errorMessage = 'Too many failed login attempts. Please wait a few moments and try again.';
+      } else {
+        // Safe, user-friendly, non-account-enumerating message for invalid credentials
+        this.errorMessage = 'Incorrect email address or password. Please check your credentials and try again.';
+      }
+
+      this.cdr.markForCheck();
+
     } finally {
       this.isLoading = false;
+      this.cdr.markForCheck();
     }
   }
 }

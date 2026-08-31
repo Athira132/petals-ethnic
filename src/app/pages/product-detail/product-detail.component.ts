@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -520,7 +520,8 @@ export class ProductDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private productService: ProductService,
-    private cartService: CartService
+    private cartService: CartService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -533,16 +534,30 @@ export class ProductDetailComponent implements OnInit {
   }
 
   async loadProductDetails(slug: string) {
+    // 1. Immediately reset state so previous product data NEVER leaks into current view
+    this.product = null;
+    this.images = [];
+    this.activeImageUrl = '';
     this.isMainLoaded = false;
-    this.product = await this.productService.getProductBySlug(slug);
-    if (!this.product) {
+    this.relatedProducts = [];
+    this.quantity = 1;
+    this.cdr.markForCheck();
+
+    // 2. Fetch target product
+    const targetProduct = await this.productService.getProductBySlug(slug);
+    if (!targetProduct) {
       this.router.navigate(['/shop']);
       return;
     }
 
+    // 3. Assign target product to state
+    this.product = targetProduct;
+
     // Build Images using robust extractor
     this.images = extractProductImages(this.product);
-    this.activeImageUrl = this.images[0].image_url;
+    if (this.images.length > 0) {
+      this.activeImageUrl = this.images[0].image_url;
+    }
 
     // Build Sizes
     const availableSizesList: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -560,12 +575,15 @@ export class ProductDetailComponent implements OnInit {
       this.selectedSize = this.sizeList[0].size;
     }
 
+    this.cdr.markForCheck();
+
     // Load related products from same category asynchronously without blocking main product rendering
     if (this.product.category_id) {
       const catId = this.product.category_id;
       const currentId = this.product.id;
       this.productService.getProducts({ categoryId: catId }).then(allCategoryProducts => {
         this.relatedProducts = allCategoryProducts.filter(p => p.id !== currentId).slice(0, 4);
+        this.cdr.markForCheck();
       }).catch(err => console.warn('Related products load notice:', err));
     }
   }

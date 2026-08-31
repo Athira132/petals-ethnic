@@ -413,27 +413,38 @@ export class ProductService {
     return products;
   }
 
-  async getProductBySlug(slug: string): Promise<Product | null> {
-    if (!slug) return null;
+  async getProductBySlug(slugKey: string): Promise<Product | null> {
+    if (!slugKey) return null;
+    const cleanKey = decodeURIComponent(slugKey).trim().toLowerCase();
 
-    // 1. Instant memory cache lookup
+    // 1. Instant memory cache lookup (by slug or by id)
     if (this.cachedProducts && this.cachedProducts.length > 0) {
-      const found = this.cachedProducts.find(p => p.slug === slug);
+      const found = this.cachedProducts.find(p => 
+        (p.slug && p.slug.toLowerCase() === cleanKey) || 
+        p.id === slugKey
+      );
       if (found) return found;
     }
 
     // 2. Direct single-row database query
     try {
-      const { data, error } = await this.supabaseService.supabase
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugKey);
+      let query = this.supabaseService.supabase
         .from('products')
         .select(`
           *,
           category:categories(*),
           images:product_images(*),
           sizes:product_sizes(*)
-        `)
-        .eq('slug', slug)
-        .maybeSingle();
+        `);
+
+      if (isUuid) {
+        query = query.eq('id', slugKey);
+      } else {
+        query = query.eq('slug', cleanKey);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (!error && data) {
         return data as Product;
@@ -444,7 +455,10 @@ export class ProductService {
 
     // 3. Fallback to full list search
     const products = await this.getProducts({ activeOnly: false });
-    return products.find(p => p.slug === slug) || null;
+    return products.find(p => 
+      (p.slug && p.slug.toLowerCase() === cleanKey) || 
+      p.id === slugKey
+    ) || null;
   }
 
   async getProductById(id: string): Promise<Product | null> {

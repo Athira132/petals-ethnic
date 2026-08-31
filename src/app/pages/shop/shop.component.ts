@@ -465,7 +465,9 @@ export class ShopComponent implements OnInit {
   }
 
   async fetchFilteredProducts() {
-    this.isLoading = true;
+    if (this.products.length === 0) {
+      this.isLoading = true;
+    }
     try {
       let catId: string | undefined = undefined;
       if (this.selectedCategorySlug) {

@@ -432,15 +432,16 @@ export class CategoryListComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     try {
+      const isNew = !this.editingCat;
       let savedCat: Category;
+
       if (this.editingCat) {
         savedCat = await this.productService.updateCategory(this.editingCat.id, this.formCat);
-        alert('Category updated successfully!');
       } else {
         savedCat = await this.productService.createCategory(this.formCat);
-        alert('Category added successfully!');
       }
 
+      // Close modal & reset form input state
       this.closeModal();
 
       // Update component local state immediately for instant 0ms rendering
@@ -449,11 +450,18 @@ export class CategoryListComponent implements OnInit, OnDestroy {
         if (existingIdx >= 0) {
           this.categories[existingIdx] = { ...savedCat };
         } else {
-          this.categories = [...this.categories, { ...savedCat }];
+          this.categories = [{ ...savedCat }, ...this.categories];
         }
       }
 
+      // Force instant UI change detection before blocking alert
       this.cdr.markForCheck();
+
+      if (isNew) {
+        alert('Category added successfully!');
+      } else {
+        alert('Category updated successfully!');
+      }
 
     } catch (err: any) {
       console.error('Error saving category:', err);

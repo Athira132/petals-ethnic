@@ -144,7 +144,7 @@ export class ProductService {
       if (idx >= 0) {
         this.cachedCategories[idx] = { ...category };
       } else {
-        this.cachedCategories = [...this.cachedCategories, category];
+        this.cachedCategories = [category, ...this.cachedCategories];
       }
     }
     this.categoriesSubject.next([...this.cachedCategories]);

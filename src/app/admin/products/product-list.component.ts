@@ -71,7 +71,7 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
               </tr>
 
               <!-- Product Data Rows -->
-              <tr *ngFor="let prod of filteredProducts">
+              <tr *ngFor="let prod of filteredProducts; trackBy: trackByProductId">
                 <td>
                   <img [src]="getPrimaryImage(prod)" [alt]="prod.name" class="table-thumb" (error)="onImageError($event)" />
                 </td>
@@ -104,8 +104,10 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
                 </td>
                 <td>
                   <div class="action-btn-group">
-                    <button (click)="openEditModal(prod)" class="edit-btn" title="Edit">Edit</button>
-                    <button (click)="deleteProduct(prod)" class="delete-btn" title="Delete">Delete</button>
+                    <button (click)="openEditModal(prod)" [disabled]="deletingId === prod.id" class="edit-btn" title="Edit">Edit</button>
+                    <button (click)="deleteProduct(prod)" [disabled]="deletingId === prod.id" class="delete-btn" title="Delete">
+                      {{ deletingId === prod.id ? 'Deleting...' : 'Delete' }}
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -283,7 +285,9 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
 
     .action-btn-group { display: flex; gap: 8px; }
     .edit-btn { color: #1976D2; font-size: 13px; font-weight: 500; background: transparent; border: none; cursor: pointer; }
+    .edit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .delete-btn { color: #D32F2F; font-size: 13px; font-weight: 500; background: transparent; border: none; cursor: pointer; }
+    .delete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* Modal */
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -328,6 +332,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   isModalOpen = false;
   editingProduct: Product | null = null;
   isSaving = false;
+  deletingId: string | null = null;
 
   isUploadingImages = false;
   uploadStatusText = '';
@@ -413,6 +418,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   onImageError(event: Event) {
     handleImageError(event);
+  }
+
+  trackByProductId(index: number, product: Product): string {
+    return product.id;
   }
 
   async openCreateModal() {
@@ -555,8 +564,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
         stock: Number(sz.stock) || 0
       }));
 
+      let savedProduct: Product;
       if (this.editingProduct) {
-        await this.productService.updateProduct(
+        savedProduct = await this.productService.updateProduct(
           this.editingProduct.id,
           this.formProduct,
           imagesList,
@@ -564,7 +574,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
         );
         alert('Product updated successfully!');
       } else {
-        await this.productService.createProduct(
+        savedProduct = await this.productService.createProduct(
           this.formProduct,
           imagesList,
           sizesList
@@ -573,8 +583,26 @@ export class ProductListComponent implements OnInit, OnDestroy {
       }
 
       this.closeModal();
+
+      // 1. Clear ProductService memory cache
+      this.productService.clearCache();
+
+      // 2. Fetch fresh products from database
       await this.loadData();
+
+      // 3. Guarantee immediate UI update
+      if (savedProduct && savedProduct.id) {
+        const existingIdx = this.products.findIndex(p => p.id === savedProduct.id);
+        if (existingIdx >= 0) {
+          this.products[existingIdx] = savedProduct;
+        } else {
+          this.products = [savedProduct, ...this.products];
+        }
+        this.onSearch();
+      }
+
     } catch (err: any) {
+      console.error('Error saving product:', err);
       alert(err.message || 'Error saving product');
     } finally {
       this.isSaving = false;
@@ -583,12 +611,35 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   async deleteProduct(prod: Product) {
+    if (!prod || !prod.id) {
+      alert('Cannot delete product: Invalid product ID');
+      return;
+    }
+
     if (confirm(`Are you sure you want to delete product "${prod.name}"?`)) {
+      this.deletingId = prod.id;
+      this.cdr.markForCheck();
+
       try {
         await this.productService.deleteProduct(prod.id);
+
+        // 1. Immediately update local UI state (0ms response)
+        this.products = this.products.filter(p => p.id !== prod.id);
+        this.onSearch();
+
+        // 2. Clear ProductService memory cache
+        this.productService.clearCache();
+
+        // 3. Re-fetch authoritative product list from database
         await this.loadData();
+
+        alert('Product deleted successfully.');
       } catch (err: any) {
-        alert(err.message || 'Error deleting product');
+        console.error('Failed to delete product:', err);
+        alert(err.message || 'Unable to delete product. Please try again.');
+      } finally {
+        this.deletingId = null;
+        this.cdr.markForCheck();
       }
     }
   }

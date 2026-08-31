@@ -452,7 +452,8 @@ export class ProductService {
           await this.supabaseService.supabase.from('product_sizes').insert(sizePayloads);
         }
 
-        return this.getProductById(productId) as Promise<Product>;
+        this.clearCache();
+        return (await this.getProductById(productId)) as Product;
       }
     } catch (e) {
       console.warn('Direct product creation notice, using API endpoint:', e);
@@ -477,6 +478,7 @@ export class ProductService {
       if (!res.ok || !resData.success) {
         throw new Error(resData.error || 'Failed to create product in database.');
       }
+      this.clearCache();
       return resData.product;
     } else {
       throw new Error('Failed to create product in database.');
@@ -548,6 +550,7 @@ export class ProductService {
           }
         }
 
+        this.clearCache();
         return (await this.getProductById(id)) as Product;
       }
     } catch (e) {
@@ -573,6 +576,7 @@ export class ProductService {
       if (!res.ok || !resData.success) {
         throw new Error(resData.error || 'Failed to update product in database.');
       }
+      this.clearCache();
       return resData.product;
     } else {
       throw new Error('Failed to update product in database.');
@@ -580,13 +584,33 @@ export class ProductService {
   }
 
   async deleteProduct(id: string): Promise<boolean> {
-    const { error } = await this.supabaseService.supabase
-      .from('products')
-      .delete()
-      .eq('id', id);
+    if (!id) {
+      throw new Error('Product ID is required for deletion.');
+    }
 
-    if (!error) return true;
+    this.clearCache();
 
+    // 1. Try direct Supabase delete (deleting dependent records first)
+    try {
+      await this.supabaseService.supabase.from('product_images').delete().eq('product_id', id);
+      await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
+      await this.supabaseService.supabase.from('cart_items').delete().eq('product_id', id);
+      await this.supabaseService.supabase.from('wishlist_items').delete().eq('product_id', id);
+
+      const { error } = await this.supabaseService.supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (!error) {
+        this.clearCache();
+        return true;
+      }
+    } catch (e) {
+      console.warn('Direct product deletion notice, trying admin API endpoint:', e);
+    }
+
+    // 2. Fallback to serverless API endpoint
     const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
     const token = session ? session.access_token : '';
 
@@ -603,6 +627,7 @@ export class ProductService {
       if (!res.ok || !resData.success) {
         throw new Error(resData.error || 'Failed to delete product.');
       }
+      this.clearCache();
       return true;
     } else {
       throw new Error('Failed to delete product.');

@@ -171,6 +171,12 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Product ID is required for deletion.' });
       }
 
+      // Delete dependent records first to avoid foreign key constraints
+      await supabase.from('product_images').delete().eq('product_id', id);
+      await supabase.from('product_sizes').delete().eq('product_id', id);
+      await supabase.from('cart_items').delete().eq('product_id', id);
+      await supabase.from('wishlist_items').delete().eq('product_id', id);
+
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) {
         return res.status(500).json({ error: error.message });

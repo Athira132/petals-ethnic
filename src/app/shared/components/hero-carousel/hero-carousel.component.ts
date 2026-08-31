@@ -332,7 +332,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
   slides: HeroSlide[] = [
     { 
       id: 1, 
-      imageUrl: '/images/hero1.png',
+      imageUrl: '/images/hero-slide-1.webp',
       title: 'Elevate Your Ethnic Style',
       subtitle: 'Discover our latest collection of premium handcrafted sarees, kurtis, and designer festive wear tailored for perfection.',
       ctaText: 'Shop New Collection',
@@ -340,7 +340,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     },
     { 
       id: 2, 
-      imageUrl: '/images/hero2.png',
+      imageUrl: '/images/hero-slide-2.webp',
       title: 'Grace & Elegance in Every Thread',
       subtitle: 'Handpicked fabrics, soft watercolor florals, and timeless ethnic silhouettes designed for effortless celebration.',
       ctaText: 'Explore Kurtis & Sets',
@@ -348,7 +348,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     },
     { 
       id: 3, 
-      imageUrl: '/images/hero3.png',
+      imageUrl: '/images/hero-slide-3.webp',
       title: 'Royal Festive Anarkalis & Co-Ords',
       subtitle: 'Step into joyous occasions with regal flare Anarkalis, intricate embroideries, and modern ethnic two-piece sets.',
       ctaText: 'View Festive Edits',
@@ -356,7 +356,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     },
     { 
       id: 4, 
-      imageUrl: '/images/hero4.png',
+      imageUrl: '/images/hero-slide-4.webp',
       title: 'Authentic Kerala Kasavu & Tissue Silk',
       subtitle: 'Traditional golden zari Kasavu weaves combined with shimmering tissue silk kurtas for timeless elegance.',
       ctaText: 'Shop Kasavu Series',
@@ -378,9 +378,9 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (this.isBrowser) {
-      // 1. Immediately preload the FIRST visible hero image for fast LCP
-      this.preloadNextSlideImage(0);
-      // 2. Start ~3-second visibility slider
+      // 1. Immediately preload Slide #2 shortly after mount so it is ready for the first transition
+      setTimeout(() => this.preloadNextSlideImage(1), 200);
+      // 2. Start continuous auto slider
       this.startAutoSlider();
     }
   }

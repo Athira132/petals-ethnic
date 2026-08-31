@@ -104,6 +104,7 @@ export class ProductService {
 
       const { data, error } = await query;
       if (!error && data) {
+        this.cachedCategories = data;
         this.categoriesSubject.next(data);
         return data;
       }
@@ -118,11 +119,9 @@ export class ProductService {
         const resData = await res.json();
         if (resData.success && resData.categories) {
           let cats = resData.categories as Category[];
-          if (activeOnly) {
-            cats = cats.filter(c => c.active);
-          }
+          this.cachedCategories = cats;
           this.categoriesSubject.next(cats);
-          return cats;
+          return activeOnly ? cats.filter(c => c.active) : cats;
         }
       }
     } catch (e) {
@@ -133,7 +132,43 @@ export class ProductService {
   }
 
   async refreshCategories(activeOnly = false): Promise<Category[]> {
+    this.cachedCategories = null;
     return this.getCategories(activeOnly);
+  }
+
+  addCategoryToCache(category: Category) {
+    if (!this.cachedCategories) {
+      this.cachedCategories = [category];
+    } else {
+      const idx = this.cachedCategories.findIndex(c => c.id === category.id);
+      if (idx >= 0) {
+        this.cachedCategories[idx] = { ...category };
+      } else {
+        this.cachedCategories = [...this.cachedCategories, category];
+      }
+    }
+    this.categoriesSubject.next([...this.cachedCategories]);
+  }
+
+  updateCategoryInCache(category: Category) {
+    if (!this.cachedCategories) {
+      this.cachedCategories = [category];
+    } else {
+      const idx = this.cachedCategories.findIndex(c => c.id === category.id);
+      if (idx >= 0) {
+        this.cachedCategories[idx] = { ...this.cachedCategories[idx], ...category };
+      } else {
+        this.cachedCategories = [...this.cachedCategories, category];
+      }
+    }
+    this.categoriesSubject.next([...this.cachedCategories]);
+  }
+
+  removeCategoryFromCache(id: string) {
+    if (this.cachedCategories) {
+      this.cachedCategories = this.cachedCategories.filter(c => c.id !== id);
+      this.categoriesSubject.next([...this.cachedCategories]);
+    }
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -172,7 +207,7 @@ export class ProductService {
       .single();
 
     if (!error && data) {
-      await this.refreshCategories(false);
+      this.addCategoryToCache(data);
       return data;
     }
 
@@ -196,7 +231,7 @@ export class ProductService {
       if (!res.ok || !resData.success) {
         throw new Error(resData.error || error?.message || 'Failed to create category.');
       }
-      await this.refreshCategories(false);
+      this.addCategoryToCache(resData.category);
       return resData.category;
     } else {
       throw new Error(error?.message || 'Failed to create category in database.');
@@ -223,7 +258,7 @@ export class ProductService {
       .single();
 
     if (!error && data) {
-      await this.refreshCategories(false);
+      this.updateCategoryInCache(data);
       return data;
     }
 
@@ -245,7 +280,7 @@ export class ProductService {
       if (!res.ok || !resData.success) {
         throw new Error(resData.error || error?.message || 'Failed to update category.');
       }
-      await this.refreshCategories(false);
+      this.updateCategoryInCache(resData.category);
       return resData.category;
     } else {
       throw new Error(error?.message || 'Failed to update category.');
@@ -259,7 +294,7 @@ export class ProductService {
       .eq('id', id);
 
     if (!error) {
-      await this.refreshCategories(false);
+      this.removeCategoryFromCache(id);
       return true;
     }
 
@@ -279,7 +314,7 @@ export class ProductService {
       if (!res.ok || !resData.success) {
         throw new Error(resData.error || error?.message || 'Failed to delete category.');
       }
-      await this.refreshCategories(false);
+      this.removeCategoryFromCache(id);
       return true;
     } else {
       throw new Error(error?.message || 'Failed to delete category.');

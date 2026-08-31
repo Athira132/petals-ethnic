@@ -669,6 +669,11 @@ export class ProductListComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Double-click guard
+    if (this.deletingId === prod.id) {
+      return;
+    }
+
     if (!confirm(`Are you sure you want to delete product "${prod.name}"?`)) {
       return;
     }
@@ -677,17 +682,15 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     try {
-      // 1. Perform async deletion in database/backend
+      // 1. Perform async deletion in database/backend (API + Supabase)
       await this.productService.deleteProduct(prod.id);
 
-      // 2. ONLY AFTER DATABASE SUCCESS: Update local Angular state (0ms UI removal)
+      // 2. ONLY AFTER DATABASE CONFIRMS SUCCESS: Update local component state & service cache (0ms UI removal)
       this.products = this.products.filter(p => p.id !== prod.id);
       this.onSearch();
+      this.productService.removeProductFromCache(prod.id);
 
-      // 3. Clear memory cache & re-fetch authoritative state from Supabase
-      this.productService.clearCache();
-      await this.loadData();
-
+      // 3. Complete UI update without full list re-fetching or page reloads
       this.cdr.markForCheck();
       alert('Product deleted successfully.');
 

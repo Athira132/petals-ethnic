@@ -590,12 +590,16 @@ export class ProductService {
     }
   }
 
+  removeProductFromCache(id: string) {
+    if (this.cachedProducts) {
+      this.cachedProducts = this.cachedProducts.filter(p => p.id !== id);
+    }
+  }
+
   async deleteProduct(id: string): Promise<boolean> {
-    if (!id) {
+    if (!id || typeof id !== 'string') {
       throw new Error('Product ID is required for deletion.');
     }
-
-    this.clearCache();
 
     // 1. Try serverless admin API endpoint first (bypasses RLS with full authority)
     try {
@@ -613,7 +617,7 @@ export class ProductService {
       if (contentType.includes('application/json')) {
         const resData = await res.json();
         if (res.ok && resData.success) {
-          this.clearCache();
+          this.removeProductFromCache(id);
           return true;
         }
         if (resData.error) {
@@ -625,10 +629,14 @@ export class ProductService {
     }
 
     // 2. Direct client Supabase fallback (clearing child tables first)
-    await this.supabaseService.supabase.from('product_images').delete().eq('product_id', id);
-    await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
-    await this.supabaseService.supabase.from('cart_items').delete().eq('product_id', id);
-    await this.supabaseService.supabase.from('wishlist_items').delete().eq('product_id', id);
+    try {
+      await this.supabaseService.supabase.from('product_images').delete().eq('product_id', id);
+      await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
+      await this.supabaseService.supabase.from('cart_items').delete().eq('product_id', id);
+      await this.supabaseService.supabase.from('wishlist_items').delete().eq('product_id', id);
+    } catch (childErr) {
+      console.warn('Child tables deletion notice (continuing to product delete):', childErr);
+    }
 
     const { error } = await this.supabaseService.supabase
       .from('products')
@@ -640,7 +648,7 @@ export class ProductService {
       throw new Error('Unable to delete product from database: ' + error.message);
     }
 
-    this.clearCache();
+    this.removeProductFromCache(id);
     return true;
   }
 

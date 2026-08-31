@@ -320,10 +320,15 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     this.primaryImageUrl = primary;
     this.secondaryImageUrl = secondary;
 
-    if (this.imageLoader.isLoaded(primary) || this.imageLoader.checkImageLoadedInBrowser(primary)) {
+    // Check if ALREADY LOADED in application-level persistent cache
+    if (this.imageLoader.isLoaded(primary)) {
       this.isFullLoaded = true;
     } else {
+      // Start as loading skeleton and enqueue for controlled 1-by-1 sequential loading
       this.isFullLoaded = false;
+      this.imageLoader.loadSequentially(primary).then(() => {
+        this.isFullLoaded = true;
+      });
     }
   }
 

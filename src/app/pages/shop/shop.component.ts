@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { ProductService, ProductFilterOptions } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
@@ -420,21 +421,23 @@ import { Category } from '../../core/models/category.model';
     }
   `]
 })
-export class ShopComponent implements OnInit {
+export class ShopComponent implements OnInit, OnDestroy {
   categories: Category[] = [];
   products: Product[] = [];
   isLoading = true;
 
-  searchQuery = '';
   selectedCategorySlug = '';
+  searchQuery = '';
   selectedSize: SizeOption | '' = '';
   minPrice: number | null = null;
   maxPrice: number | null = null;
-  sortBy: 'newest' | 'price-low' | 'price-high' | 'featured' = 'newest';
+  sortBy: 'featured' | 'newest' | 'price-low' | 'price-high' = 'newest';
 
   isMobileFilterOpen = false;
 
   readonly availableSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private productService: ProductService,
@@ -444,13 +447,18 @@ export class ShopComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.route.queryParams.subscribe(async params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(async params => {
       this.selectedCategorySlug = params['category'] || '';
       this.searchQuery = params['search'] || '';
       this.selectedSize = (params['size'] as SizeOption) || '';
       
       await this.loadInitialData();
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async loadInitialData() {

@@ -23,8 +23,9 @@ import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
-  // Customer Routes
-  { path: '', component: HomeComponent },
+  // Customer Routes - Default Root / Redirects to Shop Landing Page
+  { path: '', redirectTo: 'shop', pathMatch: 'full' },
+  { path: 'home', component: HomeComponent },
   { path: 'shop', component: ShopComponent },
   { path: 'categories', component: ShopComponent },
   { path: 'product/:slug', component: ProductDetailComponent },
@@ -58,5 +59,5 @@ export const routes: Routes = [
   },
 
   // Fallback
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: 'shop' }
 ];

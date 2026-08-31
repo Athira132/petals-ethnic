@@ -620,14 +620,14 @@ export class ProductListComponent implements OnInit, OnDestroy {
       // Close modal & reset form state completely
       this.closeModal();
 
-      // 1. Clear ProductService memory cache
-      this.productService.clearCache();
-
-      // 2. Fetch fresh products from database
-      await this.loadData();
-
-      // 3. Ensure explicit image array association on saved product object
+      // 1. Ensure category relation object is populated for UI rendering
       if (savedProduct && savedProduct.id) {
+        if (!savedProduct.category && savedProduct.category_id) {
+          const cat = this.categories.find(c => c.id === savedProduct.category_id);
+          if (cat) savedProduct.category = cat;
+        }
+
+        // 2. Ensure explicit image array association on saved product object
         if (!savedProduct.images || savedProduct.images.length === 0) {
           savedProduct.images = imagesList.map((url, idx) => ({
             product_id: savedProduct.id,
@@ -640,12 +640,18 @@ export class ProductListComponent implements OnInit, OnDestroy {
           savedProduct.image_url = imagesList[0];
         }
 
+        // 3. Immediately update component local state (Newest product prepended to top of list!)
         const existingIdx = this.products.findIndex(p => p.id === savedProduct.id);
         if (existingIdx >= 0) {
           this.products[existingIdx] = { ...savedProduct };
         } else {
           this.products = [{ ...savedProduct }, ...this.products];
         }
+
+        // 4. Update service cache in-place
+        this.productService.addProductToCache(savedProduct);
+
+        // 5. Recompute filtered products list for instant UI rendering (0ms UI display!)
         this.onSearch();
       }
 

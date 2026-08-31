@@ -388,13 +388,24 @@ export class ProductService {
     return products.find(p => p.id === id) || null;
   }
 
+  addProductToCache(product: Product) {
+    if (this.cachedProducts) {
+      const idx = this.cachedProducts.findIndex(p => p.id === product.id);
+      if (idx >= 0) {
+        this.cachedProducts[idx] = product;
+      } else {
+        this.cachedProducts = [product, ...this.cachedProducts];
+      }
+    }
+  }
+
   async createProduct(
     productData: Partial<Product>, 
-    images: string[], 
-    sizes: { size: ProductSize; stock: number }[]
+    images: string[] = [], 
+    sizes: { size: ProductSize; stock: number }[] = []
   ): Promise<Product> {
     const rawName = (productData.name || '').trim();
-    if (!rawName) throw new Error('Product Title is required.');
+    if (!rawName) throw new Error('Product Name is required.');
 
     let rawSlug = (productData.slug || '').trim().toLowerCase();
     if (!rawSlug) {
@@ -432,14 +443,15 @@ export class ProductService {
       if (!prodErr && insertedProduct) {
         const productId = insertedProduct.id;
 
-        if (images && images.length > 0) {
-          const imagePayloads = images.map((imgUrl, idx) => ({
-            product_id: productId,
-            image_url: imgUrl.trim(),
-            is_primary: idx === 0,
-            display_order: idx + 1
-          }));
-          await this.supabaseService.supabase.from('product_images').insert(imagePayloads);
+        const formattedImages = (images || []).map((imgUrl, idx) => ({
+          product_id: productId,
+          image_url: imgUrl.trim(),
+          is_primary: idx === 0,
+          display_order: idx + 1
+        }));
+
+        if (formattedImages.length > 0) {
+          await this.supabaseService.supabase.from('product_images').insert(formattedImages);
         }
 
         if (sizes && sizes.length > 0) {
@@ -454,8 +466,18 @@ export class ProductService {
           await this.supabaseService.supabase.from('product_sizes').insert(sizePayloads);
         }
 
-        this.clearCache();
-        return (await this.getProductById(productId)) as Product;
+        const categories = await this.getCategories(false);
+        const cat = categories.find(c => c.id === insertedProduct.category_id);
+
+        const fullProduct: Product = {
+          ...insertedProduct,
+          category: cat,
+          images: formattedImages,
+          sizes: sizes ? sizes.map(s => ({ size: s.size, stock: s.stock, status: s.stock > 0 ? 'available' : 'sold_out' })) : []
+        };
+
+        this.addProductToCache(fullProduct);
+        return fullProduct;
       }
     } catch (e) {
       console.warn('Direct product creation notice, using API endpoint:', e);
@@ -477,11 +499,17 @@ export class ProductService {
     const contentType = res.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
       const resData = await res.json();
-      if (!res.ok || !resData.success) {
+      if (!res.ok || !resData.success || !resData.product) {
         throw new Error(resData.error || 'Failed to create product in database.');
       }
-      this.clearCache();
-      return resData.product;
+      const categories = await this.getCategories(false);
+      const cat = categories.find(c => c.id === resData.product.category_id);
+      const fullProduct: Product = {
+        ...resData.product,
+        category: cat || resData.product.category
+      };
+      this.addProductToCache(fullProduct);
+      return fullProduct;
     } else {
       throw new Error('Failed to create product in database.');
     }

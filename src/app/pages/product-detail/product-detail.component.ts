@@ -532,10 +532,13 @@ export class ProductDetailComponent implements OnInit {
       this.selectedSize = this.sizeList[0].size;
     }
 
-    // Load related products from same category
+    // Load related products from same category asynchronously without blocking main product rendering
     if (this.product.category_id) {
-      const allCategoryProducts = await this.productService.getProducts({ categoryId: this.product.category_id });
-      this.relatedProducts = allCategoryProducts.filter(p => p.id !== this.product!.id).slice(0, 4);
+      const catId = this.product.category_id;
+      const currentId = this.product.id;
+      this.productService.getProducts({ categoryId: catId }).then(allCategoryProducts => {
+        this.relatedProducts = allCategoryProducts.filter(p => p.id !== currentId).slice(0, 4);
+      }).catch(err => console.warn('Related products load notice:', err));
     }
   }
 

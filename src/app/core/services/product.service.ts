@@ -414,11 +414,69 @@ export class ProductService {
   }
 
   async getProductBySlug(slug: string): Promise<Product | null> {
+    if (!slug) return null;
+
+    // 1. Instant memory cache lookup
+    if (this.cachedProducts && this.cachedProducts.length > 0) {
+      const found = this.cachedProducts.find(p => p.slug === slug);
+      if (found) return found;
+    }
+
+    // 2. Direct single-row database query
+    try {
+      const { data, error } = await this.supabaseService.supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories(*),
+          images:product_images(*),
+          sizes:product_sizes(*)
+        `)
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as Product;
+      }
+    } catch (e) {
+      console.warn('Direct product slug query notice:', e);
+    }
+
+    // 3. Fallback to full list search
     const products = await this.getProducts({ activeOnly: false });
     return products.find(p => p.slug === slug) || null;
   }
 
   async getProductById(id: string): Promise<Product | null> {
+    if (!id) return null;
+
+    // 1. Instant memory cache lookup
+    if (this.cachedProducts && this.cachedProducts.length > 0) {
+      const found = this.cachedProducts.find(p => p.id === id);
+      if (found) return found;
+    }
+
+    // 2. Direct single-row database query
+    try {
+      const { data, error } = await this.supabaseService.supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories(*),
+          images:product_images(*),
+          sizes:product_sizes(*)
+        `)
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as Product;
+      }
+    } catch (e) {
+      console.warn('Direct product ID query notice:', e);
+    }
+
+    // 3. Fallback to full list search
     const products = await this.getProducts({ activeOnly: false });
     return products.find(p => p.id === id) || null;
   }

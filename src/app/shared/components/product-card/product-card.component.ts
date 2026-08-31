@@ -11,17 +11,21 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
   imports: [CommonModule, RouterModule],
   template: `
     <div class="product-card" [class.out-of-stock]="product.stock === 0">
-      <!-- Product Image Container -->
+      <!-- Product Image Container with Per-Product Independent Progressive Loading -->
       <div class="card-media">
         <a [routerLink]="['/product', product.slug]">
-          <!-- Direct Product Image: ALWAYS loading="eager" & opacity 1 so browser downloads & displays immediately during SPA route transitions -->
+          <!-- Independent Shimmer Skeleton Placeholder for THIS product card -->
+          <div class="image-skeleton" *ngIf="!isFullLoaded"></div>
+
+          <!-- Real Product Image (fades in smoothly as soon as THIS SPECIFIC IMAGE finishes loading) -->
           <img 
             #fullImg
             [src]="primaryImageUrl" 
             [alt]="product.name" 
             class="product-img full-res-img"
-            loading="eager"
-            fetchpriority="high"
+            [class.loaded]="isFullLoaded"
+            [attr.loading]="priority ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="priority ? 'high' : 'auto'"
             decoding="async"
             (load)="onFullResLoaded()"
             (error)="onFullResError($event)"
@@ -115,6 +119,27 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       background-color: var(--color-bg-alt, #FAF8F6);
     }
 
+    /* Per-Product Image Skeleton Loader */
+    .image-skeleton {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg, 
+        #FAF8F6 0%, 
+        #F0ECE8 50%, 
+        #FAF8F6 100%
+      );
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s infinite ease-in-out;
+      z-index: 1;
+    }
+    @keyframes skeleton-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     .product-img {
       position: absolute;
       inset: 0;
@@ -124,11 +149,14 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       object-position: top center;
     }
 
-    /* Direct Product Image: ALWAYS VISIBLE (opacity: 1) by default */
+    /* Direct Product Image: Fades in smoothly as soon as THIS SPECIFIC IMAGE completes loading */
     .full-res-img {
       z-index: 2;
+      opacity: 0;
+      transition: opacity 400ms ease-in-out, transform 0.3s ease;
+    }
+    .full-res-img.loaded {
       opacity: 1;
-      transition: transform 0.3s ease;
     }
 
     /* Secondary Hover Image */
@@ -137,7 +165,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       z-index: 3;
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    .product-card:hover .full-res-img {
+    .product-card:hover .full-res-img.loaded {
       transform: scale(1.05);
     }
     .product-card:hover .hover-img {
@@ -292,7 +320,7 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     this.primaryImageUrl = primary;
     this.secondaryImageUrl = secondary;
 
-    if (this.imageLoader.isLoaded(primary)) {
+    if (this.imageLoader.isLoaded(primary) || this.imageLoader.checkImageLoadedInBrowser(primary)) {
       this.isFullLoaded = true;
     } else {
       this.isFullLoaded = false;

@@ -18,7 +18,7 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
           <h1 class="page-title">Products Management</h1>
           <p class="page-subtitle">Create, edit, and deactivate store products and size inventory.</p>
         </div>
-        <button (click)="openCreateModal()" class="btn-primary">
+        <button type="button" (click)="openCreateModal()" class="btn-primary">
           + Create New Product
         </button>
       </div>
@@ -42,7 +42,7 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
       <!-- Error State -->
       <div *ngIf="errorMessage" class="error-card">
         <p>⚠️ {{ errorMessage }}</p>
-        <button (click)="loadData()" class="btn-outline btn-sm">Retry Loading</button>
+        <button type="button" (click)="loadData()" class="btn-outline btn-sm">Retry Loading</button>
       </div>
 
       <!-- Products Table / Loading -->
@@ -104,8 +104,8 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
                 </td>
                 <td>
                   <div class="action-btn-group">
-                    <button (click)="openEditModal(prod)" [disabled]="deletingId === prod.id" class="edit-btn" title="Edit">Edit</button>
-                    <button (click)="deleteProduct(prod)" [disabled]="deletingId === prod.id" class="delete-btn" title="Delete">
+                    <button type="button" (click)="openEditModal(prod)" [disabled]="deletingId === prod.id" class="edit-btn" title="Edit">Edit</button>
+                    <button type="button" (click)="deleteProduct($event, prod)" [disabled]="deletingId === prod.id" class="delete-btn" title="Delete">
                       {{ deletingId === prod.id ? 'Deleting...' : 'Delete' }}
                     </button>
                   </div>
@@ -126,7 +126,7 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
         <div class="modal-box">
           <div class="modal-header">
             <h2>{{ editingProduct ? 'Edit Product' : 'Create New Product' }}</h2>
-            <button (click)="closeModal()" class="close-modal-btn">&times;</button>
+            <button type="button" (click)="closeModal()" class="close-modal-btn">&times;</button>
           </div>
 
           <form (ngSubmit)="saveProduct()" class="modal-body">
@@ -610,37 +610,45 @@ export class ProductListComponent implements OnInit, OnDestroy {
     }
   }
 
-  async deleteProduct(prod: Product) {
+  async deleteProduct(event: Event, prod: Product) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     if (!prod || !prod.id) {
       alert('Cannot delete product: Invalid product ID');
       return;
     }
 
-    if (confirm(`Are you sure you want to delete product "${prod.name}"?`)) {
-      this.deletingId = prod.id;
+    if (!confirm(`Are you sure you want to delete product "${prod.name}"?`)) {
+      return;
+    }
+
+    this.deletingId = prod.id;
+    this.cdr.markForCheck();
+
+    try {
+      // 1. Perform async deletion in database/backend
+      await this.productService.deleteProduct(prod.id);
+
+      // 2. ONLY AFTER DATABASE SUCCESS: Update local Angular state (0ms UI removal)
+      this.products = this.products.filter(p => p.id !== prod.id);
+      this.onSearch();
+
+      // 3. Clear memory cache & re-fetch authoritative state from Supabase
+      this.productService.clearCache();
+      await this.loadData();
+
       this.cdr.markForCheck();
+      alert('Product deleted successfully.');
 
-      try {
-        await this.productService.deleteProduct(prod.id);
-
-        // 1. Immediately update local UI state (0ms response)
-        this.products = this.products.filter(p => p.id !== prod.id);
-        this.onSearch();
-
-        // 2. Clear ProductService memory cache
-        this.productService.clearCache();
-
-        // 3. Re-fetch authoritative product list from database
-        await this.loadData();
-
-        alert('Product deleted successfully.');
-      } catch (err: any) {
-        console.error('Failed to delete product:', err);
-        alert(err.message || 'Unable to delete product. Please try again.');
-      } finally {
-        this.deletingId = null;
-        this.cdr.markForCheck();
-      }
+    } catch (err: any) {
+      console.error('Failed to delete product:', err);
+      alert(err.message || 'Unable to delete product. Please try again.');
+    } finally {
+      this.deletingId = null;
+      this.cdr.markForCheck();
     }
   }
 }

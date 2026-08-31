@@ -590,48 +590,51 @@ export class ProductService {
 
     this.clearCache();
 
-    // 1. Try direct Supabase delete (deleting dependent records first)
+    // 1. Try serverless admin API endpoint first (bypasses RLS with full authority)
     try {
-      await this.supabaseService.supabase.from('product_images').delete().eq('product_id', id);
-      await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
-      await this.supabaseService.supabase.from('cart_items').delete().eq('product_id', id);
-      await this.supabaseService.supabase.from('wishlist_items').delete().eq('product_id', id);
+      const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
+      const token = session ? session.access_token : '';
 
-      const { error } = await this.supabaseService.supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
+      const res = await fetch(`/api/admin-product?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-      if (!error) {
-        this.clearCache();
-        return true;
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const resData = await res.json();
+        if (res.ok && resData.success) {
+          this.clearCache();
+          return true;
+        }
+        if (resData.error) {
+          console.warn('Admin API delete returned error, attempting direct client fallback:', resData.error);
+        }
       }
     } catch (e) {
-      console.warn('Direct product deletion notice, trying admin API endpoint:', e);
+      console.warn('Admin API deletion request notice:', e);
     }
 
-    // 2. Fallback to serverless API endpoint
-    const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
-    const token = session ? session.access_token : '';
+    // 2. Direct client Supabase fallback (clearing child tables first)
+    await this.supabaseService.supabase.from('product_images').delete().eq('product_id', id);
+    await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
+    await this.supabaseService.supabase.from('cart_items').delete().eq('product_id', id);
+    await this.supabaseService.supabase.from('wishlist_items').delete().eq('product_id', id);
 
-    const res = await fetch(`/api/admin-product?id=${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const { error } = await this.supabaseService.supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
 
-    const contentType = res.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      const resData = await res.json();
-      if (!res.ok || !resData.success) {
-        throw new Error(resData.error || 'Failed to delete product.');
-      }
-      this.clearCache();
-      return true;
-    } else {
-      throw new Error('Failed to delete product.');
+    if (error) {
+      console.error('Supabase direct deletion failed:', error);
+      throw new Error('Unable to delete product from database: ' + error.message);
     }
+
+    this.clearCache();
+    return true;
   }
 
   async updateSizeStock(sizeId: string, stock: number): Promise<boolean> {

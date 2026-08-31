@@ -20,25 +20,7 @@ export class ImageLoaderService {
   getStatus(url: string | null | undefined): ImageStatus {
     if (!url) return 'failed';
     const cleanUrl = url.trim();
-
-    if (!this.cache.has(cleanUrl)) {
-      // Check if browser native image element is already complete in memory
-      if (typeof window !== 'undefined') {
-        try {
-          const testImg = new Image();
-          testImg.src = cleanUrl;
-          if (testImg.complete && testImg.naturalWidth > 0) {
-            this.cache.set(cleanUrl, 'loaded');
-            return 'loaded';
-          }
-        } catch {
-          // Ignore non-browser environments
-        }
-      }
-      return 'not_loaded';
-    }
-
-    return this.cache.get(cleanUrl)!;
+    return this.cache.get(cleanUrl) || 'not_loaded';
   }
 
   isLoaded(url: string | null | undefined): boolean {
@@ -66,10 +48,11 @@ export class ImageLoaderService {
     const cleanUrl = url.trim();
 
     // 1. If ALREADY LOADED in persistent cache -> resolve immediately (0ms)!
-    if (this.getStatus(cleanUrl) === 'loaded') {
+    const currentStatus = this.getStatus(cleanUrl);
+    if (currentStatus === 'loaded') {
       return Promise.resolve(true);
     }
-    if (this.getStatus(cleanUrl) === 'failed') {
+    if (currentStatus === 'failed') {
       return Promise.resolve(false);
     }
 
@@ -119,7 +102,7 @@ export class ImageLoaderService {
       // Mark status as loading
       this.cache.set(nextUrl, 'loading');
 
-      // Load ONE image at a time
+      // Load ONE image at a time with safety timeout to ensure queue never stalls
       const success = await this.loadImageOneByOne(nextUrl);
       this.cache.set(nextUrl, success ? 'loaded' : 'failed');
       this.notifyCallbacks(nextUrl, success);
@@ -143,16 +126,39 @@ export class ImageLoaderService {
         return;
       }
 
+      let done = false;
+      const finish = (result: boolean) => {
+        if (!done) {
+          done = true;
+          resolve(result);
+        }
+      };
+
+      // 5-second max timeout fallback to guarantee queue NEVER stalls
+      const timeoutTimer = setTimeout(() => {
+        finish(false);
+      }, 5000);
+
       const img = new Image();
+
+      // ATTACH LISTENERS BEFORE SETTING SRC
+      img.onload = () => {
+        clearTimeout(timeoutTimer);
+        finish(true);
+      };
+      img.onerror = () => {
+        clearTimeout(timeoutTimer);
+        finish(false);
+      };
+
+      // SET SRC AFTER LISTENERS ARE ATTACHED
       img.src = url;
 
+      // Check if already completed synchronously by browser memory cache
       if (img.complete && img.naturalWidth > 0) {
-        resolve(true);
-        return;
+        clearTimeout(timeoutTimer);
+        finish(true);
       }
-
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
     });
   }
 }

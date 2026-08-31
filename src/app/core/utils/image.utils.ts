@@ -13,7 +13,6 @@ export interface ImageItem {
 export function isIbbShareUrl(rawUrl: string | null | undefined): boolean {
   if (!rawUrl) return false;
   const str = rawUrl.trim();
-  // Matches ibb.co/ or www.ibb.co/ BUT NOT i.ibb.co/
   return /^https?:\/\/(www\.)?ibb\.co\//i.test(str);
 }
 
@@ -21,7 +20,6 @@ export function isIbbShareUrl(rawUrl: string | null | undefined): boolean {
  * Sanitizes an image URL:
  * 1. Trims whitespace.
  * 2. Keeps valid direct image URLs (e.g. https://i.ibb.co/...) exactly as provided.
- * 3. Does NOT invent or transform ibb.co share URLs automatically.
  */
 export function sanitizeImageUrl(rawUrl: string | null | undefined): string {
   if (!rawUrl) return '';
@@ -40,7 +38,6 @@ export function parseImageUrlsInput(input: any): string[] {
       urls.push(...parseImageUrlsInput(item));
     }
   } else if (typeof input === 'string') {
-    // Split by newlines or commas in case multiline or CSV string is stored
     const lines = input.split(/[\r\n,]+/);
     for (const line of lines) {
       const clean = sanitizeImageUrl(line);
@@ -131,23 +128,9 @@ export function handleImageError(event: Event, fallbackUrl: string = DEFAULT_FAL
 }
 
 /**
- * Generates an optimized responsive image URL using wsrv.nl image proxy.
- * This does not modify or replace the original image on ImgBB.
- * It dynamically resizes, converts to WebP, and serves from Cloudflare CDN cache.
+ * Direct image URL returning helper (prevents proxy blocking / CORS issues)
  */
-export function getResponsiveImageUrl(url: string | null | undefined, width: number): string {
+export function getResponsiveImageUrl(url: string | null | undefined, width?: number): string {
   if (!url) return DEFAULT_FALLBACK_IMAGE;
-  const cleanUrl = url.trim();
-  if (!cleanUrl || cleanUrl.includes('localhost') || cleanUrl.startsWith('data:')) {
-    return cleanUrl;
-  }
-  
-  // For relative local assets (like /images/hero1.png), serve them directly (they benefit from Vercel's caching)
-  if (cleanUrl.startsWith('/')) {
-    return cleanUrl;
-  }
-  
-  // Proxy external images through wsrv.nl for WebP formatting and specific width constraints
-  const encodedUrl = encodeURIComponent(cleanUrl);
-  return `https://images.weserv.nl/?url=${encodedUrl}&w=${width}&output=webp&q=85`;
+  return url.trim();
 }

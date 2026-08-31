@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, AfterViewIni
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product, SizeOption } from '../../../core/models/product.model';
-import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/image.utils';
+import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/image.utils';
 import { ImageLoaderService } from '../../../core/services/image-loader.service';
 
 @Component({
@@ -11,28 +11,15 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
   imports: [CommonModule, RouterModule],
   template: `
     <div class="product-card" [class.out-of-stock]="product.stock === 0">
-      <!-- Product Image Container with Progressive Same-Product Dual-Layer Loader -->
+      <!-- Product Image Container -->
       <div class="card-media">
         <a [routerLink]="['/product', product.slug]">
-          <!-- Layer 1: Low-Res Version of EXACT SAME Product Photo (rendered ONLY if full image is not yet cached) -->
-          <img 
-            *ngIf="!isFullLoaded"
-            [src]="lowResPrimaryUrl" 
-            [alt]="product.name" 
-            class="product-img low-res-img"
-            [attr.loading]="priority ? 'eager' : 'lazy'"
-            [attr.fetchpriority]="priority ? 'high' : 'auto'"
-            decoding="async"
-            (error)="onLowResError($event)"
-          />
-
-          <!-- Layer 2: Full-Res Direct Version of EXACT SAME Product Photo (smoothly dissolves over low-res or displays instantly if cached) -->
+          <!-- Direct Product Image: ALWAYS rendered with opacity 1 by default so browser decodes and displays naturally -->
           <img 
             #fullImg
             [src]="primaryImageUrl" 
             [alt]="product.name" 
             class="product-img full-res-img"
-            [class.loaded]="isFullLoaded"
             [attr.loading]="priority ? 'eager' : 'lazy'"
             [attr.fetchpriority]="priority ? 'high' : 'auto'"
             decoding="async"
@@ -40,7 +27,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
             (error)="onFullResError($event)"
           />
 
-          <!-- Layer 3: Secondary Hover Image -->
+          <!-- Secondary Hover Image -->
           <img 
             *ngIf="secondaryImageUrl" 
             [src]="secondaryImageUrl" 
@@ -137,21 +124,11 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       object-position: top center;
     }
 
-    /* Layer 1: Low-Res Version of EXACT SAME Product Photo (Visible Immediately) */
-    .low-res-img {
-      z-index: 1;
-      opacity: 1;
-      transition: opacity 500ms ease-in-out;
-    }
-
-    /* Layer 2: Full-Res Direct Version of EXACT SAME Product Photo (Fades in over Low-Res or displays instantly if cached) */
+    /* Direct Product Image: ALWAYS VISIBLE (opacity: 1) by default! Never hidden behind opacity 0 */
     .full-res-img {
       z-index: 2;
-      opacity: 0;
-      transition: opacity 400ms ease-in-out, transform 0.3s ease;
-    }
-    .full-res-img.loaded {
       opacity: 1;
+      transition: transform 0.3s ease;
     }
 
     /* Layer 3: Secondary Hover Image */
@@ -160,7 +137,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       z-index: 3;
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    .product-card:hover .full-res-img.loaded {
+    .product-card:hover .full-res-img {
       transform: scale(1.05);
     }
     .product-card:hover .hover-img {
@@ -288,10 +265,7 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   isFullLoaded = false;
 
   primaryImageUrl: string = DEFAULT_FALLBACK_IMAGE;
-  lowResPrimaryUrl: string = DEFAULT_FALLBACK_IMAGE;
-
   secondaryImageUrl: string | null = null;
-  lowResSecondaryUrl: string | null = null;
 
   constructor(private imageLoader: ImageLoaderService) {}
 
@@ -316,12 +290,8 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     const secondary = images.length > 1 ? images[1].image_url : null;
 
     this.primaryImageUrl = primary;
-    this.lowResPrimaryUrl = getResponsiveImageUrl(primary, 240) || primary;
-
     this.secondaryImageUrl = secondary;
-    this.lowResSecondaryUrl = secondary ? (getResponsiveImageUrl(secondary, 240) || secondary) : null;
 
-    // Synchronously check if the primary image URL is already in our global ImageLoaderService cache
     if (this.imageLoader.isLoaded(primary)) {
       this.isFullLoaded = true;
     } else {
@@ -351,13 +321,6 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
       return this.product.sizes.map(s => ({ size: s.size, stock: s.stock }));
     }
     return allSizes.map(size => ({ size, stock: this.product.stock > 0 ? 5 : 0 }));
-  }
-
-  onLowResError(event: Event) {
-    const imgElement = event.target as HTMLImageElement;
-    if (imgElement && imgElement.src !== this.primaryImageUrl) {
-      imgElement.src = this.primaryImageUrl;
-    }
   }
 
   onFullResLoaded() {

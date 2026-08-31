@@ -10,10 +10,10 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
   imports: [CommonModule, RouterModule],
   template: `
     <div class="product-card" [class.out-of-stock]="product.stock === 0">
-      <!-- Product Image Container with Progressive Same-Product Dual-Layer Loader -->
+      <!-- Product Image Container with Dual-Layer Low-Res & Full-Res Same-Product Photo Loader -->
       <div class="card-media">
         <a [routerLink]="['/product', product.slug]">
-          <!-- Layer 1: Low-Resolution Version of the EXACT SAME Product Photo (loaded immediately) -->
+          <!-- Layer 1: Low-Res Version of the EXACT SAME Product Photo (rendered immediately) -->
           <img 
             [src]="lowResPrimaryUrl" 
             [alt]="product.name" 
@@ -25,11 +25,9 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
             (error)="onLowResError($event)"
           />
 
-          <!-- Layer 2: Full-Resolution Version of the EXACT SAME Product Photo (smoothly dissolves over low-res) -->
+          <!-- Layer 2: Full-Res Direct Version of the EXACT SAME Product Photo (smoothly dissolves over low-res) -->
           <img 
             [src]="primaryImageUrl" 
-            [srcset]="primaryImageSrcset"
-            sizes="(max-width: 576px) 280px, (max-width: 992px) 360px, 480px"
             [alt]="product.name" 
             class="product-img full-res-img"
             [class.loaded]="isFullLoaded"
@@ -37,15 +35,13 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
             [attr.fetchpriority]="priority ? 'high' : 'auto'"
             decoding="async"
             (load)="isFullLoaded = true"
-            (error)="onFullResError($event); isFullLoaded = true"
+            (error)="onFullResError($event)"
           />
 
           <!-- Layer 3: Secondary Hover Image -->
           <img 
             *ngIf="secondaryImageUrl" 
             [src]="secondaryImageUrl" 
-            [srcset]="secondaryImageSrcset"
-            sizes="(max-width: 576px) 280px, (max-width: 992px) 360px, 480px"
             [alt]="product.name" 
             class="product-img hover-img" 
             loading="lazy"
@@ -139,7 +135,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
       object-position: top center;
     }
 
-    /* Layer 1: Low-Resolution Same-Product Photo (Visible Immediately) */
+    /* Layer 1: Low-Res Version of EXACT SAME Product Photo (Visible Immediately) */
     .low-res-img {
       z-index: 1;
       opacity: 1;
@@ -150,7 +146,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, DEFAULT_
       pointer-events: none;
     }
 
-    /* Layer 2: Full-Resolution Same-Product Photo (Fades in over Low-Res) */
+    /* Layer 2: Full-Res Direct Version of EXACT SAME Product Photo (Fades in over Low-Res) */
     .full-res-img {
       z-index: 2;
       opacity: 0;
@@ -297,9 +293,6 @@ export class ProductCardComponent implements OnInit, OnChanges {
   secondaryImageUrl: string | null = null;
   lowResSecondaryUrl: string | null = null;
 
-  primaryImageSrcset: string = '';
-  secondaryImageSrcset: string = '';
-
   ngOnInit() {
     this.updateImages();
   }
@@ -316,23 +309,13 @@ export class ProductCardComponent implements OnInit, OnChanges {
     const secondary = images.length > 1 ? images[1].image_url : null;
 
     this.primaryImageUrl = primary;
-    this.lowResPrimaryUrl = getResponsiveImageUrl(primary, 260);
+    // Derive low-res URL using helper or fallback to direct origin URL
+    this.lowResPrimaryUrl = getResponsiveImageUrl(primary, 240) || primary;
 
     this.secondaryImageUrl = secondary;
-    this.lowResSecondaryUrl = secondary ? getResponsiveImageUrl(secondary, 260) : null;
+    this.lowResSecondaryUrl = secondary ? (getResponsiveImageUrl(secondary, 240) || secondary) : null;
 
-    this.primaryImageSrcset = this.generateSrcset(primary);
-    this.secondaryImageSrcset = secondary ? this.generateSrcset(secondary) : '';
     this.isFullLoaded = false;
-  }
-
-  private generateSrcset(url: string): string {
-    if (!url) return '';
-    if (url.startsWith('/')) {
-      return '';
-    }
-    const widths = [360, 500, 800];
-    return widths.map(w => `${getResponsiveImageUrl(url, w)} ${w}w`).join(', ');
   }
 
   get discountPercentage(): number {
@@ -351,10 +334,10 @@ export class ProductCardComponent implements OnInit, OnChanges {
   }
 
   onLowResError(event: Event) {
-    // If low-res image fails, hide it gracefully
+    // If low-res URL fails to load, fallback to direct origin primary image URL
     const imgElement = event.target as HTMLImageElement;
-    if (imgElement) {
-      imgElement.style.display = 'none';
+    if (imgElement && imgElement.src !== this.primaryImageUrl) {
+      imgElement.src = this.primaryImageUrl;
     }
   }
 

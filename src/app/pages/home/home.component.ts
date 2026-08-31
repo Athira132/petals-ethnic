@@ -64,13 +64,18 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
             <a routerLink="/shop" [queryParams]="{filter: 'new'}" class="btn-outline">View All New Arrivals &rarr;</a>
           </div>
  
-          <div class="product-grid" *ngIf="newArrivals.length > 0; else loadingState">
-            <app-product-card 
-              *ngFor="let prod of newArrivals; let i = index; trackBy: trackByProductId" 
-              [product]="prod"
-              [priority]="i < 4"
-              (quickAdd)="onQuickAdd($event)"
-            ></app-product-card>
+          <div *ngIf="!isHomeLoading; else loadingState">
+            <div class="product-grid" *ngIf="newArrivals.length > 0; else emptyArrivals">
+              <app-product-card 
+                *ngFor="let prod of newArrivals; let i = index; trackBy: trackByProductId" 
+                [product]="prod"
+                [priority]="i < 4"
+                (quickAdd)="onQuickAdd($event)"
+              ></app-product-card>
+            </div>
+            <ng-template #emptyArrivals>
+              <p class="text-center text-muted py-4">No new arrival products available at the moment.</p>
+            </ng-template>
           </div>
         </div>
       </section>
@@ -84,13 +89,18 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
             <p class="section-desc">Our customers' absolute favorite ethnic styles of the season.</p>
           </div>
  
-          <div class="product-grid" *ngIf="featuredProducts.length > 0; else loadingState">
-            <app-product-card 
-              *ngFor="let prod of featuredProducts; let i = index; trackBy: trackByProductId" 
-              [product]="prod"
-              [priority]="i < 4"
-              (quickAdd)="onQuickAdd($event)"
-            ></app-product-card>
+          <div *ngIf="!isHomeLoading; else loadingState">
+            <div class="product-grid" *ngIf="featuredProducts.length > 0; else emptyFeatured">
+              <app-product-card 
+                *ngFor="let prod of featuredProducts; let i = index; trackBy: trackByProductId" 
+                [product]="prod"
+                [priority]="i < 4"
+                (quickAdd)="onQuickAdd($event)"
+              ></app-product-card>
+            </div>
+            <ng-template #emptyFeatured>
+              <p class="text-center text-muted py-4">No featured products available at the moment.</p>
+            </ng-template>
           </div>
         </div>
       </section>
@@ -525,6 +535,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
   `]
 })
 export class HomeComponent implements OnInit {
+  isHomeLoading: boolean = true;
   categories: Category[] = [];
   newArrivals: Product[] = [];
   featuredProducts: Product[] = [];
@@ -551,6 +562,8 @@ export class HomeComponent implements OnInit {
       }
     } catch (e) {
       console.error('Error loading home data:', e);
+    } finally {
+      this.isHomeLoading = false;
     }
   }
 

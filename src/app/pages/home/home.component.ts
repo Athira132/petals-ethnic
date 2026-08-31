@@ -15,45 +15,52 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
   imports: [CommonModule, RouterModule, HeroCarouselComponent, ProductCardComponent],
   template: `
     <main class="home-page">
-      <!-- 1. Hero Fashion Showcase (85-90% Viewport Height, ~3s Auto Slider) -->
+      <!-- 1. Hero Fashion Showcase (Text at Bottom, Right-Center Image Position) -->
       <app-hero-carousel></app-hero-carousel>
 
-      <!-- 2. Featured Categories -->
-      <section class="section categories-section">
+      <!-- 2. Compact Horizontal Category Navigation Slider -->
+      <section class="compact-category-section">
         <div class="container">
-          <div class="section-header text-center">
-            <span class="section-subtitle">CURATED COLLECTIONS</span>
-            <h2 class="section-title">Shop By Category</h2>
-            <p class="section-desc">Discover our handpicked silhouettes designed for every celebration.</p>
+          <div class="compact-category-header">
+            <h3 class="category-nav-title">Explore Categories</h3>
+            <a routerLink="/shop" class="explore-more-link">
+              Explore All Categories &rarr;
+            </a>
           </div>
 
-          <div class="category-grid">
-            <div 
-              *ngFor="let cat of categories; trackBy: trackByCategoryId" 
-              class="category-card"
-            >
-              <a [routerLink]="['/shop']" [queryParams]="{category: cat.slug}" class="category-link">
-                <div class="category-img-wrapper">
-                  <img 
-                    [src]="getOptimizedUrl(cat.image_url, 400)" 
-                    [alt]="cat.name" 
-                    class="category-img" 
-                    loading="lazy"
-                    (error)="onImageError($event)"
-                  />
-                  <div class="category-overlay"></div>
-                </div>
-                <div class="category-info">
-                  <h3 class="category-name">{{ cat.name }}</h3>
-                  <span class="category-cta">Explore Collection &rarr;</span>
-                </div>
+          <div class="category-slider-wrapper">
+            <div class="category-track-scroll">
+              <!-- All Categories Pill -->
+              <a routerLink="/shop" class="cat-pill active">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                All Items
+              </a>
+
+              <!-- Dynamic Category Pills -->
+              <a 
+                *ngFor="let cat of categories; trackBy: trackByCategoryId" 
+                [routerLink]="['/shop']" 
+                [queryParams]="{category: cat.slug}"
+                class="cat-pill"
+              >
+                {{ cat.name }}
+              </a>
+
+              <!-- Explore More Button Pill -->
+              <a routerLink="/shop" class="cat-pill explore-pill">
+                Explore More &rarr;
               </a>
             </div>
           </div>
         </div>
       </section>
- 
-      <!-- 3. New Arrivals -->
+
+      <!-- 3. New Arrivals (Products Priority) -->
       <section class="section new-arrivals-section">
         <div class="container">
           <div class="section-header-flex">
@@ -63,7 +70,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
             </div>
             <a routerLink="/shop" [queryParams]="{filter: 'new'}" class="btn-outline">View All New Arrivals &rarr;</a>
           </div>
- 
+
           <div *ngIf="!isHomeLoading; else loadingState">
             <div class="product-grid" *ngIf="newArrivals.length > 0; else emptyArrivals">
               <app-product-card 
@@ -79,7 +86,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
           </div>
         </div>
       </section>
- 
+
       <!-- 4. Featured & Best Sellers -->
       <section class="section featured-section">
         <div class="container">
@@ -88,7 +95,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
             <h2 class="section-title">Featured & Best Sellers</h2>
             <p class="section-desc">Our customers' absolute favorite ethnic styles of the season.</p>
           </div>
- 
+
           <div *ngIf="!isHomeLoading; else loadingState">
             <div class="product-grid" *ngIf="featuredProducts.length > 0; else emptyFeatured">
               <app-product-card 
@@ -125,201 +132,251 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
               </div>
             </div>
 
-            <!-- Right Side: Heading & Short Elegant Description -->
-            <div class="story-text-col">
-              <span class="story-subtitle">OUR BOUTIQUE HERITAGE</span>
-              <h2 class="story-title">Our Story</h2>
-              
-              <p class="story-paragraph lead-p">
-                Founded with a passion for authentic ethnic craftsmanship, Petals Ethnic brings together timeless Indian silhouettes and contemporary boutique elegance.
-              </p>
-              
+            <!-- Right Side: Content -->
+            <div class="story-content-col">
+              <span class="section-subtitle">OUR HERITAGE</span>
+              <h2 class="story-title">Crafting Timeless Ethnic Elegance</h2>
               <p class="story-paragraph">
-                From handpicked breathable fabrics to delicate watercolor floral drapes, intricate embroidery, and traditional Kerala Kasavu zari weaves, every garment is thoughtfully created to celebrate your unique grace.
+                At Petals Ethnic, every creation is a homage to rich Indian textiles, intricate embroidery, and modern feminine silhouettes. Based in Kerala, we hand-curate premium silk sarees, festive Anarkalis, floral kurtis, and designer co-ord sets designed to make every occasion memorable.
               </p>
-
               <p class="story-paragraph">
-                Whether you are dressing for a joyous festive family gathering, a serene temple ritual, or a modern celebration, our boutique collection ensures effortless fit, regal flair, and supreme comfort.
+                We believe ethnic wear should feel effortless, luxurious, and deeply authentic. Experience fabrics that breathe and craftsmanship that speaks for itself.
               </p>
-
-              <div class="story-cta-box">
-                <a routerLink="/about" class="btn-primary story-btn">Discover Our Story &rarr;</a>
+              <div class="story-action">
+                <a routerLink="/about" class="btn-story-primary">
+                  Discover Our Story &rarr;
+                </a>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 6. Instagram Section -->
+      <!-- 6. Instagram Showcase -->
       <section class="section instagram-section">
+        <div class="container text-center">
+          <span class="section-subtitle">FOLLOW OUR JOURNEY</span>
+          <h2 class="section-title">&#64;petalsethnic on Instagram</h2>
+          <p class="section-desc">Tag us in your festive moments to be featured on our official page.</p>
+          
+          <div class="instagram-grid">
+            <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
+              <img [src]="getOptimizedUrl('https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg', 300)" alt="Petals Ethnic Instagram" loading="lazy" (error)="onImageError($event)" />
+              <div class="insta-overlay">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              </div>
+            </a>
+            <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
+              <img [src]="getOptimizedUrl('https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg', 300)" alt="Petals Ethnic Instagram" loading="lazy" (error)="onImageError($event)" />
+              <div class="insta-overlay">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              </div>
+            </a>
+            <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
+              <img [src]="getOptimizedUrl('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg', 300)" alt="Petals Ethnic Instagram" loading="lazy" (error)="onImageError($event)" />
+              <div class="insta-overlay">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              </div>
+            </a>
+            <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
+              <img [src]="getOptimizedUrl('https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png', 300)" alt="Petals Ethnic Instagram" loading="lazy" (error)="onImageError($event)" />
+              <div class="insta-overlay">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Need Help / WhatsApp Section -->
+      <section class="section wa-help-section">
         <div class="container">
-          <div class="section-header text-center">
-            <span class="section-subtitle">FOLLOW OUR JOURNEY</span>
-            <h2 class="section-title">&#64;petalsethnic on Instagram</h2>
-            <p class="section-desc">Tag us in your Petals Ethnic outfits to be featured!</p>
-          </div>
-
-          <div class="insta-grid">
-            <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg', 300)" alt="Petals Ethnic Anarkali Style" (error)="onImageError($event)" />
-              <div class="insta-overlay">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-                <span>Instagram</span>
-              </div>
-            </a>
-            <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg', 300)" alt="Petals Ethnic Kasavu Style" (error)="onImageError($event)" />
-              <div class="insta-overlay">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-                <span>Instagram</span>
-              </div>
-            </a>
-            <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg', 300)" alt="Petals Ethnic Midi Dress" (error)="onImageError($event)" />
-              <div class="insta-overlay">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-                <span>Instagram</span>
-              </div>
-            </a>
-            <a href="https://www.instagram.com/petalsethnic" target="_blank" rel="noopener" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png', 300)" alt="Petals Ethnic Codeset" (error)="onImageError($event)" />
-              <div class="insta-overlay">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-                <span>Instagram</span>
-              </div>
+          <div class="wa-cta-box">
+            <h2>Need Personal Styling or Custom Sizes?</h2>
+            <p>Our ethnic fashion specialists are available on WhatsApp to assist with size guidance, custom fitting, and order inquiries.</p>
+            <a href="https://wa.me/918113899319" target="_blank" class="btn-wa">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+              Chat on WhatsApp
             </a>
           </div>
         </div>
       </section>
 
-      <!-- 7. WhatsApp CTA Section (Clean & Elegant Need Help Button) -->
-      <section class="section wa-cta-section">
-        <div class="container wa-cta-box">
-          <h2>Need Help Finding Your Outfit?</h2>
-          <p>Connect directly with our fashion stylists on WhatsApp for sizing advice, customized recommendations, or order inquiries.</p>
-          <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnic,%20I%20would%20like%20to%20know%20more%20about%20your%20products." target="_blank" rel="noopener" class="btn-wa">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.333 5.001l-1.416 5.174 5.299-1.389c1.464.798 3.114 1.218 4.774 1.218h.004c5.506 0 9.989-4.478 9.99-9.984 0-2.669-1.038-5.176-2.925-7.062-1.887-1.886-4.394-2.924-7.064-2.924zm5.82 14.281c-.244.687-1.42 1.312-1.957 1.393-.49.074-1.127.106-1.815-.115-.418-.134-.956-.31-1.657-.615-2.955-1.282-4.887-4.281-5.035-4.479-.148-.198-1.205-1.604-1.205-3.059 0-1.455.762-2.172 1.033-2.464.271-.292.593-.365.791-.365.198 0 .396.002.568.01.185.009.432-.07.676.516.244.587.834 2.036.907 2.184.073.148.122.321.024.516-.098.196-.148.318-.293.49-.148.171-.31.382-.443.513-.148.148-.303.31-.131.606.171.296.76 1.256 1.632 2.033 1.123.999 2.07 1.309 2.366 1.457.296.148.469.124.642-.074.173-.198.742-.865.94-1.162.198-.296.396-.247.668-.148.271.098 1.727.815 2.023.963.296.148.494.222.568.346.074.123.074.715-.17 1.402z"/>
-            </svg>
-            <span>Need Help? &rarr; WhatsApp Us</span>
-          </a>
+      <!-- Reusable Loading State Template -->
+      <ng-template #loadingState>
+        <div class="loading-spinner-box">
+          <div class="spinner"></div>
+          <p>Loading Ethnic Collection...</p>
         </div>
-      </section>
+      </ng-template>
     </main>
-
-    <ng-template #loadingState>
-      <div class="loading-spinner-box">
-        <div class="spinner"></div>
-        <p>Loading fashion collections...</p>
-      </div>
-    </ng-template>
   `,
   styles: [`
+    .home-page {
+      background-color: var(--color-bg);
+    }
+    
     .section {
-      padding: 64px 0;
+      padding: 60px 0;
     }
     @media (max-width: 768px) {
       .section { padding: 40px 0; }
     }
 
-    .text-center {
-      text-align: center;
+    .section-header {
+      margin-bottom: 40px;
     }
-
-    /* Categories Grid */
-    .category-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-    }
-    @media (max-width: 992px) {
-      .category-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 576px) {
-      .category-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    }
-
-    .category-card {
-      position: relative;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-    }
-    .category-img-wrapper {
-      position: relative;
-      padding-top: 130%;
-      background-color: var(--color-bg-alt);
-    }
-    .category-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .category-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%);
-    }
-    .category-card:hover .category-img {
-      transform: scale(1.08);
-    }
-    .category-info {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      color: #FFFFFF;
-      z-index: 2;
-    }
-    .category-name {
-      font-size: 20px;
-      color: #FFFFFF;
-      margin-bottom: 4px;
-    }
-    @media (max-width: 576px) {
-      .category-name { font-size: 15px; }
-    }
-    .category-cta {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--color-pink);
-      letter-spacing: 0.5px;
-    }
-
-    /* Product Grids */
     .section-header-flex {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 40px;
+      margin-bottom: 32px;
     }
     @media (max-width: 576px) {
-      .section-header-flex { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .section-header-flex {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
     }
+
+    .section-subtitle {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--color-gold);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--color-text-heading);
+    }
+    @media (max-width: 768px) {
+      .section-title { font-size: 24px; }
+    }
+    .section-desc {
+      font-size: 15px;
+      color: var(--color-muted);
+      margin-top: 6px;
+    }
+
+    /* 2. Compact Horizontal Category Navigation Slider */
+    .compact-category-section {
+      padding: 24px 0 16px 0;
+      background-color: #FAFAF8;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .compact-category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .category-nav-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--color-text-heading);
+    }
+    .explore-more-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: #9F3D62;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .explore-more-link:hover {
+      color: #7F2A4C;
+      text-decoration: underline;
+    }
+
+    .category-slider-wrapper {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .category-track-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 6px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; /* Firefox */
+    }
+    .category-track-scroll::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+
+    .cat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text);
+      text-decoration: none;
+      white-space: nowrap;
+      scroll-snap-align: start;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .cat-pill:hover {
+      border-color: #9F3D62;
+      color: #9F3D62;
+      background: #FFF5F8;
+      transform: translateY(-1px);
+    }
+    .cat-pill.active {
+      background-color: #9F3D62;
+      border-color: #9F3D62;
+      color: #FFFFFF;
+    }
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #FFFFFF;
+    }
+
+    .cat-pill.explore-pill {
+      background-color: #FAF0F4;
+      border-color: rgba(159, 61, 98, 0.4);
+      color: #9F3D62;
+      font-weight: 700;
+    }
+    .cat-pill.explore-pill:hover {
+      background-color: #9F3D62;
+      color: #FFFFFF;
+      border-color: #9F3D62;
+    }
+
+    /* Product Grid */
     .product-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 24px;
     }
-    @media (max-width: 992px) {
-      .product-grid { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 1100px) {
+      .product-grid { grid-template-columns: repeat(3, 1fr); }
     }
-    @media (max-width: 576px) {
+    @media (max-width: 768px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    }
+    @media (max-width: 480px) {
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     }
 
-    /* Clean Two-Column Editorial "Our Story" Section */
+    /* Editorial Story Section */
     .story-editorial-section {
       background-color: #FAF8F6;
       border-top: 1px solid var(--color-border-light);
@@ -328,7 +385,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
     .story-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 56px;
+      gap: 48px;
       align-items: center;
     }
     @media (max-width: 992px) {
@@ -337,107 +394,97 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
         gap: 32px;
       }
     }
-
     .story-image-col {
-      position: relative;
+      width: 100%;
     }
     .story-image-frame {
       position: relative;
       width: 100%;
-      max-width: 520px;
-      margin: 0 auto;
+      padding-top: 120%; /* Aspect ratio */
       border-radius: var(--radius-lg);
       overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
-      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-lg);
     }
     .story-img {
+      position: absolute;
+      inset: 0;
       width: 100%;
-      height: 480px;
+      height: 100%;
       object-fit: cover;
       object-position: center top;
-      display: block;
-      transition: transform 0.6s ease;
+      transition: transform 0.5s ease;
     }
     .story-image-frame:hover .story-img {
       transform: scale(1.03);
     }
-
     .story-badge-floating {
       position: absolute;
-      bottom: 20px;
-      left: 20px;
+      bottom: 24px;
+      left: 24px;
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(8px);
-      padding: 8px 16px;
-      border-radius: 20px;
+      padding: 10px 20px;
+      border-radius: var(--radius-full);
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 1.5px;
       color: #9F3D62;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
 
-    .story-text-col {
-      padding: 10px 0;
+    .story-content-col {
+      padding-right: 20px;
     }
-    .story-subtitle {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 2.5px;
-      color: #9F3D62;
-      text-transform: uppercase;
-      margin-bottom: 10px;
+    @media (max-width: 992px) {
+      .story-content-col { padding-right: 0; }
     }
     .story-title {
-      font-size: 38px;
+      font-size: 36px;
       font-weight: 700;
-      color: var(--color-text-heading);
+      line-height: 1.25;
       margin-bottom: 20px;
-      line-height: 1.2;
+      color: var(--color-text-heading);
     }
     @media (max-width: 768px) {
-      .story-title { font-size: 28px; }
-      .story-img { height: 360px; }
+      .story-title { font-size: 26px; }
     }
-    @media (max-width: 480px) {
-      .story-img { height: 300px; }
-    }
-
     .story-paragraph {
       font-size: 15px;
-      line-height: 1.65;
+      line-height: 1.7;
       color: var(--color-muted);
       margin-bottom: 16px;
     }
-    .story-paragraph.lead-p {
-      font-size: 17px;
-      font-weight: 500;
-      color: var(--color-text);
-      line-height: 1.6;
-    }
-
-    .story-cta-box {
+    .story-action {
       margin-top: 28px;
     }
-    .story-btn {
+    .btn-story-primary {
       display: inline-flex;
       align-items: center;
+      background-color: #9F3D62;
+      color: #FFFFFF !important;
       padding: 14px 32px;
-      border-radius: 30px;
-      font-size: 14px;
+      border-radius: var(--radius-full);
       font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      transition: var(--transition);
+      box-shadow: 0 4px 16px rgba(159, 61, 98, 0.4);
+    }
+    .btn-story-primary:hover {
+      background-color: #7F2A4C;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(127, 42, 76, 0.5);
     }
 
-    /* Instagram */
-    .insta-grid {
+    /* Instagram Section */
+    .instagram-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
+      margin-top: 32px;
     }
-    @media (max-width: 576px) {
-      .insta-grid { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 768px) {
+      .instagram-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     }
     .insta-item {
       position: relative;
@@ -451,32 +498,23 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
-      transition: transform 0.5s ease;
+      transition: transform 0.4s ease;
     }
     .insta-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.6);
-      color: #FFFFFF;
+      background: rgba(159, 61, 98, 0.6);
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
+      color: #FFFFFF;
       opacity: 0;
       transition: opacity 0.3s ease;
     }
-    .insta-item:hover img {
-      transform: scale(1.08);
-    }
-    .insta-item:hover .insta-overlay {
-      opacity: 1;
-    }
+    .insta-item:hover img { transform: scale(1.08); }
+    .insta-item:hover .insta-overlay { opacity: 1; }
 
-    /* WhatsApp CTA */
+    /* WhatsApp Section */
     .wa-cta-box {
       background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
       color: #FFFFFF;
@@ -590,70 +628,5 @@ export class HomeComponent implements OnInit {
     } catch (err: any) {
       alert(err.message || 'Could not add item to cart');
     }
-  }
-
-  private getFallbackProducts(): Product[] {
-    return [
-      {
-        id: 'p1',
-        name: 'Royal Floral Anarkali Set',
-        slug: 'royal-floral-anarkali-set',
-        description: 'Handworked flared Anarkali kurta with floral print dupattas.',
-        price: 2499,
-        sale_price: 1999,
-        stock: 12,
-        availability: 'in_stock',
-        featured: true,
-        new_arrival: true,
-        active: true,
-        category: { id: 'c4', name: 'Anarkali', slug: 'anarkali', active: true },
-        images: [{ image_url: 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg', is_primary: true }]
-      },
-      {
-        id: 'p2',
-        name: 'Tissue Silk Kasavu Festive Kurta',
-        slug: 'tissue-silk-kasavu-festive-kurta',
-        description: 'Shimmering golden Kasavu woven tissue silk kurta set.',
-        price: 2999,
-        sale_price: 2499,
-        stock: 8,
-        availability: 'few_left',
-        featured: true,
-        new_arrival: true,
-        active: true,
-        category: { id: 'c6', name: 'Tissue Silk Kasavu', slug: 'tissue-silk-kasavu-kurta', active: true },
-        images: [{ image_url: 'https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg', is_primary: true }]
-      },
-      {
-        id: 'p3',
-        name: 'A-Line Watercolor Floral Midi Dress',
-        slug: 'aline-watercolor-floral-midi-dress',
-        description: 'Elegant A-line silhouette with soft watercolor botanical drapes.',
-        price: 1899,
-        sale_price: null,
-        stock: 15,
-        availability: 'in_stock',
-        featured: true,
-        new_arrival: false,
-        active: true,
-        category: { id: 'c1', name: 'A Line Midi Dress', slug: 'aline-midi-dress', active: true },
-        images: [{ image_url: 'https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg', is_primary: true }]
-      },
-      {
-        id: 'p4',
-        name: 'Modern Chic Co-ord Codeset',
-        slug: 'modern-chic-coord-codeset',
-        description: 'Tailored 2-piece ethnic coordinated set with soft cotton lining.',
-        price: 2199,
-        sale_price: 1799,
-        stock: 5,
-        availability: 'few_left',
-        featured: true,
-        new_arrival: true,
-        active: true,
-        category: { id: 'c5', name: 'Codeset', slug: 'codeset', active: true },
-        images: [{ image_url: 'https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png', is_primary: true }]
-      }
-    ];
   }
 }

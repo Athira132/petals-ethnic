@@ -1,32 +1,9 @@
-export const DEFAULT_FALLBACK_IMAGE = '/images/prod-kanjeevaram-saree.webp';
+export const DEFAULT_FALLBACK_IMAGE = 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
 
 export interface ImageItem {
   image_url: string;
   is_primary?: boolean;
   display_order?: number;
-}
-
-const OPTIMIZED_IMAGE_MAP: Record<string, string> = {
-  'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg': '/images/prod-kanjeevaram-saree.webp',
-  'https://i.ibb.co/SDVwW6vy/Whats-App-Image-2026-08-13-at-12-31-11-PM.jpg': '/images/prod-cotton-kurti.webp',
-  'https://i.ibb.co/ksFkWrhx/image.png': '/images/prod-kasavu-silk.webp',
-  'https://i.ibb.co/chvqjqFZ/image.png': '/images/prod-coord-set.webp',
-  'https://i.ibb.co/27MzMz7X/image.png': '/images/prod-anarkali-set.webp',
-  'https://i.ibb.co/WLLgp05/image.png': '/images/prod-slub-kurti.webp',
-  'https://i.ibb.co/xKv6CbTm/Whats-App-Image-2026-08-13-at-12-31-10-PM-2.jpg': '/images/prod-floral-kurti.webp',
-  'https://i.ibb.co/1fFmfKNH/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg': '/images/prod-midi-dress.webp'
-};
-
-/**
- * Maps raw image URLs to high-performance optimized WebP static assets
- */
-export function getOptimizedProductImageUrl(rawUrl: string | null | undefined): string {
-  if (!rawUrl) return DEFAULT_FALLBACK_IMAGE;
-  const clean = rawUrl.trim();
-  if (OPTIMIZED_IMAGE_MAP[clean]) {
-    return OPTIMIZED_IMAGE_MAP[clean];
-  }
-  return clean;
 }
 
 /**
@@ -36,15 +13,19 @@ export function getOptimizedProductImageUrl(rawUrl: string | null | undefined): 
 export function isIbbShareUrl(rawUrl: string | null | undefined): boolean {
   if (!rawUrl) return false;
   const str = rawUrl.trim();
+  // Matches ibb.co/ or www.ibb.co/ BUT NOT i.ibb.co/
   return /^https?:\/\/(www\.)?ibb\.co\//i.test(str);
 }
 
 /**
- * Sanitizes an image URL and returns the optimized high-performance asset
+ * Sanitizes an image URL:
+ * 1. Trims whitespace.
+ * 2. Keeps valid direct image URLs (e.g. https://i.ibb.co/...) exactly as provided.
+ * 3. Does NOT invent or transform ibb.co share URLs automatically.
  */
 export function sanitizeImageUrl(rawUrl: string | null | undefined): string {
   if (!rawUrl) return '';
-  return getOptimizedProductImageUrl(rawUrl);
+  return rawUrl.trim();
 }
 
 /**
@@ -59,6 +40,7 @@ export function parseImageUrlsInput(input: any): string[] {
       urls.push(...parseImageUrlsInput(item));
     }
   } else if (typeof input === 'string') {
+    // Split by newlines or commas in case multiline or CSV string is stored
     const lines = input.split(/[\r\n,]+/);
     for (const line of lines) {
       const clean = sanitizeImageUrl(line);
@@ -149,10 +131,23 @@ export function handleImageError(event: Event, fallbackUrl: string = DEFAULT_FAL
 }
 
 /**
- * Generates an optimized responsive image URL.
+ * Generates an optimized responsive image URL using wsrv.nl image proxy.
+ * This does not modify or replace the original image on ImgBB.
+ * It dynamically resizes, converts to WebP, and serves from Cloudflare CDN cache.
  */
 export function getResponsiveImageUrl(url: string | null | undefined, width: number): string {
   if (!url) return DEFAULT_FALLBACK_IMAGE;
-  const cleanUrl = getOptimizedProductImageUrl(url);
-  return cleanUrl;
+  const cleanUrl = url.trim();
+  if (!cleanUrl || cleanUrl.includes('localhost') || cleanUrl.startsWith('data:')) {
+    return cleanUrl;
+  }
+  
+  // For relative local assets (like /images/hero1.png), serve them directly (they benefit from Vercel's caching)
+  if (cleanUrl.startsWith('/')) {
+    return cleanUrl;
+  }
+  
+  // Proxy external images through wsrv.nl for WebP formatting and specific width constraints
+  const encodedUrl = encodeURIComponent(cleanUrl);
+  return `https://images.weserv.nl/?url=${encodedUrl}&w=${width}&output=webp&q=85`;
 }

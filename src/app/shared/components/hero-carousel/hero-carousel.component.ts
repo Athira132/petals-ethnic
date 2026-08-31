@@ -10,6 +10,7 @@ export interface HeroSlide {
   subtitle: string;
   ctaText: string;
   ctaLink: string;
+  objectPosition?: string;
 }
 
 @Component({
@@ -27,21 +28,22 @@ export interface HeroSlide {
           class="carousel-slide"
           [class.active]="i === currentIndex"
         >
-          <!-- Semantic High-Priority First Hero Image + Selective Lazy Preload -->
+          <!-- Semantic High-Priority First Hero Image + Right-Center Biased Crop -->
           <img 
             [src]="slide.imageUrl" 
             [alt]="slide.title"
             class="slide-img" 
+            [style.object-position]="slide.objectPosition || '85% center'"
             [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
             [loading]="i === 0 ? 'eager' : 'lazy'"
             decoding="async"
             (error)="onImageError($event)"
           />
 
-          <!-- Ultra-Light Subtle Gradient Overlay Behind Text -->
+          <!-- Elegant Bottom Gradient Overlay Behind Text (Upper Banner Remains Completely Bright) -->
           <div class="slide-overlay"></div>
 
-          <!-- Premium Designed Hero Content -->
+          <!-- Hero Content Aligned To Bottom -->
           <div class="hero-container">
             <div class="hero-content">
               <span class="hero-badge">NEW SEASON 2026</span>
@@ -79,7 +81,7 @@ export interface HeroSlide {
       position: relative;
       width: 100%;
       height: 88vh;
-      min-height: 600px;
+      min-height: 580px;
       max-height: 850px;
       overflow: hidden;
       background-color: #0D0D0D;
@@ -115,7 +117,13 @@ export interface HeroSlide {
       opacity: 1;
       visibility: visible;
       display: flex;
-      align-items: center;
+      align-items: flex-end; /* ALIGN HERO TEXT TO BOTTOM */
+      padding-bottom: 60px; /* Padding above carousel indicators */
+    }
+    @media (max-width: 768px) {
+      .carousel-slide {
+        padding-bottom: 48px;
+      }
     }
 
     .slide-img {
@@ -124,7 +132,7 @@ export interface HeroSlide {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
+      object-position: 85% center; /* Biased toward right-center so subjects on right are preserved */
     }
 
     @media (max-width: 768px) {
@@ -133,27 +141,17 @@ export interface HeroSlide {
       }
     }
 
+    /* Bottom Gradient Overlay: Leaves top 60% of fashion photo bright & unshaded */
     .slide-overlay {
       position: absolute;
       inset: 0;
       background: linear-gradient(
-        90deg, 
-        rgba(0, 0, 0, 0.35) 0%, 
-        rgba(0, 0, 0, 0.12) 45%, 
-        rgba(0, 0, 0, 0) 100%
+        0deg, 
+        rgba(0, 0, 0, 0.75) 0%, 
+        rgba(0, 0, 0, 0.35) 45%, 
+        rgba(0, 0, 0, 0) 80%
       );
       z-index: 2;
-    }
-
-    @media (max-width: 768px) {
-      .slide-overlay {
-        background: linear-gradient(
-          180deg, 
-          rgba(0, 0, 0, 0.40) 0%, 
-          rgba(0, 0, 0, 0.15) 50%, 
-          rgba(0, 0, 0, 0.35) 100%
-        );
-      }
     }
 
     .hero-container {
@@ -171,7 +169,7 @@ export interface HeroSlide {
     }
 
     .hero-content {
-      max-width: 600px;
+      max-width: 640px;
       color: #FFFFFF;
     }
 
@@ -182,45 +180,45 @@ export interface HeroSlide {
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #F8BBD0;
-      background: rgba(159, 61, 98, 0.35);
+      background: rgba(159, 61, 98, 0.45);
       border: 1px solid rgba(248, 187, 208, 0.4);
       padding: 6px 14px;
       border-radius: 20px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       backdrop-filter: blur(4px);
     }
     @media (max-width: 480px) {
       .hero-badge {
         font-size: 10px;
         padding: 4px 12px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
     }
 
     .hero-title {
-      font-size: 46px;
+      font-size: 44px;
       font-weight: 700;
       line-height: 1.15;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       letter-spacing: -0.5px;
       color: #FFFFFF;
       text-shadow: 0 2px 12px rgba(0,0,0,0.6);
     }
     @media (max-width: 992px) {
-      .hero-title { font-size: 36px; }
+      .hero-title { font-size: 34px; }
     }
     @media (max-width: 576px) {
       .hero-title {
-        font-size: 26px;
-        margin-bottom: 10px;
+        font-size: 24px;
+        margin-bottom: 8px;
       }
     }
 
     .hero-subtitle {
-      font-size: 16px;
+      font-size: 15px;
       line-height: 1.5;
       color: rgba(255, 255, 255, 0.95);
-      margin-bottom: 28px;
+      margin-bottom: 22px;
       font-weight: 400;
       text-shadow: 0 1px 4px rgba(0,0,0,0.6);
     }
@@ -228,7 +226,7 @@ export interface HeroSlide {
       .hero-subtitle {
         font-size: 13px;
         line-height: 1.4;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
       }
     }
 
@@ -245,7 +243,7 @@ export interface HeroSlide {
       gap: 8px;
       background-color: #9F3D62;
       color: #FFFFFF !important;
-      padding: 14px 28px;
+      padding: 13px 26px;
       border-radius: 30px;
       font-size: 14px;
       font-weight: 600;
@@ -264,52 +262,53 @@ export interface HeroSlide {
     .btn-hero-explore {
       display: inline-flex;
       align-items: center;
-      background-color: #9F3D62;
+      background-color: rgba(255, 255, 255, 0.15);
       color: #FFFFFF !important;
-      padding: 14px 26px;
+      padding: 13px 24px;
       border-radius: 30px;
       font-size: 14px;
       font-weight: 600;
       text-decoration: none;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 4px 16px rgba(159, 61, 98, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(6px);
       transition: all 0.3s ease;
     }
     .btn-hero-explore:hover {
-      background-color: #7F2A4C;
+      background-color: #9F3D62;
       color: #FFFFFF !important;
       transform: translateY(-2px);
       border-color: #FFFFFF;
-      box-shadow: 0 6px 22px rgba(127, 42, 76, 0.6);
+      box-shadow: 0 6px 22px rgba(159, 61, 98, 0.6);
     }
 
     @media (max-width: 480px) {
       .btn-hero-primary, .btn-hero-explore {
-        padding: 10px 18px;
+        padding: 9px 16px;
         font-size: 12px;
-        min-height: 40px;
+        min-height: 38px;
       }
     }
 
+    /* Minimal Bottom Indicators */
     .carousel-indicators {
       position: absolute;
-      bottom: 20px;
+      bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 4;
       display: flex;
       gap: 8px;
       align-items: center;
-      padding: 6px 14px;
-      background: rgba(0, 0, 0, 0.35);
+      padding: 5px 12px;
+      background: rgba(0, 0, 0, 0.4);
       backdrop-filter: blur(8px);
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .indicator-dot {
-      width: 100px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.4);
       border: none;
@@ -321,115 +320,92 @@ export interface HeroSlide {
       background: rgba(255, 255, 255, 0.75);
     }
     .indicator-dot.active {
-      width: 24px;
-      border-radius: 12px;
+      width: 20px;
+      border-radius: 10px;
       background: #9F3D62;
       box-shadow: 0 0 10px rgba(159, 61, 98, 0.8);
     }
   `]
 })
 export class HeroCarouselComponent implements OnInit, OnDestroy {
+  // 4 Required Hero Fashion Slides with Original Uploaded Images & Custom Right-Biased Object Position
   slides: HeroSlide[] = [
     { 
       id: 1, 
-      imageUrl: '/images/hero-slide-1.webp',
+      imageUrl: 'https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png',
       title: 'Elevate Your Ethnic Style',
       subtitle: 'Discover our latest collection of premium handcrafted sarees, kurtis, and designer festive wear tailored for perfection.',
       ctaText: 'Shop New Collection',
-      ctaLink: '/shop'
+      ctaLink: '/shop',
+      objectPosition: '85% center'
     },
     { 
       id: 2, 
-      imageUrl: '/images/hero-slide-2.webp',
+      imageUrl: 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png',
       title: 'Grace & Elegance in Every Thread',
       subtitle: 'Handpicked fabrics, soft watercolor florals, and timeless ethnic silhouettes designed for effortless celebration.',
       ctaText: 'Explore Kurtis & Sets',
-      ctaLink: '/shop'
+      ctaLink: '/shop',
+      objectPosition: '80% center'
     },
     { 
       id: 3, 
-      imageUrl: '/images/hero-slide-3.webp',
+      imageUrl: 'https://i.ibb.co/5ZcYbZx/Chat-GPT-Image-Aug-13-2026-12-15-54-PM.png',
       title: 'Royal Festive Anarkalis & Co-Ords',
       subtitle: 'Step into joyous occasions with regal flare Anarkalis, intricate embroideries, and modern ethnic two-piece sets.',
       ctaText: 'View Festive Edits',
-      ctaLink: '/shop'
+      ctaLink: '/shop',
+      objectPosition: 'center top'
     },
     { 
       id: 4, 
-      imageUrl: '/images/hero-slide-4.webp',
+      imageUrl: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png',
       title: 'Authentic Kerala Kasavu & Tissue Silk',
       subtitle: 'Traditional golden zari Kasavu weaves combined with shimmering tissue silk kurtas for timeless elegance.',
       ctaText: 'Shop Kasavu Series',
-      ctaLink: '/shop'
+      ctaLink: '/shop',
+      objectPosition: '85% center'
     }
   ];
 
   currentIndex = 0;
   timer: any;
-  private isBrowser: boolean;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone
-  ) {
-    this.isBrowser = isPlatformBrowser(this.platformId);
-  }
+  ) {}
 
   ngOnInit() {
-    if (this.isBrowser) {
-      // 1. Immediately preload Slide #2 shortly after mount so it is ready for the first transition
-      setTimeout(() => this.preloadNextSlideImage(1), 200);
-      // 2. Start continuous auto slider
-      this.startAutoSlider();
-    }
+    this.startAutoSlider();
   }
 
   ngOnDestroy() {
     this.stopTimer();
   }
 
-  preloadNextSlideImage(nextIdx: number) {
-    if (this.isBrowser && this.slides[nextIdx]) {
-      const img = new Image();
-      img.src = this.slides[nextIdx].imageUrl;
-    }
-  }
-
   /**
-   * Automatic hero behavior:
-   * 1 -> 2 -> 3 -> 4 -> 1 with ~3.0s visibility hold.
+   * AUTOMATIC CONTINUOUS LOOPING SLIDER:
+   * - Slides automatically once EVERY 1 SECOND (1000ms)
    */
   startAutoSlider() {
-    if (!this.isBrowser) return;
+    if (!isPlatformBrowser(this.platformId)) return;
     this.stopTimer();
 
-    this.timer = setInterval(() => {
-      this.ngZone.run(() => {
-        this.nextSlide();
-      });
-    }, 3000);
-  }
-
-  nextSlide() {
-    if (!this.slides || this.slides.length <= 1) return;
-
-    this.currentIndex = (this.currentIndex + 1) % this.slides.length;
-    // Preload next image selectively
-    this.preloadNextSlideImage((this.currentIndex + 1) % this.slides.length);
-
-    this.cdr.markForCheck();
-    this.cdr.detectChanges();
+    this.ngZone.runOutsideAngular(() => {
+      this.timer = setInterval(() => {
+        this.ngZone.run(() => {
+          this.currentIndex = (this.currentIndex + 1) % this.slides.length;
+          this.cdr.markForCheck();
+        });
+      }, 1000); // 1-SECOND CONTINUOUS AUTO-SLIDE INTERVAL
+    });
   }
 
   goToSlide(index: number) {
-    if (index >= 0 && index < this.slides.length) {
-      this.currentIndex = index;
-      this.preloadNextSlideImage((this.currentIndex + 1) % this.slides.length);
-      this.cdr.markForCheck();
-      this.cdr.detectChanges();
-      this.startAutoSlider();
-    }
+    this.currentIndex = index;
+    this.startAutoSlider();
   }
 
   stopTimer() {

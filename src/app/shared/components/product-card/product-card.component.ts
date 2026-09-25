@@ -50,23 +50,40 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
           </span>
           <span *ngIf="product.new_arrival" class="badge badge-gold">NEW</span>
           <span *ngIf="product.stock === 0" class="badge badge-dark">SOLD OUT</span>
+          <span *ngIf="isLowStock && product.stock > 0" class="badge badge-few-left">
+            {{ lowStockBadgeText }}
+          </span>
         </div>
 
-        <!-- Quick Add Size Bar (appears on hover) -->
+        <!-- Quick Add / Enquiry Bar (appears on hover) -->
         <div class="size-quick-bar" *ngIf="product.stock > 0">
-          <span class="quick-title">Quick Add:</span>
-          <div class="size-chips">
-            <button 
-              *ngFor="let sizeOpt of availableSizes" 
-              class="size-chip"
-              [class.disabled]="sizeOpt.stock === 0"
-              [disabled]="sizeOpt.stock === 0"
-              (click)="onQuickAdd(sizeOpt.size)"
-              [title]="sizeOpt.stock > 0 ? 'Add Size ' + sizeOpt.size : 'Size ' + sizeOpt.size + ' Out of Stock'"
-            >
-              {{ sizeOpt.size }}
-            </button>
-          </div>
+          <ng-container *ngIf="product.purchase_mode === 'enquiry'; else normalQuickBar">
+            <a [href]="whatsAppEnquiryUrl" target="_blank" rel="noopener" class="quick-enquiry-btn">
+              💬 Enquire on WhatsApp
+            </a>
+          </ng-container>
+          <ng-template #normalQuickBar>
+            <ng-container *ngIf="product.has_size !== false && availableSizes.length > 0; else singleQuickAdd">
+              <span class="quick-title">Quick Add:</span>
+              <div class="size-chips">
+                <button 
+                  *ngFor="let sizeOpt of availableSizes" 
+                  class="size-chip"
+                  [class.disabled]="sizeOpt.stock === 0"
+                  [disabled]="sizeOpt.stock === 0"
+                  (click)="onQuickAdd(sizeOpt.size)"
+                  [title]="sizeOpt.stock > 0 ? 'Add Size ' + sizeOpt.size : 'Size ' + sizeOpt.size + ' Out of Stock'"
+                >
+                  {{ sizeOpt.size }}
+                </button>
+              </div>
+            </ng-container>
+            <ng-template #singleQuickAdd>
+              <button class="quick-single-add-btn" (click)="onQuickAdd()">
+                + Quick Add to Cart
+              </button>
+            </ng-template>
+          </ng-template>
         </div>
       </div>
 
@@ -281,12 +298,54 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     .regular-price {
       color: var(--color-text-heading);
     }
+    .badge-few-left {
+      background: #D97706;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+    }
+    .quick-single-add-btn {
+      width: 100%;
+      background: var(--color-pink-dark);
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .quick-single-add-btn:hover {
+      background: var(--color-pink);
+    }
+    .quick-enquiry-btn {
+      width: 100%;
+      background: #25D366;
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 12px;
+      text-align: center;
+      display: block;
+      transition: background 0.2s ease;
+    }
+    .quick-enquiry-btn:hover {
+      background: #1EBE5D;
+    }
   `]
 })
 export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   @Input({ required: true }) product!: Product;
   @Input() priority: boolean = false;
-  @Output() quickAdd = new EventEmitter<{ product: Product; size: SizeOption }>();
+  @Output() quickAdd = new EventEmitter<{ product: Product; size?: SizeOption }>();
 
   @ViewChild('fullImg') fullImgRef?: ElementRef<HTMLImageElement>;
 
@@ -348,6 +407,24 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     return 0;
   }
 
+  get isLowStock(): boolean {
+    if (this.product.stock_display === 'few_left') return true;
+    if (this.product.stock_display === 'hide') return false;
+    return (this.product.stock > 0 && this.product.stock <= 5) || this.product.availability === 'few_left';
+  }
+
+  get lowStockBadgeText(): string {
+    return this.product.custom_stock_message || 'Only a Few Left';
+  }
+
+  get whatsAppEnquiryUrl(): string {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://petalethnics.com';
+    const text = encodeURIComponent(
+      `Hello Petal Ethnics & Jewellers! I would like to enquire about: *${this.product.name}* (Price: ₹${this.product.sale_price || this.product.price}).\nProduct Link: ${origin}/product/${this.product.slug}`
+    );
+    return `https://wa.me/918113899319?text=${text}`;
+  }
+
   get availableSizes(): { size: SizeOption; stock: number }[] {
     const allSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
     if (this.product.sizes && this.product.sizes.length > 0) {
@@ -371,7 +448,7 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     handleImageError(event);
   }
 
-  onQuickAdd(size: SizeOption) {
+  onQuickAdd(size?: SizeOption) {
     this.quickAdd.emit({ product: this.product, size });
   }
 }

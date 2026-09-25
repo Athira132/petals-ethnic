@@ -121,7 +121,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
               <div class="story-image-frame">
                 <img 
                   [src]="getOptimizedUrl('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg', 600)" 
-                  alt="Petals Ethnic Boutique Craftsmanship" 
+                  alt="Petal Ethnics & Jewellers Craftsmanship" 
                   class="story-img" 
                   loading="lazy"
                   (error)="onImageError($event)"
@@ -135,12 +135,12 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
             <!-- Right Side: Content -->
             <div class="story-content-col">
               <span class="section-subtitle">OUR HERITAGE</span>
-              <h2 class="story-title">Crafting Timeless Ethnic Elegance</h2>
+              <h2 class="story-title">Crafting Timeless Ethnic Elegance & Exquisite Jewellery</h2>
               <p class="story-paragraph">
-                At Petals Ethnic, every creation is a homage to rich Indian textiles, intricate embroidery, and modern feminine silhouettes. Based in Kerala, we hand-curate premium silk sarees, festive Anarkalis, floral kurtis, and designer co-ord sets designed to make every occasion memorable.
+                At Petal Ethnics & Jewellers, every creation is a homage to rich Indian textiles, intricate craftsmanship, and curated jewellery designs. Based in Kerala, we hand-curate premium silk sarees, festive Anarkalis, floral kurtis, co-ord sets, and statement jewellery designed to make every occasion memorable.
               </p>
               <p class="story-paragraph">
-                We believe ethnic wear should feel effortless, luxurious, and deeply authentic. Experience fabrics that breathe and craftsmanship that speaks for itself.
+                We believe ethnic wear and jewellery should feel effortless, luxurious, and deeply authentic. Experience fabrics that breathe and jewels that shine.
               </p>
               <div class="story-action">
                 <a routerLink="/about" class="btn-story-primary">
@@ -161,7 +161,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
           
           <div class="instagram-grid">
             <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg', 300)" alt="Petals Ethnic Instagram" loading="lazy" (error)="onImageError($event)" />
+              <img [src]="getOptimizedUrl('https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg', 300)" alt="Petal Ethnics & Jewellers Instagram" loading="lazy" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
               </div>
@@ -626,10 +626,11 @@ export class HomeComponent implements OnInit {
     return getResponsiveImageUrl(url, width);
   }
 
-  onQuickAdd(event: { product: Product; size: SizeOption }) {
+  onQuickAdd(event: { product: Product; size?: string }) {
     try {
       this.cartService.addToCart(event.product, event.size, 1);
-      alert(`Added ${event.product.name} (Size: ${event.size}) to your cart!`);
+      const sizeMsg = event.size ? ` (Size: ${event.size})` : '';
+      alert(`Added ${event.product.name}${sizeMsg} to your cart!`);
     } catch (err: any) {
       alert(err.message || 'Could not add item to cart');
     }

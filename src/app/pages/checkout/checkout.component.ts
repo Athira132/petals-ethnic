@@ -19,19 +19,18 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
     <div class="checkout-page" *ngIf="summary && summary.items.length > 0; else emptyCheckout">
       <div class="page-hero-banner checkout-hero-bg">
         <div class="container">
-          <h1 class="page-hero-title">Checkout & Secure Payment</h1>
-          <p class="page-hero-subtitle">Enter your shipping address, review order items, and select your preferred payment mode.</p>
+          <h1 class="page-hero-title">Checkout & Payment</h1>
+          <p class="page-hero-subtitle">Complete your delivery address and pay securely via Razorpay gateway.</p>
         </div>
       </div>
 
       <div class="container checkout-container">
-
         <div class="checkout-grid">
           <!-- Left Column: Shipping & Payment Form -->
           <div class="checkout-form-column">
             <!-- Step 1: Contact & Shipping Address -->
             <div class="checkout-card">
-              <h2 class="card-title">1. Shipping & Contact Information</h2>
+              <h2 class="card-title">1. Shipping & Contact Details</h2>
 
               <form #shippingForm="ngForm" class="checkout-form">
                 <div class="form-row">
@@ -44,6 +43,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                       name="customer_name" 
                       required 
                       class="form-control"
+                      placeholder="e.g. Ananya Sharma"
                     />
                   </div>
 
@@ -56,6 +56,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                       name="customer_phone" 
                       required 
                       class="form-control"
+                      placeholder="e.g. 9876543210"
                     />
                   </div>
                 </div>
@@ -69,6 +70,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                     name="customer_email" 
                     required 
                     class="form-control"
+                    placeholder="e.g. ananya@example.com"
                   />
                 </div>
 
@@ -81,6 +83,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                     required 
                     rows="2" 
                     class="form-control"
+                    placeholder="Flat / Building No., Street, Landmark"
                   ></textarea>
                 </div>
 
@@ -94,6 +97,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                       name="city" 
                       required 
                       class="form-control"
+                      placeholder="e.g. Kochi"
                     />
                   </div>
 
@@ -106,6 +110,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                       name="state" 
                       required 
                       class="form-control"
+                      placeholder="e.g. Kerala"
                     />
                   </div>
 
@@ -118,79 +123,32 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                       name="pincode" 
                       required 
                       class="form-control"
+                      placeholder="e.g. 682001"
                     />
                   </div>
                 </div>
               </form>
             </div>
 
-            <!-- Step 2: Payment Method Selection -->
+            <!-- Step 2: Payment Method (Razorpay ONLY) -->
             <div class="checkout-card">
-              <h2 class="card-title">2. Select Payment Method</h2>
+              <h2 class="card-title">2. Payment Method</h2>
 
               <div class="payment-method-options">
-                <!-- Option 1: Razorpay -->
-                <label class="payment-option" [class.selected]="paymentMethod === 'razorpay'">
-                  <input 
-                    type="radio" 
-                    name="paymentMethod" 
-                    value="razorpay" 
-                    [(ngModel)]="paymentMethod" 
-                  />
+                <!-- Exclusive Razorpay Gateway Card -->
+                <div class="payment-option selected active-razorpay-card">
+                  <div class="option-icon">🔒</div>
                   <div class="option-details">
-                    <span class="option-title">💳 Razorpay Gateway (Cards, NetBanking, UPI App)</span>
-                    <span class="option-desc">Fast, encrypted online checkout via Razorpay modal</span>
+                    <span class="option-title">Razorpay Secure Online Gateway</span>
+                    <span class="option-desc">Fast, encrypted online checkout. Supports UPI (Google Pay, PhonePe, Paytm), All Major Credit & Debit Cards, NetBanking, and Wallets.</span>
                   </div>
-                </label>
-
-                <!-- Option 2: Direct UPI QR Code -->
-                <label class="payment-option" [class.selected]="paymentMethod === 'upi'">
-                  <input 
-                    type="radio" 
-                    name="paymentMethod" 
-                    value="upi" 
-                    [(ngModel)]="paymentMethod" 
-                  />
-                  <div class="option-details">
-                    <span class="option-title">📱 Scan UPI QR Code / GPay / PhonePe</span>
-                    <span class="option-desc">Direct UPI payment to Petals Ethnic Official UPI ID</span>
-                  </div>
-                </label>
-
-                <!-- Option 3: COD -->
-                <label class="payment-option" [class.selected]="paymentMethod === 'cod'">
-                  <input 
-                    type="radio" 
-                    name="paymentMethod" 
-                    value="cod" 
-                    [(ngModel)]="paymentMethod" 
-                  />
-                  <div class="option-details">
-                    <span class="option-title">💵 Cash on Delivery (COD)</span>
-                    <span class="option-desc">Pay cash to courier agent upon delivery</span>
-                  </div>
-                </label>
+                  <span class="verified-badge">✓ ACTIVE</span>
+                </div>
               </div>
 
-              <!-- UPI QR Code Instruction Box -->
-              <div *ngIf="paymentMethod === 'upi'" class="upi-instruction-box">
-                <h4>Official Petals Ethnic UPI Payment:</h4>
-                <div class="upi-details">
-                  <p><strong>UPI ID:</strong> <code>8113899319&#64;ybl</code></p>
-                  <p><strong>Payee:</strong> Petals Ethnic Boutique</p>
-                  <p><strong>Amount:</strong> ₹{{ summary.grandTotal | number:'1.0-0' }}</p>
-                </div>
-                <div class="form-group margin-top-12">
-                  <label class="form-label" for="utr">UPI Transaction Reference / UTR Number *</label>
-                  <input 
-                    type="text" 
-                    id="utr" 
-                    [(ngModel)]="upiReference" 
-                    placeholder="e.g. 423987123901" 
-                    class="form-control"
-                  />
-                  <small class="help-text">Enter the 12-digit UTR/Reference ID from your Google Pay, PhonePe, or Paytm receipt.</small>
-                </div>
+              <div class="payment-assurance-box">
+                <span class="shield-icon">🛡️</span>
+                <p>100% Secure 256-bit SSL encrypted checkout. Cash on Delivery is discontinued to guarantee touchless and swift courier dispatch.</p>
               </div>
             </div>
           </div>
@@ -205,7 +163,11 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                   <img [src]="getItemImage(item)" [alt]="item.product.name" class="mini-img" (error)="onImageError($event)" />
                   <div class="mini-info">
                     <span class="mini-title">{{ item.product.name }}</span>
-                    <span class="mini-size">Size: {{ item.selectedSize }} | Qty: {{ item.quantity }}</span>
+                    <span class="mini-size">
+                      <span *ngIf="item.selectedSize && item.selectedSize !== 'One Size' && item.selectedSize !== 'N/A'">Size: {{ item.selectedSize }} • </span>
+                      <span *ngIf="item.selectedColor">Color: {{ item.selectedColor }} • </span>
+                      Qty: {{ item.quantity }}
+                    </span>
                   </div>
                   <span class="mini-price">₹{{ item.totalPrice | number:'1.0-0' }}</span>
                 </div>
@@ -239,11 +201,11 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                 [disabled]="isProcessing" 
                 class="btn-primary place-order-btn"
               >
-                {{ isProcessing ? 'Processing Order...' : 'Complete & Pay ₹' + (summary.grandTotal | number:'1.0-0') }}
+                {{ isProcessing ? 'Connecting to Razorpay...' : 'Pay ₹' + (summary.grandTotal | number:'1.0-0') + ' via Razorpay' }}
               </button>
 
               <p class="terms-text">
-                By placing an order, you agree to Petals Ethnic's shipping and boutique terms.
+                By placing an order, you agree to Petal Ethnics & Jewellers terms and shipping policies.
               </p>
             </div>
           </div>
@@ -258,14 +220,23 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
         <h2>Order Confirmed!</h2>
         <p class="order-no">Order Reference: <strong>{{ completedOrder.order_number }}</strong></p>
         <p class="success-desc">
-          Thank you for shopping with Petals Ethnic! We have received your order and will dispatch your package shortly.
+          Thank you for shopping with Petal Ethnics & Jewellers! We have received your order and payment.
         </p>
 
         <div class="order-details-mini">
-          <p><strong>Customer:</strong> {{ completedOrder.customer_name }}</p>
+          <p><strong>Customer:</strong> {{ completedOrder.customer_name }} ({{ completedOrder.customer_phone }})</p>
           <p><strong>Delivery Address:</strong> {{ completedOrder.address }}, {{ completedOrder.city }}, {{ completedOrder.state }} - {{ completedOrder.pincode }}</p>
-          <p><strong>Payment Method:</strong> {{ completedOrder.payment_method | uppercase }}</p>
-          <p><strong>Payment Status:</strong> {{ completedOrder.payment_status | uppercase }}</p>
+          <p><strong>Total Paid:</strong> ₹{{ completedOrder.total | number:'1.0-0' }}</p>
+          <p><strong>Payment Status:</strong> PAID (Razorpay)</p>
+          <p *ngIf="completedOrder.payment_reference"><strong>Payment ID:</strong> {{ completedOrder.payment_reference }}</p>
+        </div>
+
+        <!-- WhatsApp Store Notification Backup Button -->
+        <div class="whatsapp-backup-action" *ngIf="whatsappNotificationUrl">
+          <a [href]="whatsappNotificationUrl" target="_blank" rel="noopener" class="btn-whatsapp-notify">
+            <span>📱 Notify Admin on WhatsApp (+91 81138 99319)</span>
+          </a>
+          <small class="whatsapp-hint">Click to send an instant order receipt copy to our store WhatsApp helpline.</small>
         </div>
 
         <div class="success-actions">
@@ -286,54 +257,52 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
   styles: [`
     .page-hero-banner {
       position: relative;
-      background: linear-gradient(rgba(0,0,0,0.22), rgba(0,0,0,0.12)), url('https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png') center/cover no-repeat;
-      padding: 50px 20px;
+      background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.35)), url('https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png') center/cover no-repeat;
+      padding: 40px 20px;
       text-align: center;
       color: #FFFFFF;
       margin-bottom: 30px;
     }
     .page-hero-title {
-      font-size: 32px;
+      font-family: var(--font-serif);
+      font-size: 30px;
       font-weight: 700;
       color: #FFFFFF;
-      margin-bottom: 8px;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      margin-bottom: 6px;
     }
     .page-hero-subtitle {
       font-size: 14px;
       color: rgba(255, 255, 255, 0.9);
-      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-    }
-    @media (max-width: 768px) {
-      .page-hero-banner { padding: 36px 16px; margin-bottom: 20px; }
-      .page-hero-title { font-size: 22px; }
-      .page-hero-subtitle { font-size: 12px; }
+      max-width: 600px;
+      margin: 0 auto;
     }
 
-    .checkout-page {
-      padding: 0 0 80px 0;
+    .checkout-container {
+      padding-bottom: 80px;
     }
-
     .checkout-grid {
       display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 40px;
+      grid-template-columns: 1fr 400px;
+      gap: 36px;
     }
     @media (max-width: 992px) {
-      .checkout-grid { grid-template-columns: 1fr; }
+      .checkout-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .checkout-card {
       background: #FFFFFF;
       border: 1px solid var(--color-border-light);
       border-radius: var(--radius-md);
-      padding: 32px;
+      padding: 24px;
       margin-bottom: 24px;
-      box-shadow: var(--shadow-sm);
     }
     .card-title {
-      font-size: 20px;
-      margin-bottom: 24px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--color-text-heading);
+      margin-bottom: 20px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--color-border-light);
     }
@@ -342,83 +311,101 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
       display: flex;
       gap: 16px;
     }
-    @media (max-width: 576px) {
+    @media (max-width: 600px) {
       .form-row { flex-direction: column; gap: 0; }
     }
+    .form-group {
+      margin-bottom: 16px;
+    }
     .flex-1 { flex: 1; }
-
-    /* Payment Option Cards */
-    .payment-method-options {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-heading);
+      margin-bottom: 6px;
     }
-    .payment-option {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      padding: 16px 20px;
-      border: 1.5px solid var(--color-border);
-      border-radius: var(--radius-md);
-      cursor: pointer;
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: #FFFFFF;
       transition: var(--transition);
+      box-sizing: border-box;
     }
-    .payment-option.selected {
+    .form-control:focus {
+      outline: none;
       border-color: var(--color-pink-dark);
-      background-color: var(--color-pink-light);
+      box-shadow: 0 0 0 3px rgba(192, 86, 118, 0.15);
+    }
+
+    /* Payment Card */
+    .active-razorpay-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--color-pink-dark);
+      background: #FFF5F7;
+    }
+    .option-icon {
+      font-size: 24px;
     }
     .option-details {
+      flex: 1;
       display: flex;
       flex-direction: column;
+      gap: 4px;
     }
     .option-title {
+      font-weight: 700;
       font-size: 15px;
-      font-weight: 600;
       color: var(--color-text-heading);
     }
     .option-desc {
       font-size: 12px;
       color: var(--color-muted);
+      line-height: 1.4;
     }
-
-    .upi-instruction-box {
-      margin-top: 20px;
-      padding: 20px;
-      background-color: var(--color-gold-light);
-      border: 1px solid var(--color-gold);
-      border-radius: var(--radius-md);
-    }
-    .upi-instruction-box h4 {
-      font-size: 15px;
-      margin-bottom: 8px;
-    }
-    .upi-details code {
-      background: #FFFFFF;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-weight: bold;
-      color: var(--color-text-heading);
-    }
-    .margin-top-12 { margin-top: 12px; }
-    .help-text {
+    .verified-badge {
+      background: var(--color-pink-dark);
+      color: #FFFFFF;
       font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+    .payment-assurance-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: #FDF9F6;
+      border: 1px solid #F3E8E2;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
       color: var(--color-muted);
     }
+    .shield-icon { font-size: 16px; flex-shrink: 0; }
 
     /* Summary Card */
     .summary-card {
-      background: var(--color-bg-alt);
+      background: #FFFFFF;
       border: 1px solid var(--color-border-light);
       border-radius: var(--radius-md);
-      padding: 28px;
+      padding: 24px;
       position: sticky;
       top: 100px;
     }
-
     .order-items-mini {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       max-height: 240px;
       overflow-y: auto;
       margin-bottom: 16px;
@@ -442,6 +429,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
     }
     .mini-title {
       font-weight: 600;
+      color: var(--color-text-heading);
     }
     .mini-size {
       font-size: 11px;
@@ -449,42 +437,42 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
     }
     .mini-price {
       font-weight: 600;
-      color: #C05676;
+      color: var(--color-pink-dark);
     }
 
     .summary-divider {
       height: 1px;
-      background-color: var(--color-border);
+      background-color: var(--color-border-light);
       margin: 16px 0;
     }
     .summary-row {
       display: flex;
       justify-content: space-between;
       font-size: 14px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .grand-total-row {
       font-size: 18px;
       font-weight: 700;
     }
     .grand-price {
-      color: #C05676;
+      color: var(--color-pink-dark);
       font-size: 22px;
     }
-
     .checkout-error {
-      background-color: #FFEBEE;
-      color: #C62828;
+      background-color: #FEE2E2;
+      color: #991B1B;
       padding: 12px;
       border-radius: var(--radius-sm);
       font-size: 13px;
       margin-top: 16px;
     }
-
     .place-order-btn {
       width: 100%;
-      margin-top: 24px;
+      margin-top: 20px;
       padding: 16px;
+      font-size: 15px;
+      font-weight: 700;
     }
     .terms-text {
       font-size: 11px;
@@ -503,47 +491,89 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 20px;
     }
     .success-box {
       background: #FFFFFF;
       max-width: 540px;
       width: 100%;
-      padding: 40px;
+      padding: 36px;
       border-radius: var(--radius-lg);
       text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
     }
     .success-icon {
-      font-size: 56px;
+      font-size: 48px;
       margin-bottom: 12px;
     }
     .order-no {
-      font-size: 18px;
+      font-size: 17px;
       color: var(--color-pink-dark);
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
     .success-desc {
       font-size: 14px;
       color: var(--color-muted);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .order-details-mini {
-      background-color: var(--color-bg-alt);
+      background-color: var(--color-bg-alt, #F8F9FA);
       padding: 16px;
       border-radius: var(--radius-md);
       text-align: left;
       font-size: 13px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-    .success-actions {
-      display: flex;
-      gap: 16px;
+
+    .whatsapp-backup-action {
+      margin-bottom: 24px;
+      padding: 14px;
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-radius: var(--radius-md);
+    }
+    .btn-whatsapp-notify {
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
+      gap: 8px;
+      background: #25D366;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .btn-whatsapp-notify:hover {
+      background: #1EBE5D;
+    }
+    .whatsapp-hint {
+      display: block;
+      font-size: 11px;
+      color: #166534;
+      margin-top: 6px;
     }
 
+    .success-actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+    }
+    .btn-outline {
+      padding: 12px 20px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--color-text);
+      font-weight: 600;
+    }
     .empty-box {
       text-align: center;
       padding: 80px 24px;
@@ -564,12 +594,10 @@ export class CheckoutComponent implements OnInit {
     pincode: ''
   };
 
-  paymentMethod: 'razorpay' | 'upi' | 'cod' = 'razorpay';
-  upiReference = '';
-
   isProcessing = false;
   errorMessage = '';
   completedOrder: Order | null = null;
+  whatsappNotificationUrl = '';
 
   constructor(
     private cartService: CartService,
@@ -583,13 +611,11 @@ export class CheckoutComponent implements OnInit {
     this.summary = this.cartService.currentSummary;
     this.userProfile = this.authService.userProfile;
 
-    // Check if user is logged in; if not, prompt login before proceeding
     if (!this.authService.currentUser) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/checkout' } });
       return;
     }
 
-    // Auto fill shipping if user profile exists
     if (this.userProfile) {
       this.shipping.customer_name = this.userProfile.name || '';
       this.shipping.customer_email = this.userProfile.email || '';
@@ -598,6 +624,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   getItemImage(item: any): string {
+    if (item.selectedImage) return item.selectedImage;
     const images = extractProductImages(item.product);
     return images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
   }
@@ -607,14 +634,8 @@ export class CheckoutComponent implements OnInit {
   }
 
   async placeOrder() {
-    // Validate inputs
     if (!this.shipping.customer_name || !this.shipping.customer_email || !this.shipping.customer_phone || !this.shipping.address || !this.shipping.city || !this.shipping.state || !this.shipping.pincode) {
       this.errorMessage = 'Please complete all required shipping & contact details.';
-      return;
-    }
-
-    if (this.paymentMethod === 'upi' && !this.upiReference.trim()) {
-      this.errorMessage = 'Please enter your 12-digit UPI UTR / Reference ID.';
       return;
     }
 
@@ -627,45 +648,59 @@ export class CheckoutComponent implements OnInit {
       discount: this.summary.discount,
       delivery_charge: this.summary.shipping,
       total: this.summary.grandTotal,
-      payment_method: this.paymentMethod,
-      payment_reference: this.paymentMethod === 'upi' ? this.upiReference.trim() : undefined,
+      payment_method: 'razorpay' as const,
       items: this.summary.items
     };
 
     const user = this.authService.currentUser;
 
     try {
-      if (this.paymentMethod === 'razorpay') {
-        // First create pending order
-        const createdOrder = await this.orderService.createOrder(payload, user?.id);
-        
-        // Open Razorpay Modal
-        await this.paymentService.openRazorpayCheckout({
-          amountInRupees: this.summary.grandTotal,
-          orderId: createdOrder.order_number,
-          customerName: this.shipping.customer_name,
-          customerEmail: this.shipping.customer_email,
-          customerPhone: this.shipping.customer_phone,
-          onSuccess: async (paymentId: string) => {
-            await this.orderService.updatePaymentStatus(createdOrder.id, 'paid', paymentId);
-            createdOrder.payment_status = 'paid';
-            createdOrder.payment_reference = paymentId;
-            this.completedOrder = createdOrder;
-            this.cartService.clearCart();
-            this.isProcessing = false;
-          },
-          onCancel: () => {
-            this.isProcessing = false;
-            this.errorMessage = 'Razorpay payment was cancelled. You can try again or select another payment option.';
-          }
-        });
-      } else {
-        // Direct UPI or COD order creation
-        const order = await this.orderService.createOrder(payload, user?.id);
-        this.completedOrder = order;
-        this.cartService.clearCart();
-        this.isProcessing = false;
-      }
+      // 1. Create order record
+      const createdOrder = await this.orderService.createOrder(payload, user?.id);
+
+      // 2. Open Razorpay Gateway Modal
+      await this.paymentService.openRazorpayCheckout({
+        amountInRupees: this.summary.grandTotal,
+        orderId: createdOrder.order_number,
+        customerName: this.shipping.customer_name,
+        customerEmail: this.shipping.customer_email,
+        customerPhone: this.shipping.customer_phone,
+        onSuccess: async (paymentId: string) => {
+          await this.orderService.updatePaymentStatus(createdOrder.id, 'paid', paymentId);
+          createdOrder.payment_status = 'paid';
+          createdOrder.payment_reference = paymentId;
+          this.completedOrder = createdOrder;
+
+          // 3. Format WhatsApp Notification for Store Admin (+91 81138 99319)
+          const itemsList = (this.summary.items || []).map((it, idx) => {
+            const sizeStr = (it.selectedSize && it.selectedSize !== 'N/A' && it.selectedSize !== 'One Size') ? ` | Size: ${it.selectedSize}` : '';
+            const colorStr = it.selectedColor ? ` | Color: ${it.selectedColor}` : '';
+            return `${idx + 1}. *${it.product.name}* (Qty: ${it.quantity}${sizeStr}${colorStr}) - ₹${it.totalPrice}`;
+          }).join('\n');
+
+          const waText = `🛍️ *NEW ORDER - Petal Ethnics & Jewellers*\n` +
+            `----------------------------------------\n` +
+            `*Order ID:* ${createdOrder.order_number}\n` +
+            `*Customer:* ${this.shipping.customer_name}\n` +
+            `*Phone:* ${this.shipping.customer_phone}\n` +
+            `*Address:*\n${this.shipping.address}, ${this.shipping.city}, ${this.shipping.state} - ${this.shipping.pincode}\n` +
+            `----------------------------------------\n` +
+            `*Items:*\n${itemsList}\n` +
+            `----------------------------------------\n` +
+            `*Total Amount:* ₹${this.summary.grandTotal}\n` +
+            `*Payment Status:* Paid via Razorpay ✅\n` +
+            `*Payment Ref:* ${paymentId}`;
+
+          this.whatsappNotificationUrl = `https://wa.me/918113899319?text=${encodeURIComponent(waText)}`;
+
+          this.cartService.clearCart();
+          this.isProcessing = false;
+        },
+        onCancel: () => {
+          this.isProcessing = false;
+          this.errorMessage = 'Payment was cancelled or closed. You can retry securely.';
+        }
+      });
     } catch (err: any) {
       console.error('Checkout error:', err);
       this.errorMessage = err.message || 'Error processing your order. Please try again.';

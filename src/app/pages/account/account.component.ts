@@ -125,7 +125,7 @@ import { handleImageError } from '../../core/utils/image.utils';
     <ng-template #noOrders>
       <div class="no-orders-box">
         <h3>No Orders Placed Yet</h3>
-        <p>You haven't placed any orders with Petals Ethnic yet.</p>
+        <p>You haven't placed any orders with Petal Ethnics & Jewellers yet.</p>
         <a routerLink="/shop" class="btn-primary">Explore Shop</a>
       </div>
     </ng-template>

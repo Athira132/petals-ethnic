@@ -27,20 +27,45 @@ import { handleImageError } from '../../../core/utils/image.utils';
         </button>
 
         <!-- Brand Logo with Circular Frame -->
+        <!-- Brand Logo with Circular Frame -->
         <a routerLink="/" class="brand-logo">
           <div class="logo-circle">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="logo-img" (error)="onImageError($event)" />
+            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="logo-img" (error)="onImageError($event)" />
           </div>
           <div class="brand-text">
-            <span class="brand-name">PETALS ETHNIC</span>
-            <span class="brand-tagline">BOUTIQUE & FASHION</span>
+            <span class="brand-name">PETAL ETHNICS & JEWELLERS</span>
+            <span class="brand-tagline">BOUTIQUE & JEWELLERY</span>
           </div>
         </a>
 
         <!-- Desktop Navigation Links -->
         <nav class="desktop-nav">
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
-          <a routerLink="/shop" routerLinkActive="active" class="nav-link">Shop</a>
+          <div class="nav-dropdown-wrapper" (mouseenter)="isShopDropdownOpen = true" (mouseleave)="isShopDropdownOpen = false">
+            <a routerLink="/shop" routerLinkActive="active" class="nav-link dropdown-toggle-link">
+              Shop <span class="arrow-indicator">▾</span>
+            </a>
+            <div class="dropdown-popover" *ngIf="isShopDropdownOpen">
+              <a routerLink="/shop/ethnics" class="dropdown-popover-item" (click)="isShopDropdownOpen = false">
+                <span class="dropdown-icon">🌸</span>
+                <div>
+                  <div class="popover-title">Ethnics</div>
+                  <div class="popover-desc">Kurtis, Sarees, Anarkalis & Midi Dresses</div>
+                </div>
+              </a>
+              <a routerLink="/shop/jewellery" class="dropdown-popover-item" (click)="isShopDropdownOpen = false">
+                <span class="dropdown-icon">✨</span>
+                <div>
+                  <div class="popover-title">Jewellery</div>
+                  <div class="popover-desc">Necklaces, Earrings, Bangles & Rings</div>
+                </div>
+              </a>
+              <div class="dropdown-divider"></div>
+              <a routerLink="/shop" class="dropdown-popover-item all-link" (click)="isShopDropdownOpen = false">
+                <span>Browse All Collections &rarr;</span>
+              </a>
+            </div>
+          </div>
           <a routerLink="/categories" routerLinkActive="active" class="nav-link">Categories</a>
           <a routerLink="/about" routerLinkActive="active" class="nav-link">About Us</a>
           <a routerLink="/contact" routerLinkActive="active" class="nav-link">Contact</a>
@@ -52,7 +77,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
           <div class="search-box" [class.active]="isSearchOpen">
             <input 
               type="text" 
-              placeholder="Search kurtis, dresses..." 
+              placeholder="Search ethnics, jewellery..." 
               [(ngModel)]="searchQuery"
               (keyup.enter)="onSearch()"
               class="search-input" 
@@ -104,15 +129,33 @@ import { handleImageError } from '../../../core/utils/image.utils';
     <aside class="mobile-drawer" [class.open]="isMobileMenuOpen">
       <div class="mobile-drawer-header">
         <div class="logo-circle drawer-logo-circle">
-          <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" class="drawer-logo" (error)="onImageError($event)" />
+          <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers" class="drawer-logo" (error)="onImageError($event)" />
+        </div>
+        <div class="drawer-brand-info">
+          <div class="drawer-brand-name">PETAL ETHNICS</div>
+          <div class="drawer-brand-sub">& JEWELLERS</div>
         </div>
         <button (click)="toggleMobileMenu()" class="close-btn">&times;</button>
       </div>
 
       <nav class="mobile-nav-links">
         <a routerLink="/" (click)="toggleMobileMenu()" class="mobile-link">Home</a>
-        <a routerLink="/shop" (click)="toggleMobileMenu()" class="mobile-link">Shop Collection</a>
-        <a routerLink="/categories" (click)="toggleMobileMenu()" class="mobile-link">Categories</a>
+
+        <!-- Mobile Shop Sections -->
+        <div class="mobile-nav-section-label">SHOP COLLECTIONS</div>
+        <a routerLink="/shop/ethnics" (click)="toggleMobileMenu()" class="mobile-link mobile-sub-link">
+          <span class="nav-pill-icon">🌸</span> Ethnics Collection
+        </a>
+        <a routerLink="/shop/jewellery" (click)="toggleMobileMenu()" class="mobile-link mobile-sub-link">
+          <span class="nav-pill-icon">✨</span> Jewellery Collection
+        </a>
+        <a routerLink="/shop" (click)="toggleMobileMenu()" class="mobile-link mobile-sub-link secondary">
+          All Products
+        </a>
+
+        <div class="mobile-divider"></div>
+
+        <a routerLink="/categories" (click)="toggleMobileMenu()" class="mobile-link">Category Discovery</a>
         <a routerLink="/about" (click)="toggleMobileMenu()" class="mobile-link">About Us</a>
         <a routerLink="/contact" (click)="toggleMobileMenu()" class="mobile-link">Contact Us</a>
         
@@ -130,7 +173,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
 
       <div class="mobile-drawer-footer">
         <p class="drawer-contact-label">WhatsApp Helpline:</p>
-        <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnic,%20I%20would%20like%20to%20know%20more%20about%20your%20products." target="_blank" class="mobile-wa-btn">
+        <a href="https://wa.me/918113899319?text=Hello%20Petal%20Ethnics%20%26%20Jewellers,%20I%20would%20like%20to%20know%20more%20about%20your%20collection." target="_blank" class="mobile-wa-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.333 5.001l-1.416 5.174 5.299-1.389c1.464.798 3.114 1.218 4.774 1.218h.004c5.506 0 9.989-4.478 9.99-9.984 0-2.669-1.038-5.176-2.925-7.062-1.887-1.886-4.394-2.924-7.064-2.924zm5.82 14.281c-.244.687-1.42 1.312-1.957 1.393-.49.074-1.127.106-1.815-.115-.418-.134-.956-.31-1.657-.615-2.955-1.282-4.887-4.281-5.035-4.479-.148-.198-1.205-1.604-1.205-3.059 0-1.455.762-2.172 1.033-2.464.271-.292.593-.365.791-.365.198 0 .396.002.568.01.185.009.432-.07.676.516.244.587.834 2.036.907 2.184.073.148.122.321.024.516-.098.196-.148.318-.293.49-.148.171-.31.382-.443.513-.148.148-.303.31-.131.606.171.296.76 1.256 1.632 2.033 1.123.999 2.07 1.309 2.366 1.457.296.148.469.124.642-.074.173-.198.742-.865.94-1.162.198-.296.396-.247.668-.148.271.098 1.727.815 2.023.963.296.148.494.222.568.346.074.123.074.715-.17 1.402z"/>
           </svg>
@@ -413,6 +456,117 @@ import { handleImageError } from '../../../core/utils/image.utils';
       border-top: 1px solid var(--color-border-light);
       font-size: 13px;
     }
+    .nav-dropdown-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-toggle-link {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .arrow-indicator {
+      font-size: 11px;
+      transition: transform 0.2s ease;
+    }
+    .dropdown-popover {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 280px;
+      background: #FFFFFF;
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      padding: 12px;
+      z-index: 200;
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: fadeInDropdown 0.2s ease;
+    }
+    @keyframes fadeInDropdown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-popover-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--color-text-heading);
+      transition: background-color 0.2s ease;
+    }
+    .dropdown-popover-item:hover {
+      background-color: var(--color-bg-alt);
+    }
+    .dropdown-icon {
+      font-size: 20px;
+    }
+    .popover-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--color-text-heading);
+    }
+    .popover-desc {
+      font-size: 11px;
+      color: var(--color-muted);
+    }
+    .dropdown-divider {
+      height: 1px;
+      background-color: var(--color-border-light);
+      margin: 4px 0;
+    }
+    .dropdown-popover-item.all-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-pink-dark);
+      justify-content: center;
+      text-align: center;
+    }
+    .mobile-shop-group {
+      margin: 8px 0 12px;
+      padding-left: 8px;
+    }
+    .mobile-nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--color-muted);
+      margin: 14px 0 6px 0;
+    }
+    .mobile-sub-link {
+      padding: 8px 12px !important;
+      font-size: 14px !important;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mobile-sub-link.secondary {
+      font-size: 13px !important;
+      color: var(--color-muted) !important;
+    }
+    .drawer-brand-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer-brand-name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 1px;
+      color: var(--color-text-heading);
+    }
+    .drawer-brand-sub {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: var(--color-gold);
+    }
     .drawer-contact-label {
       color: var(--color-muted);
       margin-bottom: 8px;
@@ -435,6 +589,7 @@ export class NavbarComponent implements OnInit {
   isScrolled = false;
   isMobileMenuOpen = false;
   isSearchOpen = false;
+  isShopDropdownOpen = false;
   searchQuery = '';
 
   cartSummary$: Observable<CartSummary>;

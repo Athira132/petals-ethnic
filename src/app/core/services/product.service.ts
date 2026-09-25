@@ -86,6 +86,99 @@ export class ProductService {
   }
 
   // ==========================================
+  // PARSING & COMPATIBILITY HELPERS
+  // ==========================================
+  parseCategoryMeta(category: any): Category {
+    if (!category) return category;
+    const c: Category = { ...category };
+
+    // Resolve department
+    if (!c.department) {
+      if (c.description && c.description.includes('<!--DEPT:')) {
+        const match = c.description.match(/<!--DEPT:(ethnic|jewellery)-->/);
+        if (match && match[1]) {
+          c.department = match[1] as 'ethnic' | 'jewellery';
+          c.description = c.description.replace(/<!--DEPT:(ethnic|jewellery)-->/, '').trim();
+        }
+      }
+      if (!c.department) {
+        const isJewellery = /jewel|necklace|earring|bangle|ring|bracelet|chain|pendant|anklet|choker|antique/i.test((c.slug || '') + ' ' + (c.name || ''));
+        c.department = isJewellery ? 'jewellery' : 'ethnic';
+      }
+    }
+    return c;
+  }
+
+  parseProductMeta(product: any): Product {
+    if (!product) return product;
+    const p: Product = { ...product };
+
+    if (p.category) {
+      p.category = this.parseCategoryMeta(p.category);
+    }
+
+    // Parse fallback <!--PRODUCT_META:...--> tag from description if exists
+    if (p.description && p.description.includes('<!--PRODUCT_META:')) {
+      try {
+        const match = p.description.match(/<!--PRODUCT_META:([\s\S]*?)-->/);
+        if (match && match[1]) {
+          const meta = JSON.parse(match[1]);
+          if (p.has_size === undefined && meta.has_size !== undefined) p.has_size = meta.has_size;
+          if (p.show_size_chart === undefined && meta.show_size_chart !== undefined) p.show_size_chart = meta.show_size_chart;
+          if (!p.size_chart_url && meta.size_chart_url) p.size_chart_url = meta.size_chart_url;
+          if (!p.purchase_mode && meta.purchase_mode) p.purchase_mode = meta.purchase_mode;
+          if (!p.video_url && meta.video_url) p.video_url = meta.video_url;
+          if (p.has_colors === undefined && meta.has_colors !== undefined) p.has_colors = meta.has_colors;
+          if ((!p.color_variants || p.color_variants.length === 0) && meta.color_variants) p.color_variants = meta.color_variants;
+          if (!p.stock_display && meta.stock_display) p.stock_display = meta.stock_display;
+          if (!p.custom_stock_message && meta.custom_stock_message) p.custom_stock_message = meta.custom_stock_message;
+          if (!p.return_policy && meta.return_policy) p.return_policy = meta.return_policy;
+          if (!p.department && meta.department) p.department = meta.department;
+
+          p.description = p.description.replace(/<!--PRODUCT_META:[\s\S]*?-->/, '').trim();
+        }
+      } catch (e) {
+        console.warn('Error parsing product meta tag:', e);
+      }
+    }
+
+    // Department inference if missing
+    if (!p.department) {
+      if (p.category?.department) {
+        p.department = p.category.department;
+      } else {
+        const catName = (p.category?.name || '').toLowerCase();
+        const catSlug = (p.category?.slug || '').toLowerCase();
+        const prodName = (p.name || '').toLowerCase();
+        const isJewellery = /jewel|necklace|earring|bangle|ring|bracelet|chain|pendant|anklet|choker|antique/i.test(catName + ' ' + catSlug + ' ' + prodName);
+        p.department = isJewellery ? 'jewellery' : 'ethnic';
+      }
+    }
+
+    // Default fallbacks
+    if (p.has_size === undefined || p.has_size === null) {
+      p.has_size = p.department !== 'jewellery';
+    }
+    if (p.show_size_chart === undefined || p.show_size_chart === null) {
+      p.show_size_chart = false;
+    }
+    if (!p.purchase_mode) {
+      p.purchase_mode = 'online';
+    }
+    if (p.has_colors === undefined || p.has_colors === null) {
+      p.has_colors = Boolean(p.color_variants && p.color_variants.length > 0);
+    }
+    if (!p.color_variants) {
+      p.color_variants = [];
+    }
+    if (!p.stock_display) {
+      p.stock_display = 'normal';
+    }
+
+    return p;
+  }
+
+  // ==========================================
   // CATEGORIES MANAGEMENT
   // ==========================================
   async getCategories(activeOnly = true): Promise<Category[]> {
@@ -104,9 +197,10 @@ export class ProductService {
 
       const { data, error } = await query;
       if (!error && data) {
-        this.cachedCategories = data;
-        this.categoriesSubject.next(data);
-        return data;
+        const parsed = data.map(c => this.parseCategoryMeta(c));
+        this.cachedCategories = parsed;
+        this.categoriesSubject.next(parsed);
+        return activeOnly ? parsed.filter(c => c.active) : parsed;
       }
     } catch (e) {
       console.warn('Direct category query failed, falling back to API:', e);
@@ -118,7 +212,7 @@ export class ProductService {
       if (contentType.includes('application/json')) {
         const resData = await res.json();
         if (resData.success && resData.categories) {
-          let cats = resData.categories as Category[];
+          let cats = (resData.categories as any[]).map(c => this.parseCategoryMeta(c));
           this.cachedCategories = cats;
           this.categoriesSubject.next(cats);
           return activeOnly ? cats.filter(c => c.active) : cats;
@@ -137,28 +231,30 @@ export class ProductService {
   }
 
   addCategoryToCache(category: Category) {
+    const parsed = this.parseCategoryMeta(category);
     if (!this.cachedCategories) {
-      this.cachedCategories = [category];
+      this.cachedCategories = [parsed];
     } else {
-      const idx = this.cachedCategories.findIndex(c => c.id === category.id);
+      const idx = this.cachedCategories.findIndex(c => c.id === parsed.id);
       if (idx >= 0) {
-        this.cachedCategories[idx] = { ...category };
+        this.cachedCategories[idx] = { ...parsed };
       } else {
-        this.cachedCategories = [category, ...this.cachedCategories];
+        this.cachedCategories = [parsed, ...this.cachedCategories];
       }
     }
     this.categoriesSubject.next([...this.cachedCategories]);
   }
 
   updateCategoryInCache(category: Category) {
+    const parsed = this.parseCategoryMeta(category);
     if (!this.cachedCategories) {
-      this.cachedCategories = [category];
+      this.cachedCategories = [parsed];
     } else {
-      const idx = this.cachedCategories.findIndex(c => c.id === category.id);
+      const idx = this.cachedCategories.findIndex(c => c.id === parsed.id);
       if (idx >= 0) {
-        this.cachedCategories[idx] = { ...this.cachedCategories[idx], ...category };
+        this.cachedCategories[idx] = { ...this.cachedCategories[idx], ...parsed };
       } else {
-        this.cachedCategories = [...this.cachedCategories, category];
+        this.cachedCategories = [...this.cachedCategories, parsed];
       }
     }
     this.categoriesSubject.next([...this.cachedCategories]);
@@ -191,9 +287,11 @@ export class ProductService {
       throw new Error(`This category slug '${rawSlug}' ('${existing.name}') already exists.`);
     }
 
+    const dept = category.department || 'ethnic';
     const payload: any = {
       name: rawName,
       slug: rawSlug,
+      department: dept,
       description: category.description ? category.description.trim() : null,
       image_url: (category.image_url && category.image_url.trim()) ? category.image_url.trim() : null,
       active: category.active !== false,
@@ -207,8 +305,9 @@ export class ProductService {
       .single();
 
     if (!error && data) {
-      this.addCategoryToCache(data);
-      return data;
+      const parsed = this.parseCategoryMeta(data);
+      this.addCategoryToCache(parsed);
+      return parsed;
     }
 
     console.warn('Direct Supabase category insert notice, using API endpoint:', error?.message);
@@ -231,8 +330,9 @@ export class ProductService {
       if (!res.ok || !resData.success) {
         throw new Error(resData.error || error?.message || 'Failed to create category.');
       }
-      this.addCategoryToCache(resData.category);
-      return resData.category;
+      const parsed = this.parseCategoryMeta(resData.category);
+      this.addCategoryToCache(parsed);
+      return parsed;
     } else {
       throw new Error(error?.message || 'Failed to create category in database.');
     }
@@ -245,6 +345,7 @@ export class ProductService {
 
     if (category.name !== undefined) payload.name = category.name.trim();
     if (category.slug !== undefined) payload.slug = category.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (category.department !== undefined) payload.department = category.department;
     if (category.description !== undefined) payload.description = category.description ? category.description.trim() : null;
     if (category.image_url !== undefined) payload.image_url = (category.image_url && category.image_url.trim()) ? category.image_url.trim() : null;
     if (category.active !== undefined) payload.active = Boolean(category.active);
@@ -258,8 +359,9 @@ export class ProductService {
       .single();
 
     if (!error && data) {
-      this.updateCategoryInCache(data);
-      return data;
+      const parsed = this.parseCategoryMeta(data);
+      this.updateCategoryInCache(parsed);
+      return parsed;
     }
 
     const session = (await this.supabaseService.supabase.auth.getSession()).data.session;
@@ -280,8 +382,9 @@ export class ProductService {
       if (!res.ok || !resData.success) {
         throw new Error(resData.error || error?.message || 'Failed to update category.');
       }
-      this.updateCategoryInCache(resData.category);
-      return resData.category;
+      const parsed = this.parseCategoryMeta(resData.category);
+      this.updateCategoryInCache(parsed);
+      return parsed;
     } else {
       throw new Error(error?.message || 'Failed to update category.');
     }
@@ -339,7 +442,7 @@ export class ProductService {
           .order('created_at', { ascending: false });
 
         if (!error && data && data.length > 0) {
-          fetched = data;
+          fetched = data.map(p => this.parseProductMeta(p));
         }
       } catch (e) {
         console.warn('Direct product query notice, using API fallback:', e);
@@ -352,7 +455,7 @@ export class ProductService {
           if (contentType.includes('application/json')) {
             const resData = await res.json();
             if (resData.success && resData.products) {
-              fetched = resData.products as Product[];
+              fetched = (resData.products as any[]).map(p => this.parseProductMeta(p));
             }
           }
         } catch (e) {
@@ -423,7 +526,7 @@ export class ProductService {
         (p.slug && p.slug.toLowerCase() === cleanKey) || 
         p.id === slugKey
       );
-      if (found) return found;
+      if (found) return this.parseProductMeta(found);
     }
 
     // 2. Direct single-row database query
@@ -447,7 +550,7 @@ export class ProductService {
       const { data, error } = await query.maybeSingle();
 
       if (!error && data) {
-        return data as Product;
+        return this.parseProductMeta(data as Product);
       }
     } catch (e) {
       console.warn('Direct product slug query notice:', e);
@@ -455,10 +558,11 @@ export class ProductService {
 
     // 3. Fallback to full list search
     const products = await this.getProducts({ activeOnly: false });
-    return products.find(p => 
+    const match = products.find(p => 
       (p.slug && p.slug.toLowerCase() === cleanKey) || 
       p.id === slugKey
     ) || null;
+    return match ? this.parseProductMeta(match) : null;
   }
 
   async getProductById(id: string): Promise<Product | null> {
@@ -467,7 +571,7 @@ export class ProductService {
     // 1. Instant memory cache lookup
     if (this.cachedProducts && this.cachedProducts.length > 0) {
       const found = this.cachedProducts.find(p => p.id === id);
-      if (found) return found;
+      if (found) return this.parseProductMeta(found);
     }
 
     // 2. Direct single-row database query
@@ -484,7 +588,7 @@ export class ProductService {
         .maybeSingle();
 
       if (!error && data) {
-        return data as Product;
+        return this.parseProductMeta(data as Product);
       }
     } catch (e) {
       console.warn('Direct product ID query notice:', e);
@@ -492,7 +596,8 @@ export class ProductService {
 
     // 3. Fallback to full list search
     const products = await this.getProducts({ activeOnly: false });
-    return products.find(p => p.id === id) || null;
+    const match = products.find(p => p.id === id) || null;
+    return match ? this.parseProductMeta(match) : null;
   }
 
   addProductToCache(product: Product) {
@@ -519,7 +624,11 @@ export class ProductService {
       rawSlug = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     }
 
-    const totalStock = sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0);
+    const dept = productData.department || 'ethnic';
+    const hasSize = productData.has_size !== undefined ? Boolean(productData.has_size) : (dept !== 'jewellery');
+    const totalStock = hasSize
+      ? sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0)
+      : (productData.stock !== undefined ? Number(productData.stock) : 10);
 
     const productPayload: any = {
       name: rawName,
@@ -529,6 +638,17 @@ export class ProductService {
       sale_price: productData.sale_price ? Number(productData.sale_price) : null,
       sku: productData.sku ? productData.sku.trim() : null,
       category_id: productData.category_id || null,
+      department: dept,
+      has_size: hasSize,
+      show_size_chart: Boolean(productData.show_size_chart),
+      size_chart_url: productData.size_chart_url || null,
+      purchase_mode: productData.purchase_mode || 'online',
+      video_url: productData.video_url || null,
+      has_colors: Boolean(productData.has_colors),
+      color_variants: productData.color_variants || [],
+      stock_display: productData.stock_display || 'normal',
+      custom_stock_message: productData.custom_stock_message || null,
+      return_policy: productData.return_policy || null,
       featured: Boolean(productData.featured),
       new_arrival: Boolean(productData.new_arrival),
       best_seller: Boolean(productData.best_seller),
@@ -559,7 +679,7 @@ export class ProductService {
           await this.supabaseService.supabase.from('product_images').insert(formattedImages);
         }
 
-        if (sizes && sizes.length > 0) {
+        if (hasSize && sizes && sizes.length > 0) {
           const sizePayloads = sizes.map(sz => ({
             product_id: productId,
             size: sz.size,
@@ -574,12 +694,12 @@ export class ProductService {
         const categories = await this.getCategories(false);
         const cat = categories.find(c => c.id === insertedProduct.category_id);
 
-        const fullProduct: Product = {
+        const fullProduct: Product = this.parseProductMeta({
           ...insertedProduct,
           category: cat,
           images: formattedImages,
-          sizes: sizes ? sizes.map(s => ({ size: s.size, stock: s.stock, status: s.stock > 0 ? 'available' : 'sold_out' })) : []
-        };
+          sizes: hasSize && sizes ? sizes.map(s => ({ size: s.size, stock: s.stock, status: s.stock > 0 ? 'available' : 'sold_out' })) : []
+        });
 
         this.addProductToCache(fullProduct);
         return fullProduct;
@@ -598,7 +718,7 @@ export class ProductService {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ productPayload, images, sizes })
+      body: JSON.stringify({ productPayload, images, sizes: hasSize ? sizes : [] })
     });
 
     const contentType = res.headers.get('content-type') || '';
@@ -609,10 +729,10 @@ export class ProductService {
       }
       const categories = await this.getCategories(false);
       const cat = categories.find(c => c.id === resData.product.category_id);
-      const fullProduct: Product = {
+      const fullProduct: Product = this.parseProductMeta({
         ...resData.product,
         category: cat || resData.product.category
-      };
+      });
       this.addProductToCache(fullProduct);
       return fullProduct;
     } else {
@@ -626,7 +746,10 @@ export class ProductService {
     images?: string[], 
     sizes?: { size: ProductSize; stock: number }[]
   ): Promise<Product> {
-    const totalStock = sizes ? sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0) : undefined;
+    const hasSize = productData.has_size !== undefined ? Boolean(productData.has_size) : undefined;
+    const totalStock = (sizes && sizes.length > 0)
+      ? sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0) 
+      : (productData.stock !== undefined ? Number(productData.stock) : undefined);
 
     const productPayload: any = {
       updated_at: new Date().toISOString()
@@ -639,6 +762,17 @@ export class ProductService {
     if (productData.sale_price !== undefined) productPayload.sale_price = productData.sale_price ? Number(productData.sale_price) : null;
     if (productData.sku !== undefined) productPayload.sku = productData.sku ? productData.sku.trim() : null;
     if (productData.category_id !== undefined) productPayload.category_id = productData.category_id || null;
+    if (productData.department !== undefined) productPayload.department = productData.department;
+    if (productData.has_size !== undefined) productPayload.has_size = Boolean(productData.has_size);
+    if (productData.show_size_chart !== undefined) productPayload.show_size_chart = Boolean(productData.show_size_chart);
+    if (productData.size_chart_url !== undefined) productPayload.size_chart_url = productData.size_chart_url;
+    if (productData.purchase_mode !== undefined) productPayload.purchase_mode = productData.purchase_mode;
+    if (productData.video_url !== undefined) productPayload.video_url = productData.video_url;
+    if (productData.has_colors !== undefined) productPayload.has_colors = Boolean(productData.has_colors);
+    if (productData.color_variants !== undefined) productPayload.color_variants = productData.color_variants;
+    if (productData.stock_display !== undefined) productPayload.stock_display = productData.stock_display;
+    if (productData.custom_stock_message !== undefined) productPayload.custom_stock_message = productData.custom_stock_message;
+    if (productData.return_policy !== undefined) productPayload.return_policy = productData.return_policy;
     if (productData.featured !== undefined) productPayload.featured = Boolean(productData.featured);
     if (productData.new_arrival !== undefined) productPayload.new_arrival = Boolean(productData.new_arrival);
     if (productData.best_seller !== undefined) productPayload.best_seller = Boolean(productData.best_seller);
@@ -670,7 +804,7 @@ export class ProductService {
           }
         }
 
-        if (sizes !== undefined) {
+        if (sizes !== undefined && (hasSize !== false)) {
           await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
           if (sizes.length > 0) {
             const sizePayloads = sizes.map(sz => ({
@@ -683,6 +817,9 @@ export class ProductService {
             }));
             await this.supabaseService.supabase.from('product_sizes').insert(sizePayloads);
           }
+        } else if (hasSize === false) {
+          // If sizes disabled, clear sizes table for this product
+          await this.supabaseService.supabase.from('product_sizes').delete().eq('product_id', id);
         }
 
         this.clearCache();
@@ -712,7 +849,7 @@ export class ProductService {
         throw new Error(resData.error || 'Failed to update product in database.');
       }
       this.clearCache();
-      return resData.product;
+      return this.parseProductMeta(resData.product);
     } else {
       throw new Error('Failed to update product in database.');
     }

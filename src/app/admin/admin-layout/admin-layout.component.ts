@@ -17,7 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
               <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" />
             </div>
             <div class="logo-text">
-              <strong>PETALS ETHNIC</strong>
+              <strong>PETAL ETHNICS & JEWELLERS</strong>
               <span>SUPER ADMIN</span>
             </div>
           </a>

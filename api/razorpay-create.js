@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     for (const item of items) {
       const { data: product, error: prodErr } = await supabase
         .from('products')
-        .select('name, price, sale_price, availability')
+        .select('name, price, sale_price, availability, stock, has_size')
         .eq('id', item.product_id)
         .single();
 
@@ -56,16 +56,31 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: `Product ${item.product_id} is currently unavailable.` });
       }
 
-      // Check size stock status
-      const { data: sizeRecord, error: sizeErr } = await supabase
-        .from('product_sizes')
-        .select('stock, status')
-        .eq('product_id', item.product_id)
-        .eq('size', item.size)
-        .single();
+      // Check size stock status if product has sizes
+      const itemSize = item.size || item.selectedSize;
+      const requiresSizeCheck = product.has_size !== false && itemSize && itemSize !== 'N/A' && itemSize !== 'One Size' && itemSize !== 'Standard';
 
-      if (sizeErr || !sizeRecord || sizeRecord.stock < item.quantity) {
-        return res.status(400).json({ error: `Insufficient stock for ${product.name} (Size: ${item.size}).` });
+      if (requiresSizeCheck) {
+        const { data: sizeRecord, error: sizeErr } = await supabase
+          .from('product_sizes')
+          .select('stock, status')
+          .eq('product_id', item.product_id)
+          .eq('size', itemSize)
+          .single();
+
+        if (sizeErr || !sizeRecord || sizeRecord.stock < item.quantity) {
+          // If no specific size record, check overall product stock
+          if (!sizeRecord && product.stock !== null && product.stock !== undefined && product.stock < item.quantity) {
+            return res.status(400).json({ error: `Insufficient stock for ${product.name}.` });
+          } else if (sizeRecord && sizeRecord.stock < item.quantity) {
+            return res.status(400).json({ error: `Insufficient stock for ${product.name} (Size: ${itemSize}).` });
+          }
+        }
+      } else {
+        // Products without sizes (e.g. jewellery, sarees)
+        if (product.stock !== null && product.stock !== undefined && product.stock < item.quantity) {
+          return res.status(400).json({ error: `Insufficient stock for ${product.name}.` });
+        }
       }
 
       const activePrice = Number(product.sale_price || product.price);
@@ -152,18 +167,30 @@ export default async function handler(req, res) {
         ? [...product.product_images].sort((a,b) => a.display_order - b.display_order).map(img => img.image_url)
         : [];
       
-      await supabase
+      const itemPayload = {
+        order_id: orderId,
+        product_id: item.product_id,
+        product_name: product.name,
+        product_image: item.image || item.selectedImage || sortedImgs[0] || '',
+        size: item.size || item.selectedSize || 'N/A',
+        quantity: item.quantity,
+        unit_price: activePrice,
+        total_price: activePrice * item.quantity
+      };
+
+      if (item.color || item.selectedColor) {
+        itemPayload.color = item.color || item.selectedColor;
+      }
+
+      const { error: insErr } = await supabase
         .from('order_items')
-        .insert({
-          order_id: orderId,
-          product_id: item.product_id,
-          product_name: product.name,
-          product_image: sortedImgs[0] || '',
-          size: item.size,
-          quantity: item.quantity,
-          unit_price: activePrice,
-          total_price: activePrice * item.quantity
-        });
+        .insert(itemPayload);
+
+      if (insErr) {
+        // Fallback without color column if column not yet created
+        delete itemPayload.color;
+        await supabase.from('order_items').insert(itemPayload);
+      }
     }
 
     // 6. Create Razorpay order

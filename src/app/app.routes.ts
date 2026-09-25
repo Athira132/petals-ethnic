@@ -22,12 +22,16 @@ import { OrderListComponent } from './admin/orders/order-list.component';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 
+import { CategoryDiscoveryComponent } from './pages/categories/category-discovery.component';
+
 export const routes: Routes = [
   // Customer Routes - Default Root Opening Page is Home Page
   { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'shop', component: ShopComponent },
-  { path: 'categories', component: ShopComponent },
+  { path: 'shop/ethnics', component: ShopComponent, data: { department: 'ethnic' } },
+  { path: 'shop/jewellery', component: ShopComponent, data: { department: 'jewellery' } },
+  { path: 'categories', component: CategoryDiscoveryComponent },
   { path: 'product/:slug', component: ProductDetailComponent },
   { path: 'cart', component: CartComponent },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },

@@ -94,15 +94,23 @@ export interface HeroSlide {
     }
     @media (max-width: 992px) {
       .hero-carousel-section {
-        height: 82vh;
-        min-height: 520px;
+        height: 58vh;
+        min-height: 400px;
+        max-height: 550px;
+      }
+    }
+    @media (max-width: 768px) {
+      .hero-carousel-section {
+        height: 42vh;
+        min-height: 280px;
+        max-height: 350px;
       }
     }
     @media (max-width: 576px) {
       .hero-carousel-section {
-        height: 78vh;
-        min-height: 480px;
-        max-height: 620px;
+        height: 38vh;
+        min-height: 250px;
+        max-height: 320px;
       }
     }
 
@@ -131,7 +139,12 @@ export interface HeroSlide {
     }
     @media (max-width: 768px) {
       .carousel-slide {
-        padding-bottom: 48px;
+        padding-bottom: 24px;
+      }
+    }
+    @media (max-width: 576px) {
+      .carousel-slide {
+        padding-bottom: 18px;
       }
     }
 
@@ -195,46 +208,23 @@ export interface HeroSlide {
       margin-bottom: 12px;
       backdrop-filter: blur(4px);
     }
-    @media (max-width: 480px) {
-      .hero-badge {
-        font-size: 10px;
-        padding: 4px 12px;
-        margin-bottom: 8px;
-      }
-    }
-
-    .hero-title {
-      font-size: 48px;
-      font-weight: 800;
-      line-height: 1.15;
-      margin-bottom: 14px;
-      letter-spacing: -0.5px;
-      color: #FFFFFF;
-      text-shadow: 0 3px 18px rgba(0, 0, 0, 0.85);
-    }
-    @media (max-width: 992px) {
-      .hero-title { font-size: 34px; }
-    }
     @media (max-width: 576px) {
-      .hero-title {
-        font-size: 24px;
-        margin-bottom: 8px;
+      .hero-badge {
+        font-size: 9px;
+        padding: 2px 8px;
+        margin-bottom: 4px;
       }
-    }
-
-    .hero-subtitle {
-      font-size: 15px;
-      line-height: 1.5;
-      color: rgba(255, 255, 255, 0.95);
-      margin-bottom: 22px;
-      font-weight: 400;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-    }
-    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 20px;
+        margin-bottom: 4px;
+      }
       .hero-subtitle {
-        font-size: 13px;
-        line-height: 1.4;
-        margin-bottom: 16px;
+        font-size: 11px;
+        line-height: 1.3;
+        margin-bottom: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
 

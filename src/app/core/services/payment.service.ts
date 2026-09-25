@@ -80,7 +80,7 @@ export class PaymentService {
       key: environment.razorpayKeyId,
       amount: Math.round(params.amountInRupees * 100), // convert to paise
       currency: 'INR',
-      name: 'Petals Ethnic',
+      name: 'Petal Ethnics & Jewellers',
       description: `Order #${params.orderId}`,
       image: 'https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg',
       prefill: {

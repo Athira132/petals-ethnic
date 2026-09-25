@@ -1,6 +1,19 @@
-import { Category } from './category.model';
+import { Category, DepartmentType } from './category.model';
 
-export type SizeOption = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
+export type SizeOption = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | string;
+export type PurchaseMode = 'online' | 'enquiry';
+export type StockDisplayMode = 'normal' | 'few_left' | 'custom' | 'hide';
+
+export interface ColorVariant {
+  name: string;
+  color_code?: string;
+  image_urls: string[];
+  images?: string[];
+  video_url?: string | null;
+  stock?: number;
+  sku?: string | null;
+  is_available?: boolean;
+}
 
 export interface ProductSize {
   id?: string;
@@ -35,6 +48,30 @@ export interface Product {
   new_arrival: boolean;
   best_seller?: boolean;
   active: boolean;
+  department?: DepartmentType;
+
+  // Size configuration
+  has_size?: boolean;
+  show_size_chart?: boolean;
+  size_chart_url?: string | null;
+
+  // Color variations
+  has_colors?: boolean;
+  color_variants?: ColorVariant[];
+
+  // Purchase mode
+  purchase_mode?: PurchaseMode;
+
+  // Stock display
+  stock_display?: StockDisplayMode;
+  custom_stock_message?: string | null;
+
+  // Media
+  video_url?: string | null;
+
+  // Return policy
+  return_policy?: string | null;
+
   created_at?: string;
   updated_at?: string;
   category?: Category;

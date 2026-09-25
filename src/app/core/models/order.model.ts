@@ -5,6 +5,7 @@ export interface OrderItem {
   product_name: string;
   product_image?: string | null;
   size: string;
+  color?: string | null;
   quantity: number;
   unit_price: number;
   total_price: number;

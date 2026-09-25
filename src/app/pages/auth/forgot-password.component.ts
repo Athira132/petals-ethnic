@@ -13,7 +13,7 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="auth-card">
         <div class="auth-header">
           <div class="logo-circle-wrapper">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="auth-logo" />
+            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Reset Password</h1>
           <p class="auth-subtitle">Enter your registered email address to receive password reset instructions.</p>

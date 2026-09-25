@@ -13,10 +13,10 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="auth-card">
         <div class="auth-header">
           <div class="logo-circle-wrapper">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="auth-logo" />
+            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Create Account</h1>
-          <p class="auth-subtitle">Join Petals Ethnic to enjoy fast checkouts, track orders, and receive exclusive offers.</p>
+          <p class="auth-subtitle">Join Petal Ethnics & Jewellers to enjoy fast checkouts, track orders, and receive exclusive offers.</p>
         </div>
 
         <div *ngIf="successMessage" class="auth-alert success">

@@ -68,7 +68,10 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
                 <td>
                   <div class="items-list">
                     <span *ngFor="let item of order.order_items" class="item-tag">
-                      {{ item.product_name }} ({{ item.size }}) × {{ item.quantity }}
+                      • {{ item.product_name }} 
+                      <span *ngIf="item.size && item.size !== 'N/A' && item.size !== 'One Size'">({{ item.size }})</span>
+                      <span *ngIf="item.color">[{{ item.color }}]</span>
+                      × {{ item.quantity }}
                     </span>
                   </div>
                   <div class="total-text">₹{{ order.total | number:'1.0-0' }}</div>
@@ -134,11 +137,16 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
               <p><strong>Phone:</strong> {{ selectedOrderModal.customer_phone }}</p>
               <p><strong>Email:</strong> {{ selectedOrderModal.customer_email }}</p>
               <p><strong>Shipping Address:</strong> {{ selectedOrderModal.address }}, {{ selectedOrderModal.city }}, {{ selectedOrderModal.state }} - {{ selectedOrderModal.pincode }}</p>
+              <div class="whatsapp-customer-btn-wrap" *ngIf="selectedOrderModal.customer_phone">
+                <a [href]="getCustomerWhatsAppUrl(selectedOrderModal)" target="_blank" rel="noopener" class="customer-wa-btn">
+                  💬 Contact Customer on WhatsApp
+                </a>
+              </div>
             </div>
 
             <div class="detail-row">
               <p><strong>Payment Method:</strong> {{ selectedOrderModal.payment_method | uppercase }}</p>
-              <p><strong>Payment Reference / UTR:</strong> {{ selectedOrderModal.payment_reference || 'N/A' }}</p>
+              <p><strong>Payment Reference / ID:</strong> {{ selectedOrderModal.payment_reference || 'N/A' }}</p>
               <p><strong>Payment Status:</strong> {{ selectedOrderModal.payment_status | uppercase }}</p>
               <p><strong>Order Status:</strong> {{ selectedOrderModal.order_status | uppercase }}</p>
             </div>
@@ -146,7 +154,17 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
             <h4 class="items-heading">Order Line Items:</h4>
             <div class="modal-items-list">
               <div *ngFor="let item of selectedOrderModal.order_items" class="modal-item">
-                <span>{{ item.product_name }} (Size: {{ item.size }}) × {{ item.quantity }}</span>
+                <div class="item-lead">
+                  <img *ngIf="item.product_image" [src]="item.product_image" [alt]="item.product_name" class="modal-item-thumb" />
+                  <div class="item-lead-text">
+                    <span class="prod-name">{{ item.product_name }}</span>
+                    <span class="prod-meta">
+                      <span *ngIf="item.size && item.size !== 'N/A' && item.size !== 'One Size'">Size: {{ item.size }} • </span>
+                      <span *ngIf="item.color">Color: {{ item.color }} • </span>
+                      Qty: {{ item.quantity }}
+                    </span>
+                  </div>
+                </div>
                 <strong>₹{{ item.total_price | number:'1.0-0' }}</strong>
               </div>
             </div>
@@ -198,8 +216,30 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
 
     .detail-row { background: var(--color-bg-alt); padding: 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 4px; }
     .items-heading { margin-bottom: 12px; font-size: 15px; }
-    .modal-items-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-    .modal-item { display: flex; justify-content: space-between; font-size: 14px; border-bottom: 1px dashed var(--color-border); padding-bottom: 6px; }
+    .modal-items-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .modal-item { display: flex; justify-content: space-between; align-items: center; font-size: 14px; border-bottom: 1px dashed var(--color-border); padding-bottom: 8px; }
+    .item-lead { display: flex; align-items: center; gap: 12px; }
+    .modal-item-thumb { width: 44px; height: 55px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border-light); }
+    .item-lead-text { display: flex; flex-direction: column; gap: 2px; }
+    .prod-name { font-weight: 600; }
+    .prod-meta { font-size: 12px; color: var(--color-muted); }
+
+    .whatsapp-customer-btn-wrap { margin-top: 10px; }
+    .customer-wa-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: #25D366;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(37, 211, 102, 0.3);
+    }
+    .customer-wa-btn:hover { background: #1EBE5D; }
+
     .modal-summary { text-align: right; border-top: 1px solid var(--color-border-light); padding-top: 12px; }
     .text-center { text-align: center; }
   `]
@@ -222,6 +262,16 @@ export class OrderListComponent implements OnInit {
   async loadOrders() {
     this.orders = await this.orderService.getAllOrders();
     this.filterOrders();
+  }
+
+  getCustomerWhatsAppUrl(order: Order): string {
+    if (!order || !order.customer_phone) return '';
+    const cleanPhone = order.customer_phone.replace(/[^0-9]/g, '');
+    const phoneWithCountry = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+    const text = encodeURIComponent(
+      `Hello ${order.customer_name}! This is regarding your order #${order.order_number} from Petal Ethnics & Jewellers.`
+    );
+    return `https://wa.me/${phoneWithCountry}?text=${text}`;
   }
 
   filterOrders() {

@@ -105,9 +105,48 @@ export default async function handler(req, res) {
       });
     }
 
+    // 6. Fetch full order details with order_items to generate formatted admin WhatsApp message
+    const { data: fullOrder } = await supabase
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('id', order_id)
+      .single();
+
+    let whatsappUrl = '';
+    let whatsappMessage = '';
+
+    if (fullOrder) {
+      const itemsList = (fullOrder.order_items || []).map((it, idx) => {
+        const sizeText = (it.size && it.size !== 'N/A' && it.size !== 'One Size') ? ` | Size: ${it.size}` : '';
+        const colorText = it.color ? ` | Color: ${it.color}` : '';
+        return `${idx + 1}. *${it.product_name}* (Qty: ${it.quantity}${sizeText}${colorText}) - ₹${it.total_price}`;
+      }).join('\n');
+
+      whatsappMessage = `🛍️ *NEW ORDER - Petal Ethnics & Jewellers*\n` +
+        `----------------------------------------\n` +
+        `*Order ID:* ${fullOrder.order_number}\n` +
+        `*Customer:* ${fullOrder.customer_name}\n` +
+        `*Phone:* ${fullOrder.customer_phone}\n` +
+        `*Delivery Address:*\n${fullOrder.address}, ${fullOrder.city}, ${fullOrder.state} - ${fullOrder.pincode}\n` +
+        `----------------------------------------\n` +
+        `*Items Ordered:*\n${itemsList || 'N/A'}\n` +
+        `----------------------------------------\n` +
+        `*Total Amount:* ₹${fullOrder.total}\n` +
+        `*Payment Method:* Razorpay (Online)\n` +
+        `*Payment Status:* Paid ✅\n` +
+        `*Payment ID:* ${razorpay_payment_id}\n` +
+        `----------------------------------------\n` +
+        `Please verify packaging and schedule dispatch.`;
+
+      whatsappUrl = `https://wa.me/918113899319?text=${encodeURIComponent(whatsappMessage)}`;
+    }
+
     return res.status(200).json({
       success: true,
-      message: 'Razorpay payment verified and stock deducted.'
+      message: 'Razorpay payment verified and stock deducted.',
+      order: fullOrder,
+      whatsapp_url: whatsappUrl,
+      whatsapp_message: whatsappMessage
     });
 
   } catch (err) {

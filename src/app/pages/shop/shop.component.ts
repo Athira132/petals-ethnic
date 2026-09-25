@@ -7,7 +7,8 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 import { ProductService, ProductFilterOptions } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { Product, SizeOption } from '../../core/models/product.model';
-import { Category } from '../../core/models/category.model';
+import { Category, DepartmentType } from '../../core/models/category.model';
+import { handleImageError } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-shop',
@@ -21,7 +22,9 @@ import { Category } from '../../core/models/category.model';
           <nav class="breadcrumb-nav" aria-label="Breadcrumb">
             <a [routerLink]="['/']">Home</a>
             <span class="sep">/</span>
-            <a [routerLink]="['/shop']" [class.active]="!selectedCategorySlug">Shop</a>
+            <a [routerLink]="[currentDepartment === 'jewellery' ? '/shop/jewellery' : '/shop/ethnics']">
+              {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }}
+            </a>
             <ng-container *ngIf="selectedCategorySlug">
               <span class="sep">/</span>
               <span class="current">{{ activeCategoryName }}</span>
@@ -30,33 +33,68 @@ import { Category } from '../../core/models/category.model';
         </div>
       </div>
 
+      <!-- Department Selector Switcher -->
+      <div class="department-switch-bar">
+        <div class="container">
+          <div class="dept-pills">
+            <a 
+              [routerLink]="['/shop/ethnics']" 
+              class="dept-pill" 
+              [class.active]="currentDepartment === 'ethnic'"
+            >
+              🌸 Ethnics Boutique
+            </a>
+            <a 
+              [routerLink]="['/shop/jewellery']" 
+              class="dept-pill" 
+              [class.active]="currentDepartment === 'jewellery'"
+            >
+              ✨ Handcrafted Jewellery
+            </a>
+          </div>
+        </div>
+      </div>
+
       <!-- Category Hero Section -->
-      <div class="category-hero" [style.background-image]="'linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.35)), url(' + activeCategoryBannerImage + ')'">
+      <div class="category-hero" [style.background-image]="'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.4)), url(' + activeCategoryBannerImage + ')'">
         <div class="hero-content">
-          <span class="hero-tagline">PETALS ETHNIC BOUTIQUE</span>
+          <span class="hero-tagline">{{ heroTagline }}</span>
           <h1 class="hero-title">{{ activeCategoryName }}</h1>
           <p class="hero-description">{{ activeCategoryDescription }}</p>
         </div>
       </div>
 
-      <!-- Horizontal Category Navigation Bar -->
-      <div class="category-nav-bar">
+      <!-- Visual Category Cards Row -->
+      <div class="category-cards-section" *ngIf="displayedCategories.length > 0">
         <div class="container">
-          <div class="category-scroll-wrapper">
+          <div class="category-cards-scroll">
             <button 
-              class="cat-nav-pill" 
+              class="category-mini-card"
               [class.active]="!selectedCategorySlug"
               (click)="selectCategoryBySlug('')"
             >
-              All Collections
+              <div class="mini-card-icon-wrap all-icon">
+                <span>✦</span>
+              </div>
+              <span class="mini-card-title">All {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }}</span>
             </button>
+
             <button 
-              *ngFor="let cat of categories; trackBy: trackByCategoryId" 
-              class="cat-nav-pill"
+              *ngFor="let cat of displayedCategories; trackBy: trackByCategoryId" 
+              class="category-mini-card"
               [class.active]="selectedCategorySlug === cat.slug"
               (click)="selectCategoryBySlug(cat.slug)"
             >
-              {{ cat.name }}
+              <div class="mini-card-img-wrap">
+                <img 
+                  [src]="cat.image_url || defaultCardImage" 
+                  [alt]="cat.name" 
+                  class="mini-card-img" 
+                  loading="lazy"
+                  (error)="onImageError($event)" 
+                />
+              </div>
+              <span class="mini-card-title">{{ cat.name }}</span>
             </button>
           </div>
         </div>
@@ -73,10 +111,10 @@ import { Category } from '../../core/models/category.model';
 
           <!-- Search Input -->
           <div class="filter-group">
-            <label class="filter-label">Search Collection</label>
+            <label class="filter-label">Search {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }}</label>
             <input 
               type="text" 
-              placeholder="Search by keyword..." 
+              [placeholder]="'Search ' + (currentDepartment === 'jewellery' ? 'jewellery, earrings...' : 'kurtis, sarees...') + '...'" 
               [(ngModel)]="searchQuery"
               (ngModelChange)="onFilterChange()"
               class="form-control"
@@ -95,9 +133,9 @@ import { Category } from '../../core/models/category.model';
                   [(ngModel)]="selectedCategorySlug"
                   (change)="onFilterChange()" 
                 />
-                <span>All Categories</span>
+                <span>All {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }}</span>
               </label>
-              <label *ngFor="let cat of categories; trackBy: trackByCategoryId" class="radio-label">
+              <label *ngFor="let cat of displayedCategories; trackBy: trackByCategoryId" class="radio-label">
                 <input 
                   type="radio" 
                   name="category" 
@@ -110,8 +148,8 @@ import { Category } from '../../core/models/category.model';
             </div>
           </div>
 
-          <!-- Size Filter -->
-          <div class="filter-group">
+          <!-- Size Filter (Only for Ethnics!) -->
+          <div class="filter-group" *ngIf="currentDepartment !== 'jewellery'">
             <label class="filter-label">Select Size</label>
             <div class="size-filter-chips">
               <button 
@@ -156,6 +194,10 @@ import { Category } from '../../core/models/category.model';
               ⚡ Filter & Refine
             </button>
 
+            <span class="results-count" *ngIf="!isLoading">
+              Showing {{ products.length }} {{ products.length === 1 ? 'item' : 'items' }}
+            </span>
+
             <div class="sort-box">
               <label for="sortBy">Sort By:</label>
               <select id="sortBy" [(ngModel)]="sortBy" (change)="onFilterChange()" class="sort-select">
@@ -199,10 +241,10 @@ import { Category } from '../../core/models/category.model';
     <!-- Empty Collection State -->
     <ng-template #emptyState>
       <div class="empty-products-box">
-        <div class="empty-icon">✨</div>
-        <h3>No Styles Available in this Collection Yet</h3>
-        <p>Explore our other handcrafted ethnic collections or clear your filter criteria.</p>
-        <button (click)="resetFilters()" class="btn-primary">Explore All Collections</button>
+        <div class="empty-icon">{{ currentDepartment === 'jewellery' ? '✨' : '🌸' }}</div>
+        <h3>No {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }} Available in this Selection</h3>
+        <p>Try clearing your filter or explore our other collections.</p>
+        <button (click)="resetFilters()" class="btn-primary">View All {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }}</button>
       </div>
     </ng-template>
   `,
@@ -241,12 +283,46 @@ import { Category } from '../../core/models/category.model';
       font-weight: 600;
     }
 
+    /* Department Switcher */
+    .department-switch-bar {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--color-border-light);
+      padding: 10px 0;
+    }
+    .dept-pills {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .dept-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-heading);
+      background: #F3F4F6;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .dept-pill:hover {
+      background: #E5E7EB;
+    }
+    .dept-pill.active {
+      background: var(--color-pink-dark);
+      color: #FFFFFF;
+      border-color: var(--color-pink-dark);
+      box-shadow: 0 4px 10px rgba(192, 86, 118, 0.25);
+    }
+
     /* Category Hero Header */
     .category-hero {
       position: relative;
       background-size: cover;
       background-position: center;
-      padding: 80px 20px;
+      padding: 60px 20px;
       text-align: center;
       color: #FFFFFF;
       margin-bottom: 0;
@@ -260,78 +336,109 @@ import { Category } from '../../core/models/category.model';
       font-weight: 700;
       letter-spacing: 2.5px;
       text-transform: uppercase;
-      color: var(--color-gold);
-      margin-bottom: 12px;
+      color: #E8B4C0;
+      margin-bottom: 10px;
       display: block;
     }
     .hero-title {
-      font-family: var(--font-heading);
-      font-size: 42px;
+      font-family: var(--font-serif);
+      font-size: 38px;
       font-weight: 700;
       color: #FFFFFF;
-      margin-bottom: 12px;
-      letter-spacing: 1px;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
     .hero-description {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 300;
       line-height: 1.6;
-      color: rgba(255, 255, 255, 0.92);
+      color: rgba(255, 255, 255, 0.95);
       text-shadow: 0 1px 6px rgba(0,0,0,0.5);
     }
     @media (max-width: 768px) {
-      .category-hero { padding: 50px 16px; }
-      .hero-title { font-size: 28px; }
-      .hero-description { font-size: 14px; }
+      .category-hero { padding: 40px 16px; }
+      .hero-title { font-size: 26px; }
+      .hero-description { font-size: 13px; }
     }
 
-    /* Horizontal Category Navigation Bar */
-    .category-nav-bar {
+    /* Visual Category Cards Strip */
+    .category-cards-section {
       background: #FFFFFF;
       border-bottom: 1px solid var(--color-border-light);
-      padding: 14px 0;
+      padding: 16px 0;
       position: sticky;
-      top: 0;
-      z-index: 100;
+      top: 65px;
+      z-index: 90;
       box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
-    .category-scroll-wrapper {
+    .category-cards-scroll {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       overflow-x: auto;
       white-space: nowrap;
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none; /* IE */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       padding: 4px 0;
     }
-    .category-scroll-wrapper::-webkit-scrollbar {
-      display: none; /* Chrome/Safari */
+    .category-cards-scroll::-webkit-scrollbar {
+      display: none;
     }
-    .cat-nav-pill {
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      padding: 8px 18px;
-      border-radius: var(--radius-full, 30px);
+    .category-mini-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px 6px 6px;
+      border-radius: 40px;
       border: 1px solid var(--color-border);
       background: #FFFFFF;
-      color: var(--color-text-heading);
       cursor: pointer;
       transition: all 0.25s ease;
       flex-shrink: 0;
     }
-    .cat-nav-pill:hover {
+    .category-mini-card:hover {
       border-color: var(--color-pink-dark);
+      transform: translateY(-1px);
+    }
+    .category-mini-card.active {
+      background: var(--color-pink-dark);
+      border-color: var(--color-pink-dark);
+      box-shadow: 0 2px 8px rgba(192, 86, 118, 0.25);
+    }
+    .category-mini-card.active .mini-card-title {
+      color: #FFFFFF;
+    }
+    .mini-card-img-wrap, .mini-card-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .mini-card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .all-icon {
+      background: #FFF0F4;
+      color: var(--color-pink-dark);
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .category-mini-card.active .all-icon {
+      background: #FFFFFF;
       color: var(--color-pink-dark);
     }
-    .cat-nav-pill.active {
-      background-color: var(--color-pink-dark);
-      border-color: var(--color-pink-dark);
-      color: #FFFFFF;
-      box-shadow: 0 2px 8px rgba(192, 86, 118, 0.25);
+    .mini-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-heading);
+      white-space: nowrap;
     }
 
     /* Main Container Layout */
@@ -368,7 +475,7 @@ import { Category } from '../../core/models/category.model';
     }
     .reset-btn {
       font-size: 12px;
-      color: var(--color-gold);
+      color: var(--color-pink-dark);
       font-weight: 600;
       text-transform: uppercase;
       background: transparent;
@@ -504,7 +611,7 @@ import { Category } from '../../core/models/category.model';
       background: #FFFFFF;
     }
 
-    /* Luxury Product Grid Layout (4-Columns Desktop) */
+    /* Product Grid */
     .product-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -589,10 +696,11 @@ import { Category } from '../../core/models/category.model';
   `]
 })
 export class ShopComponent implements OnInit, OnDestroy {
-  categories: Category[] = [];
+  allCategories: Category[] = [];
   products: Product[] = [];
   isLoading = true;
 
+  currentDepartment: DepartmentType = 'ethnic';
   selectedCategorySlug = '';
   searchQuery = '';
   selectedSize: SizeOption | '' = '';
@@ -603,6 +711,7 @@ export class ShopComponent implements OnInit, OnDestroy {
   isMobileFilterOpen = false;
 
   readonly availableSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  readonly defaultCardImage = 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png';
 
   private destroy$ = new Subject<void>();
 
@@ -614,6 +723,21 @@ export class ShopComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // 1. Detect department from route data or URL
+    this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
+      if (data && data['department']) {
+        this.currentDepartment = data['department'];
+      } else {
+        const url = this.router.url.toLowerCase();
+        if (url.includes('/jewellery')) {
+          this.currentDepartment = 'jewellery';
+        } else {
+          this.currentDepartment = 'ethnic';
+        }
+      }
+    });
+
+    // 2. React to query parameters
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(async params => {
       this.selectedCategorySlug = params['category'] || '';
       this.searchQuery = params['search'] || '';
@@ -629,24 +753,44 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  get displayedCategories(): Category[] {
+    return this.allCategories.filter(c => (c.department || 'ethnic') === this.currentDepartment);
+  }
+
+  get heroTagline(): string {
+    return this.currentDepartment === 'jewellery' 
+      ? 'PETAL JEWELLERS • EXQUISITE DESIGNS' 
+      : 'PETAL ETHNICS • ARTISANAL BOUTIQUE';
+  }
+
   get activeCategoryName(): string {
-    if (!this.selectedCategorySlug) return 'Our Ethnic Fashion Collection';
-    const found = this.categories.find(c => c.slug === this.selectedCategorySlug);
-    return found ? found.name : 'Ethnic Collection';
+    if (this.selectedCategorySlug) {
+      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
+      if (found) return found.name;
+    }
+    return this.currentDepartment === 'jewellery' 
+      ? 'Handcrafted Jewellery Collection' 
+      : 'Ethnic Wear & Boutique Collection';
   }
 
   get activeCategoryDescription(): string {
-    if (!this.selectedCategorySlug) return 'Explore handcrafted Kurtis, Anarkalis, Co-ord Sets, and Midi Dresses.';
-    const found = this.categories.find(c => c.slug === this.selectedCategorySlug);
-    return (found && found.description) ? found.description : 'Timeless silhouettes, handcrafted embroidery, and modern Indian elegance.';
+    if (this.selectedCategorySlug) {
+      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
+      if (found && found.description) return found.description;
+    }
+    return this.currentDepartment === 'jewellery' 
+      ? 'Discover temple necklaces, earrings, bangles, and rings crafted with timeless artistry.'
+      : 'Explore handcrafted Kurtis, Sarees, Anarkalis, Co-ord Sets, and Midi Dresses.';
   }
 
   get activeCategoryBannerImage(): string {
-    if (this.selectedCategorySlug && this.categories.length > 0) {
-      const found = this.categories.find(c => c.slug === this.selectedCategorySlug);
+    if (this.selectedCategorySlug && this.displayedCategories.length > 0) {
+      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
       if (found && found.image_url) return found.image_url;
     }
-    return 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png';
+    return this.currentDepartment === 'jewellery' 
+      ? 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
+      : 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png';
   }
 
   selectCategoryBySlug(slug: string) {
@@ -663,11 +807,12 @@ export class ShopComponent implements OnInit, OnDestroy {
     try {
       const syncCats = this.productService.getCachedCategoriesSync();
       if (syncCats && syncCats.length > 0) {
-        this.categories = syncCats;
+        this.allCategories = syncCats;
       }
       const syncProds = this.productService.getProductsSync(this.getFilterOptions());
       if (syncProds && syncProds.length > 0) {
-        this.products = syncProds;
+        // Enforce strict department separation
+        this.products = syncProds.filter(p => (p.department || 'ethnic') === this.currentDepartment);
         this.isLoading = false;
       }
     } catch {}
@@ -675,14 +820,14 @@ export class ShopComponent implements OnInit, OnDestroy {
 
   private getFilterOptions(): ProductFilterOptions {
     let catId: string | undefined = undefined;
-    if (this.selectedCategorySlug && this.categories.length > 0) {
-      const found = this.categories.find(c => c.slug === this.selectedCategorySlug);
+    if (this.selectedCategorySlug && this.displayedCategories.length > 0) {
+      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
       if (found) catId = found.id;
     }
     return {
       categoryId: catId,
       searchQuery: this.searchQuery,
-      size: this.selectedSize || undefined,
+      size: (this.currentDepartment === 'ethnic') ? (this.selectedSize || undefined) : undefined,
       minPrice: this.minPrice || undefined,
       maxPrice: this.maxPrice || undefined,
       sortBy: this.sortBy,
@@ -692,7 +837,7 @@ export class ShopComponent implements OnInit, OnDestroy {
 
   async loadInitialData() {
     try {
-      this.categories = await this.productService.getCategories();
+      this.allCategories = await this.productService.getCategories();
       this.trySyncCachedProducts();
       await this.fetchFilteredProducts();
     } catch (e) {
@@ -709,7 +854,8 @@ export class ShopComponent implements OnInit, OnDestroy {
     try {
       const options = this.getFilterOptions();
       const freshProds = await this.productService.getProducts(options);
-      this.products = freshProds;
+      // Strictly separate ethnics and jewellery
+      this.products = freshProds.filter(p => (p.department || 'ethnic') === this.currentDepartment);
     } catch (err) {
       console.error('Error filtering products:', err);
     } finally {
@@ -733,7 +879,7 @@ export class ShopComponent implements OnInit, OnDestroy {
     this.minPrice = null;
     this.maxPrice = null;
     this.sortBy = 'newest';
-    this.router.navigate([], { queryParams: {} });
+    this.router.navigate([], { relativeTo: this.route, queryParams: {} });
     this.fetchFilteredProducts();
   }
 
@@ -757,10 +903,14 @@ export class ShopComponent implements OnInit, OnDestroy {
     return index;
   }
 
-  onQuickAdd(event: { product: Product; size: SizeOption }) {
+  onImageError(event: Event) {
+    handleImageError(event);
+  }
+
+  onQuickAdd(event: { product: Product; size?: SizeOption }) {
     try {
       this.cartService.addToCart(event.product, event.size, 1);
-      alert(`Added ${event.product.name} (Size: ${event.size}) to your cart!`);
+      alert(`Added ${event.product.name} to your cart!`);
     } catch (err: any) {
       alert(err.message || 'Could not add to cart');
     }

@@ -14,12 +14,12 @@ import { handleImageError } from '../../../core/utils/image.utils';
         <div class="footer-col brand-col">
           <div class="footer-brand">
             <div class="footer-logo-circle">
-              <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="footer-logo-img" (error)="onImageError($event)" />
+              <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="footer-logo-img" (error)="onImageError($event)" />
             </div>
-            <span class="footer-brand-title">PETALS ETHNIC</span>
+            <span class="footer-brand-title">PETAL ETHNICS & JEWELLERS</span>
           </div>
           <p class="footer-brand-quote">
-            "Step up your style with our latest fashion collection. We offer premium quality fabrics and trendy designs that fit every occasion."
+            "Step up your style with our curated ethnic couture and handcrafted jewellery collection. Premium quality fabrics and timeless designs that fit every occasion."
           </p>
           <!-- Official Social Icons -->
           <div class="footer-socials">
@@ -78,7 +78,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       <!-- Bottom Bar -->
       <div class="footer-bottom">
         <div class="container footer-bottom-content">
-          <p>© 2026 Petals Ethnic. All Rights Reserved.</p>
+          <p>© 2026 Petal Ethnics & Jewellers. All Rights Reserved.</p>
         </div>
       </div>
     </footer>

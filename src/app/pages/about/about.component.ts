@@ -26,35 +26,35 @@ import { handleImageError } from '../../core/utils/image.utils';
             <div class="about-photo-frame">
               <img 
                 src="https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" 
-                alt="Petals Ethnic Boutique Heritage" 
+                alt="Petal Ethnics & Jewellers Heritage" 
                 class="about-photo-img" 
                 (error)="onImageError($event)"
               />
               <div class="photo-badge">
-                <span>PETALS ETHNIC BOUTIQUE</span>
+                <span>PETAL ETHNICS & JEWELLERS</span>
               </div>
             </div>
 
             <!-- Right Side: Heading & Introduction -->
             <div class="about-text-content">
               <span class="section-subtitle">OUR FASHION PHILOSOPHY</span>
-              <h2 class="about-heading">Crafting Timeless Ethnic Elegance</h2>
+              <h2 class="about-heading">Crafting Timeless Ethnic Elegance & Exquisite Jewellery</h2>
               
               <p class="about-lead">
-                Welcome to Petals Ethnic! Step up your style with our latest fashion collection of handcrafted Kurtis, Anarkalis, Tissue Silk Kasavu, Co-ord Sets, and Midi Dresses tailored for perfection.
+                Welcome to Petal Ethnics & Jewellers! Step up your style with our latest collection of handcrafted Kurtis, Anarkalis, Sarees, Co-ord Sets, Midi Dresses, and curated designer jewellery tailored for perfection.
               </p>
 
               <p class="about-body-text">
-                We offer premium quality breathable fabrics, soft watercolor botanical prints, and intricate embroidery that fit every celebration. Whether you are seeking a traditional saree for a sacred ritual or a modern two-piece co-ord set for an evening festive edit, our boutique silhouettes ensure effortless comfort and regal flair.
+                We offer premium quality breathable fabrics, soft watercolor botanical prints, intricate embroidery, and handpicked jewellery that fit every celebration. Whether you are seeking a traditional saree and necklace set for a sacred ritual or a modern outfit for a festive gala, our collections ensure effortless comfort and regal flair.
               </p>
 
               <p class="about-body-text">
-                Let us know what you are looking for, and our fashion stylists will be happy to help you find the best outfit tailored to your size preferences!
+                Let us know what you are looking for, and our stylists will be happy to help you find the best outfit and matching jewellery tailored to your preferences!
               </p>
 
               <div class="about-cta-group">
                 <a routerLink="/shop" class="btn-primary">Explore Our Collection &rarr;</a>
-                <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnic,%20I%20would%20like%20to%20know%20more%20about%20your%20boutique." target="_blank" rel="noopener" class="btn-outline">Styling Advice on WhatsApp</a>
+                <a href="https://wa.me/918113899319?text=Hello%20Petal%20Ethnics%20%26%20Jewellers,%20I%20would%20like%20to%20know%20more%20about%20your%20collection." target="_blank" rel="noopener" class="btn-outline">Styling Advice on WhatsApp</a>
               </div>
             </div>
           </div>

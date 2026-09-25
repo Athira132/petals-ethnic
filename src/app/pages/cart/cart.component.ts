@@ -50,9 +50,17 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                   </div>
                 </div>
 
-                <!-- Selected Size -->
+                <!-- Selected Size & Color -->
                 <div class="cart-item-size">
-                  <span class="size-tag">{{ item.selectedSize }}</span>
+                  <span class="size-tag" *ngIf="item.selectedSize && item.selectedSize !== 'One Size' && item.selectedSize !== 'N/A'">
+                    Size: {{ item.selectedSize }}
+                  </span>
+                  <span class="color-tag" *ngIf="item.selectedColor">
+                    Color: {{ item.selectedColor }}
+                  </span>
+                  <span class="standard-tag" *ngIf="(!item.selectedSize || item.selectedSize === 'One Size' || item.selectedSize === 'N/A') && !item.selectedColor">
+                    Standard
+                  </span>
                 </div>
 
                 <!-- Unit Price -->
@@ -383,6 +391,7 @@ export class CartComponent {
   }
 
   getItemImage(item: CartItem): string {
+    if (item.selectedImage) return item.selectedImage;
     const images = extractProductImages(item.product);
     return images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
   }

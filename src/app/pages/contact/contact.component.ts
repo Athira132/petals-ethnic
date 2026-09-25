@@ -26,7 +26,7 @@ import { FormsModule } from '@angular/forms';
             </div>
             <h3>WhatsApp Helpline</h3>
             <p>Connect with our fashion stylists directly on WhatsApp.</p>
-            <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnic,%20I%20have%20an%20inquiry." target="_blank" class="contact-link">+91 81138 99319</a>
+            <a href="https://wa.me/918113899319?text=Hello%20Petal%20Ethnics%20%26%20Jewellers,%20I%20have%20an%20inquiry." target="_blank" class="contact-link">+91 81138 99319</a>
           </div>
 
           <div class="contact-card">

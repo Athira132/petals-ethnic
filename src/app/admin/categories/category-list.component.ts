@@ -22,6 +22,31 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
         </button>
       </div>
 
+      <!-- Department Filter Tabs -->
+      <div class="admin-dept-filter-bar">
+        <button 
+          class="dept-filter-btn" 
+          [class.active]="selectedDeptFilter === 'all'"
+          (click)="selectedDeptFilter = 'all'"
+        >
+          All Categories ({{ categories.length }})
+        </button>
+        <button 
+          class="dept-filter-btn" 
+          [class.active]="selectedDeptFilter === 'ethnic'"
+          (click)="selectedDeptFilter = 'ethnic'"
+        >
+          🌸 Ethnics ({{ getDeptCount('ethnic') }})
+        </button>
+        <button 
+          class="dept-filter-btn" 
+          [class.active]="selectedDeptFilter === 'jewellery'"
+          (click)="selectedDeptFilter = 'jewellery'"
+        >
+          ✨ Jewellery ({{ getDeptCount('jewellery') }})
+        </button>
+      </div>
+
       <div class="table-card">
         <div class="table-responsive">
           <table class="admin-table">
@@ -29,6 +54,7 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
               <tr>
                 <th>Image</th>
                 <th>Category Name</th>
+                <th>Department</th>
                 <th>Slug</th>
                 <th>Description</th>
                 <th>Order</th>
@@ -38,12 +64,17 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let cat of categories">
+              <tr *ngFor="let cat of filteredCategories">
                 <td>
                   <img [src]="cat.image_url || fallbackImg" [alt]="cat.name" class="cat-thumb" (error)="onImageError($event)" />
                 </td>
                 <td>
                   <strong>{{ cat.name }}</strong>
+                </td>
+                <td>
+                  <span class="badge" [class.badge-pink]="(cat.department || 'ethnic') === 'ethnic'" [class.badge-dark]="cat.department === 'jewellery'">
+                    {{ (cat.department || 'ethnic') | uppercase }}
+                  </span>
                 </td>
                 <td><code>{{ cat.slug }}</code></td>
                 <td>
@@ -69,8 +100,8 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
                   </div>
                 </td>
               </tr>
-              <tr *ngIf="categories.length === 0">
-                <td colspan="8" class="text-center py-4">No categories found in database.</td>
+              <tr *ngIf="filteredCategories.length === 0">
+                <td colspan="9" class="text-center py-4">No categories found in this section.</td>
               </tr>
             </tbody>
           </table>
@@ -86,6 +117,21 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
           </div>
 
           <form (ngSubmit)="saveCategory()" class="modal-body">
+            <!-- Department Selection -->
+            <div class="form-group">
+              <label class="form-label">Department *</label>
+              <div class="dept-selector-row">
+                <label class="dept-radio-label" [class.selected]="formCat.department === 'ethnic'">
+                  <input type="radio" name="dept" value="ethnic" [(ngModel)]="formCat.department" />
+                  <span>🌸 Ethnics Boutique</span>
+                </label>
+                <label class="dept-radio-label" [class.selected]="formCat.department === 'jewellery'">
+                  <input type="radio" name="dept" value="jewellery" [(ngModel)]="formCat.department" />
+                  <span>✨ Handcrafted Jewellery</span>
+                </label>
+              </div>
+            </div>
+
             <div class="form-group">
               <label class="form-label">Category Name *</label>
               <input 
@@ -235,6 +281,17 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
     .flex-center { display: flex; align-items: center; margin-top: 24px; }
     .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
 
+    .admin-dept-filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .dept-filter-btn { padding: 8px 16px; border: 1px solid var(--color-border, #E0E0E0); background: #FFFFFF; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--color-text, #333333); transition: all 0.2s; }
+    .dept-filter-btn:hover { border-color: var(--color-primary, #C2185B); color: var(--color-primary, #C2185B); }
+    .dept-filter-btn.active { background: var(--color-primary, #C2185B); color: #FFFFFF; border-color: var(--color-primary, #C2185B); }
+    .dept-selector-row { display: flex; gap: 16px; margin-top: 6px; }
+    .dept-radio-label { flex: 1; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--color-border, #E0E0E0); border-radius: 8px; cursor: pointer; background: #FAF9F6; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+    .dept-radio-label.selected { border-color: var(--color-primary, #C2185B); background: rgba(194, 24, 91, 0.05); color: var(--color-primary, #C2185B); }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+    .badge-pink { background: rgba(194, 24, 91, 0.1); color: #C2185B; }
+    .badge-dark { background: #ECEFF1; color: #37474F; }
+
     .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border-light); }
     .text-center { text-align: center; }
     .py-4 { padding-top: 24px; padding-bottom: 24px; }
@@ -243,6 +300,17 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
 export class CategoryListComponent implements OnInit, OnDestroy {
   categories: Category[] = [];
   fallbackImg = 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
+
+  selectedDeptFilter: 'all' | 'ethnic' | 'jewellery' = 'all';
+
+  get filteredCategories(): Category[] {
+    if (this.selectedDeptFilter === 'all') return this.categories;
+    return this.categories.filter(c => (c.department || 'ethnic') === this.selectedDeptFilter);
+  }
+
+  getDeptCount(dept: 'ethnic' | 'jewellery'): number {
+    return this.categories.filter(c => (c.department || 'ethnic') === dept).length;
+  }
 
   isModalOpen = false;
   editingCat: Category | null = null;
@@ -258,6 +326,7 @@ export class CategoryListComponent implements OnInit, OnDestroy {
   formCat: Partial<Category> = {
     name: '',
     slug: '',
+    department: 'ethnic',
     description: '',
     image_url: '',
     active: true,
@@ -295,6 +364,7 @@ export class CategoryListComponent implements OnInit, OnDestroy {
     this.formCat = {
       name: '',
       slug: '',
+      department: this.selectedDeptFilter === 'jewellery' ? 'jewellery' : 'ethnic',
       description: '',
       image_url: '',
       active: true,
@@ -312,7 +382,10 @@ export class CategoryListComponent implements OnInit, OnDestroy {
 
   openEditModal(cat: Category) {
     this.editingCat = cat;
-    this.formCat = { ...cat };
+    this.formCat = { 
+      ...cat,
+      department: cat.department || 'ethnic'
+    };
     this.imagePreviewUrl = cat.image_url || '';
     this.uploadStatusText = '';
     this.uploadHasError = false;

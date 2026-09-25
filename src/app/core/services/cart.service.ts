@@ -81,16 +81,23 @@ export class CartService {
     return this.cartSummarySubject.value;
   }
 
-  public addToCart(product: Product, size: SizeOption, quantity = 1): void {
+  public addToCart(product: Product, size?: SizeOption | string, quantity = 1, color?: string, customImage?: string): void {
     const items = [...this.currentItems];
-    const itemId = `${product.id}_${size}`;
+    const resolvedSize = size || (product.has_size === false ? 'One Size' : 'Standard');
+    const colorKey = color ? `_${color}` : '';
+    const itemId = `${product.id}_${resolvedSize}${colorKey}`;
     const existingIndex = items.findIndex(i => i.id === itemId);
 
     const price = product.sale_price && product.sale_price > 0 ? product.sale_price : product.price;
 
-    // Check size stock
-    const sizeConfig = product.sizes?.find(s => s.size === size);
-    const maxAvailable = sizeConfig ? sizeConfig.stock : product.stock;
+    // Check stock
+    let maxAvailable = product.stock;
+    if (product.has_size !== false && size) {
+      const sizeConfig = product.sizes?.find(s => s.size === size);
+      if (sizeConfig) {
+        maxAvailable = sizeConfig.stock;
+      }
+    }
 
     if (existingIndex > -1) {
       const newQty = items[existingIndex].quantity + quantity;
@@ -103,12 +110,14 @@ export class CartService {
     } else {
       const initialQty = Math.min(quantity, maxAvailable);
       if (initialQty <= 0) {
-        throw new Error(`Size ${size} is currently out of stock.`);
+        throw new Error(`${product.name}${size ? ' (' + size + ')' : ''} is currently out of stock.`);
       }
       items.push({
         id: itemId,
         product,
-        selectedSize: size,
+        selectedSize: (product.has_size === false && (!size || size === 'One Size')) ? undefined : resolvedSize,
+        selectedColor: color || undefined,
+        selectedImage: customImage || undefined,
         quantity: initialQty,
         unitPrice: price,
         totalPrice: price * initialQty

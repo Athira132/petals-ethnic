@@ -20,27 +20,18 @@ import { handleImageError } from '../../../core/utils/image.utils';
         (error)="onImageError($event)"
       />
 
-      <!-- Subtle Gradient Overlay for Text Readability -->
+      <!-- Subtle bottom gradient for button contrast -->
       <div class="hero-gradient-overlay"></div>
 
-      <!-- Hero Content -->
-      <div class="hero-inner-container">
-        <div class="hero-text-card">
-          <span class="hero-pill-badge">NEW SEASON 2026</span>
-          <h1 class="hero-main-title">Timeless Ethnic Couture & Handcrafted Jewellery</h1>
-          <p class="hero-desc">Discover our handpicked designer sarees, anarkalis, festive kurtis, and curated statement jewellery.</p>
-          <div class="hero-buttons-row">
-            <a routerLink="/ethnics" class="btn-hero-primary">
-              Explore Ethnics
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </a>
-            <a routerLink="/jewellery" class="btn-hero-secondary">
-              ✨ Explore Jewellery
-            </a>
-          </div>
+      <!-- Exploration Buttons Only (No text, heading, or tagline) -->
+      <div class="hero-cta-container">
+        <div class="hero-buttons-row">
+          <a routerLink="/ethnics" class="btn-hero-cta btn-ethnics">
+            EXPLORE ETHNICS
+          </a>
+          <a routerLink="/jewellery" class="btn-hero-cta btn-jewellery">
+            EXPLORE JEWELLERY
+          </a>
         </div>
       </div>
     </section>
@@ -49,13 +40,14 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .hero-static-section {
       position: relative;
       width: 100%;
-      height: 72vh;
-      min-height: 500px;
-      max-height: 700px;
+      height: 70vh;
+      min-height: 480px;
+      max-height: 660px;
       overflow: hidden;
       background-color: #0D0D0D;
       display: flex;
       align-items: flex-end;
+      justify-content: center;
     }
 
     .hero-static-img {
@@ -64,7 +56,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 25%;
+      object-position: center 20%;
     }
 
     .hero-gradient-overlay {
@@ -72,165 +64,122 @@ import { handleImageError } from '../../../core/utils/image.utils';
       inset: 0;
       background: linear-gradient(
         to bottom,
-        rgba(0, 0, 0, 0.15) 0%,
-        rgba(0, 0, 0, 0.25) 45%,
-        rgba(15, 10, 12, 0.85) 100%
+        rgba(0, 0, 0, 0.05) 0%,
+        rgba(0, 0, 0, 0.1) 50%,
+        rgba(15, 10, 12, 0.55) 100%
       );
       pointer-events: none;
     }
 
-    .hero-inner-container {
+    .hero-cta-container {
       position: relative;
-      z-index: 2;
+      z-index: 3;
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 24px 44px 24px;
-    }
-
-    .hero-text-card {
-      max-width: 650px;
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    .hero-pill-badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #F8BBD0;
-      background: rgba(159, 61, 98, 0.6);
-      border: 1px solid rgba(248, 187, 208, 0.45);
-      padding: 5px 14px;
-      border-radius: 20px;
-      backdrop-filter: blur(6px);
-    }
-
-    .hero-main-title {
-      font-family: var(--font-heading, "Playfair Display", Georgia, serif);
-      font-size: 40px;
-      font-weight: 700;
-      color: #FFFFFF;
-      line-height: 1.18;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-      margin: 0;
-    }
-
-    .hero-desc {
-      font-size: 15px;
-      color: rgba(255, 255, 255, 0.9);
-      line-height: 1.5;
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
-      margin: 0;
-      max-width: 560px;
+      justify-content: center;
     }
 
     .hero-buttons-row {
       display: flex;
-      gap: 14px;
       align-items: center;
-      margin-top: 6px;
+      justify-content: center;
+      gap: 20px;
       flex-wrap: wrap;
     }
 
-    .btn-hero-primary {
+    /* Minimal, Elegant Exploration Buttons */
+    .btn-hero-cta {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background-color: #9F3D62;
-      color: #FFFFFF !important;
-      padding: 12px 26px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 600;
+      justify-content: center;
+      min-width: 200px;
+      padding: 14px 30px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
       text-decoration: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 16px rgba(159, 61, 98, 0.5);
-    }
-    .btn-hero-primary:hover {
-      background-color: #BD4A75;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(159, 61, 98, 0.7);
-    }
-
-    .btn-hero-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.15);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      color: #FFFFFF !important;
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.3s ease;
+      user-select: none;
     }
-    .btn-hero-secondary:hover {
-      background: rgba(255, 255, 255, 0.3);
-      border-color: #FFFFFF;
+
+    /* Soft Rose Accent Button for Ethnics */
+    .btn-ethnics {
+      background: #FFFFFF;
+      color: #0D0D0D;
+      border: 1.5px solid rgba(194, 24, 91, 0.7);
+    }
+    .btn-ethnics:hover {
+      background: #C2185B;
+      color: #FFFFFF;
+      border-color: #C2185B;
       transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(194, 24, 91, 0.35);
     }
 
-    /* Tablet Responsiveness */
-    @media (max-width: 992px) {
+    /* Soft Gold Accent Button for Jewellery */
+    .btn-jewellery {
+      background: #FFFFFF;
+      color: #0D0D0D;
+      border: 1.5px solid rgba(197, 160, 89, 0.9);
+    }
+    .btn-jewellery:hover {
+      background: #C5A059;
+      color: #FFFFFF;
+      border-color: #C5A059;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(197, 160, 89, 0.4);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
       .hero-static-section {
-        height: 55vh;
-        min-height: 380px;
-        max-height: 480px;
+        height: 52vh;
+        min-height: 340px;
+        max-height: 420px;
       }
-      .hero-main-title {
-        font-size: 30px;
+      .hero-cta-container {
+        padding: 0 16px 28px 16px;
       }
-      .hero-desc {
-        font-size: 13px;
+      .hero-buttons-row {
+        gap: 12px;
+      }
+      .btn-hero-cta {
+        min-width: 150px;
+        padding: 11px 20px;
+        font-size: 11px;
+        letter-spacing: 1.2px;
       }
     }
 
-    /* Mobile Responsiveness: Compact & Immediate Viewport Discovery */
-    @media (max-width: 576px) {
+    @media (max-width: 480px) {
       .hero-static-section {
-        height: 44vh;
-        min-height: 280px;
-        max-height: 350px;
+        height: 46vh;
+        min-height: 290px;
+        max-height: 360px;
       }
       .hero-static-img {
         object-position: center 15%;
       }
-      .hero-inner-container {
-        padding: 0 16px 20px 16px;
-      }
-      .hero-text-card {
-        gap: 8px;
-      }
-      .hero-pill-badge {
-        font-size: 9px;
-        padding: 3px 10px;
-      }
-      .hero-main-title {
-        font-size: 20px;
-        line-height: 1.22;
-      }
-      .hero-desc {
-        display: none; /* Hide long subtitle on small phones to maximize visibility of buttons and products below! */
+      .hero-cta-container {
+        padding: 0 12px 20px 12px;
       }
       .hero-buttons-row {
         gap: 10px;
-        margin-top: 4px;
+        width: 100%;
       }
-      .btn-hero-primary {
-        padding: 9px 18px;
-        font-size: 12px;
-      }
-      .btn-hero-secondary {
-        padding: 9px 16px;
-        font-size: 12px;
+      .btn-hero-cta {
+        flex: 1;
+        min-width: 135px;
+        padding: 10px 14px;
+        font-size: 11px;
+        letter-spacing: 1px;
       }
     }
   `]

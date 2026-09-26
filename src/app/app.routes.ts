@@ -3,6 +3,7 @@ import { HomeComponent } from './pages/home/home.component';
 import { ShopComponent } from './pages/shop/shop.component';
 import { ProductDetailComponent } from './pages/product-detail/product-detail.component';
 import { CartComponent } from './pages/cart/cart.component';
+import { WishlistComponent } from './pages/wishlist/wishlist.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { LoginComponent } from './pages/auth/login.component';
 import { RegisterComponent } from './pages/auth/register.component';
@@ -36,6 +37,7 @@ export const routes: Routes = [
   { path: 'categories', component: CategoryDiscoveryComponent },
   { path: 'product/:slug', component: ProductDetailComponent },
   { path: 'cart', component: CartComponent },
+  { path: 'wishlist', component: WishlistComponent },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
   
   // Auth Routes

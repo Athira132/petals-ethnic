@@ -12,12 +12,13 @@ import { AuthService } from '../../core/services/auth.service';
       <!-- Admin Sidebar -->
       <aside class="admin-sidebar" [class.open]="isMobileSidebarOpen">
         <div class="sidebar-header">
-          <a routerLink="/" class="sidebar-logo" title="Petal Ethnics & Jewellers">
-            <div class="sidebar-logo-card">
-              <img src="https://i.ibb.co/RGtNVzyC/Untitled-design-7-removebg-preview.png" alt="Petal Ethnics & Jewellers" class="sidebar-logo-img" />
+          <a routerLink="/" class="sidebar-logo">
+            <div class="logo-circle-sm">
+              <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" />
             </div>
             <div class="logo-text">
-              <span>ADMIN PANEL</span>
+              <strong>PETAL ETHNICS & JEWELLERS</strong>
+              <span>SUPER ADMIN</span>
             </div>
           </a>
         </div>
@@ -97,11 +98,12 @@ import { AuthService } from '../../core/services/auth.service';
     .admin-wrapper { display: flex; min-height: 100vh; background-color: var(--color-bg-alt); }
     .admin-sidebar { width: 260px; background-color: #0D0D0D; color: #FFFFFF; display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 1000; transition: transform 0.3s ease; }
     
-    .sidebar-header { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .sidebar-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; }
-    .sidebar-logo-card { width: 100%; background: #FFFFFF; padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-    .sidebar-logo-img { height: 38px; max-width: 100%; width: auto; object-fit: contain; }
-    .logo-text span { font-size: 10px; color: var(--color-gold); letter-spacing: 2px; font-weight: 700; }
+    .sidebar-header { padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo { display: flex; align-items: center; gap: 12px; }
+    .logo-circle-sm { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--color-gold); overflow: hidden; background: #FFFFFF; }
+    .logo-circle-sm img { width: 100%; height: 100%; object-fit: cover; }
+    .logo-text strong { display: block; font-size: 14px; color: #FFFFFF; letter-spacing: 1px; }
+    .logo-text span { font-size: 9px; color: var(--color-gold); letter-spacing: 1.5px; font-weight: 700; }
 
     .sidebar-menu { display: flex; flex-direction: column; gap: 4px; padding: 24px 16px; flex: 1; }
     .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #AAAAAA; font-size: 14px; font-weight: 500; border-radius: var(--radius-sm); transition: var(--transition); }

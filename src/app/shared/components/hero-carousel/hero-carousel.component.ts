@@ -9,7 +9,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
   imports: [CommonModule, RouterModule],
   template: `
     <section class="hero-static-section">
-      <!-- Maximum Brightness Single Static Hero Image (No dark overlay, no shading) -->
+      <!-- Maximum Brightness Edge-to-Edge Hero Banner (Zoomed out, properly centered, no dark overlay) -->
       <img 
         src="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" 
         alt="Petal Ethnics & Jewellers Collection" 
@@ -20,7 +20,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
         (error)="onImageError($event)"
       />
 
-      <!-- Side-Positioned Exploration Buttons in a Horizontal Row -->
+      <!-- Hero Exploration Buttons in a Clean Horizontal Row Beside Each Other -->
       <div class="hero-cta-container">
         <div class="hero-buttons-row">
           <a routerLink="/ethnics" class="btn-hero-cta btn-ethnics">
@@ -37,51 +37,56 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .hero-static-section {
       position: relative;
       width: 100%;
-      height: 70vh;
-      min-height: 480px;
-      max-height: 660px;
+      height: clamp(380px, 46vw, 620px);
       overflow: hidden;
       background-color: #FAFAFA;
       display: flex;
       align-items: flex-end;
+      justify-content: center;
     }
 
-    /* Crisp, bright, vivid hero image with preserved natural colors and maximum clarity */
+    /* Edge-to-edge, zoomed out, centered without excessive cropping or dark overlays */
     .hero-static-img {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20%;
+      object-position: center 25%;
       opacity: 1;
       filter: none;
+      display: block;
     }
 
-    /* Positioned on the side (left) with clean margins */
+    /* Centered bottom container for horizontal buttons */
     .hero-cta-container {
       position: absolute;
-      left: 5%;
-      bottom: 12%;
+      bottom: 34px;
+      left: 0;
+      right: 0;
       z-index: 10;
       display: flex;
+      justify-content: center;
+      padding: 0 20px;
     }
 
-    /* Horizontal row layout - beside each other (NOT stacked) */
+    /* Horizontal row beside each other */
     .hero-buttons-row {
       display: flex;
       flex-direction: row;
       align-items: center;
-      gap: 16px;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
     }
 
-    /* High-contrast solid button styling ensuring 100% readability over bright imagery */
+    /* Solid high-contrast buttons with rose & gold accents */
     .btn-hero-cta {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 200px;
-      padding: 14px 28px;
+      min-width: 210px;
+      padding: 13px 30px;
       border-radius: 4px;
       font-size: 13px;
       font-weight: 700;
@@ -92,7 +97,6 @@ import { handleImageError } from '../../../core/utils/image.utils';
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
       user-select: none;
       cursor: pointer;
-      white-space: nowrap;
     }
 
     /* Rose Accent Button for Ethnics */
@@ -124,13 +128,11 @@ import { handleImageError } from '../../../core/utils/image.utils';
     /* Tablet Responsiveness */
     @media (max-width: 768px) {
       .hero-static-section {
-        height: 52vh;
-        min-height: 340px;
-        max-height: 440px;
+        height: clamp(280px, 50vw, 400px);
       }
       .hero-cta-container {
-        left: 20px;
-        bottom: 24px;
+        bottom: 22px;
+        padding: 0 16px;
       }
       .hero-buttons-row {
         gap: 12px;
@@ -143,33 +145,32 @@ import { handleImageError } from '../../../core/utils/image.utils';
       }
     }
 
-    /* Mobile Phone Responsiveness - keep side-by-side in a row without overflow */
+    /* Mobile Phone Responsiveness - strictly beside each other in a row */
     @media (max-width: 480px) {
       .hero-static-section {
-        height: 48vh;
-        min-height: 300px;
-        max-height: 380px;
+        height: clamp(240px, 58vw, 320px);
       }
       .hero-static-img {
-        object-position: center 15%;
+        object-position: center 20%;
       }
       .hero-cta-container {
-        left: 12px;
-        right: 12px;
-        bottom: 16px;
+        bottom: 14px;
+        padding: 0 12px;
       }
       .hero-buttons-row {
-        display: flex;
-        flex-direction: row;
         gap: 8px;
+        flex-wrap: nowrap;
         width: 100%;
+        max-width: 380px;
       }
       .btn-hero-cta {
         flex: 1;
         min-width: 0;
-        padding: 10px 8px;
-        font-size: 10.5px;
-        letter-spacing: 0.6px;
+        padding: 9px 8px;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        text-align: center;
       }
     }
   `]

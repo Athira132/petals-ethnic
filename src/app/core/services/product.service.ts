@@ -211,7 +211,7 @@ export class ProductService {
       const contentType = res.headers.get('content-type') || '';
       if (contentType.includes('application/json')) {
         const resData = await res.json();
-        if (resData.success && resData.categories) {
+        if ((resData.success || resData.categories) && Array.isArray(resData.categories)) {
           let cats = (resData.categories as any[]).map(c => this.parseCategoryMeta(c));
           this.cachedCategories = cats;
           this.categoriesSubject.next(cats);

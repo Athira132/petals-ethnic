@@ -31,10 +31,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
             </svg>
           </button>
 
-          <!-- Provided Logo on the LEFT (Clean, professional size, aspect ratio preserved) -->
+          <!-- Provided Logo on the LEFT (Clean, large, aspect ratio preserved) -->
           <a routerLink="/" class="navbar-logo-link" title="Petals Ethnics & Jewellers">
             <img 
-              src="https://i.ibb.co/RGtNVzyC/Untitled-design-7-removebg-preview.png" 
+              src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
               alt="Petals Ethnics & Jewellers" 
               class="navbar-logo-img"
               (error)="onImageError($event)"
@@ -121,7 +121,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       <div class="mobile-drawer-header">
         <a routerLink="/" (click)="toggleMobileMenu()" class="drawer-logo-wrap">
           <img 
-            src="https://i.ibb.co/RGtNVzyC/Untitled-design-7-removebg-preview.png" 
+            src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
             alt="Petals Ethnics & Jewellers" 
             class="drawer-logo-img"
             (error)="onImageError($event)"
@@ -191,7 +191,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 78px;
+      height: 74px;
     }
 
     /* Left Side: Mobile Toggle + Logo */
@@ -208,10 +208,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
       flex-shrink: 0;
     }
     .navbar-logo-img {
-      height: 64px;
+      height: 52px;
       width: auto;
-      max-height: 64px;
-      max-width: 250px;
+      max-height: 52px;
+      max-width: 220px;
       object-fit: contain;
       display: block;
       transition: transform 0.2s ease;
@@ -384,21 +384,21 @@ import { handleImageError } from '../../../core/utils/image.utils';
         gap: 0;
       }
       .navbar-logo-img {
-        height: 56px;
-        max-height: 56px;
-        max-width: 220px;
+        height: 44px;
+        max-height: 44px;
+        max-width: 175px;
       }
     }
 
     @media (max-width: 480px) {
       .navbar-container {
-        height: 68px;
+        height: 64px;
         padding: 0 12px;
       }
       .navbar-logo-img {
-        height: 48px;
-        max-height: 48px;
-        max-width: 175px;
+        height: 38px;
+        max-height: 38px;
+        max-width: 145px;
       }
       .nav-left {
         gap: 8px;
@@ -455,10 +455,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
       align-items: center;
     }
     .drawer-logo-img {
-      height: 52px;
-      max-height: 52px;
-      max-width: 200px;
+      height: 46px;
+      max-height: 46px;
       width: auto;
+      max-width: 180px;
       object-fit: contain;
     }
     .close-btn {

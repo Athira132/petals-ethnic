@@ -581,6 +581,18 @@ import { handleImageError } from '../../core/utils/image.utils';
     @media (max-width: 768px) {
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
     }
+    @media (max-width: 480px) {
+      .shop-container { padding-top: 16px; padding-bottom: 40px; }
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .shop-toolbar { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+      .results-count { font-size: 12px; }
+      .sort-box { font-size: 12px; }
+      .sort-select { padding: 6px 8px; font-size: 12px; }
+      .category-hero { padding: 36px 14px; }
+      .hero-title { font-size: 24px; }
+      .hero-tagline { font-size: 11px; }
+      .hero-description { font-size: 13px; }
+    }
 
     .empty-products-box {
       text-align: center;

@@ -12,8 +12,8 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="auth-page">
       <div class="auth-card">
         <div class="auth-header">
-          <div class="logo-wrapper">
-            <img src="https://i.ibb.co/RGtNVzyC/Untitled-design-7-removebg-preview.png" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
+          <div class="logo-circle-wrapper">
+            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Create Account</h1>
           <p class="auth-subtitle">Join Petal Ethnics & Jewellers to enjoy fast checkouts, track orders, and receive exclusive offers.</p>
@@ -112,17 +112,22 @@ import { AuthService } from '../../core/services/auth.service';
       text-align: center;
       margin-bottom: 28px;
     }
-    .logo-wrapper {
+    .logo-circle-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
       margin: 0 auto 16px auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: #FFFFFF;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .auth-logo {
-      height: 56px;
-      max-width: 240px;
-      width: auto;
-      object-fit: contain;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .auth-title {
       font-size: 28px;

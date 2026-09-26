@@ -340,6 +340,40 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     .quick-enquiry-btn:hover {
       background: #1EBE5D;
     }
+
+    @media (max-width: 480px) {
+      .card-content {
+        padding: 10px 10px 12px 10px;
+      }
+      .product-cat {
+        font-size: 10px;
+        margin-bottom: 2px;
+      }
+      .product-title {
+        font-size: 13px;
+        line-height: 1.3;
+        margin-bottom: 6px;
+      }
+      .product-price {
+        font-size: 14px;
+        gap: 6px;
+      }
+      .original-price {
+        font-size: 11px;
+      }
+      .card-badges {
+        top: 8px;
+        left: 8px;
+        gap: 4px;
+      }
+      .card-badges .badge {
+        font-size: 9px;
+        padding: 2px 6px;
+      }
+      .size-quick-bar {
+        display: none;
+      }
+    }
   `]
 })
 export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {

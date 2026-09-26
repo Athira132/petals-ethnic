@@ -1059,7 +1059,8 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
         gap: 10px;
       }
       .btn-primary, .btn-gold {
-        min-width: 130px;
+        flex: 1 1 calc(50% - 6px);
+        min-width: 120px;
         font-size: 13px;
         height: 44px;
       }
@@ -1069,6 +1070,37 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       }
       .quantity-stepper {
         height: 44px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .pd-title {
+        font-size: 19px;
+        line-height: 1.3;
+      }
+      .pd-pricing {
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .sale-price {
+        font-size: 22px;
+      }
+      .original-price {
+        font-size: 15px;
+      }
+      .pd-actions-row {
+        gap: 8px;
+      }
+      .btn-primary, .btn-gold {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+      .quantity-stepper {
+        flex: 1;
+      }
+      .btn-wishlist {
+        flex-shrink: 0;
       }
     }
   `]

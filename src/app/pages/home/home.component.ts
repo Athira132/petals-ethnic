@@ -15,50 +15,41 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
   imports: [CommonModule, RouterModule, HeroCarouselComponent, ProductCardComponent],
   template: `
     <main class="home-page">
-      <!-- 1. Hero Fashion Showcase (Text at Bottom, Right-Center Image Position) -->
+      <!-- 1. Hero Fashion Showcase (Edge-to-edge, maximum brightness, horizontal buttons) -->
       <app-hero-carousel></app-hero-carousel>
 
-      <!-- 2. Compact Horizontal Category Navigation Slider -->
-      <section class="compact-category-section">
+      <!-- 2. Explore Categories (Uniform Circular Images) -->
+      <section class="explore-categories-section">
         <div class="container">
-          <div class="compact-category-header">
-            <h3 class="category-nav-title">Explore Categories</h3>
+          <div class="explore-cat-header">
+            <div class="explore-cat-titles">
+              <span class="explore-cat-subtitle">CURATED COLLECTIONS</span>
+              <h2 class="explore-cat-title">Explore Categories</h2>
+            </div>
             <a routerLink="/categories" class="explore-more-link">
-              Explore All Categories &rarr;
+              View All Categories &rarr;
             </a>
           </div>
 
-          <div class="category-slider-wrapper">
-            <div class="category-track-scroll">
-              <!-- All Ethnics Pill -->
-              <a routerLink="/ethnics" class="cat-pill active">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-                Ethnics
-              </a>
-
-              <!-- All Jewellery Pill -->
-              <a routerLink="/jewellery" class="cat-pill">
-                Jewellery
-              </a>
-
-              <!-- Dynamic Category Pills -->
+          <div class="category-scroll-container">
+            <div class="category-circles-track">
               <a 
-                *ngFor="let cat of categories; trackBy: trackByCategoryId" 
+                *ngFor="let cat of displayedCategories; trackBy: trackByCategoryId" 
                 [routerLink]="[(cat.department || 'ethnic') === 'jewellery' ? '/jewellery' : '/ethnics']" 
                 [queryParams]="{category: cat.slug}"
-                class="cat-pill"
+                class="category-circle-card"
+                [title]="cat.name"
               >
-                {{ cat.name }}
-              </a>
-
-              <!-- Explore More Button Pill -->
-              <a routerLink="/categories" class="cat-pill explore-pill">
-                Explore More &rarr;
+                <div class="category-circle-avatar">
+                  <img 
+                    [src]="getCategoryCover(cat)" 
+                    [alt]="cat.name" 
+                    class="circle-img"
+                    loading="lazy"
+                    (error)="onImageError($event)"
+                  />
+                </div>
+                <span class="category-circle-label">{{ cat.name }}</span>
               </a>
             </div>
           </div>
@@ -68,12 +59,12 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       <!-- 3. New Arrivals (Products Priority) -->
       <section class="section new-arrivals-section">
         <div class="container">
-          <div class="section-header-flex">
-            <div>
+          <div class="new-arrivals-header">
+            <div class="new-arrivals-title-wrap">
               <span class="section-subtitle">JUST DROPPED</span>
               <h2 class="section-title">New Arrivals</h2>
             </div>
-            <a routerLink="/ethnics" [queryParams]="{filter: 'new'}" class="btn-outline">View All New Arrivals &rarr;</a>
+            <a routerLink="/ethnics" [queryParams]="{filter: 'new'}" class="btn-new-arrivals">View New Arrivals &rarr;</a>
           </div>
 
           <div *ngIf="!isHomeLoading; else loadingState">
@@ -219,18 +210,26 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
   styles: [`
     .home-page {
       background-color: var(--color-bg);
+      overflow-x: hidden;
     }
     
     .section {
-      padding: 60px 0;
+      padding: 56px 0;
     }
     @media (max-width: 768px) {
-      .section { padding: 40px 0; }
+      .section { padding: 36px 0; }
+    }
+    @media (max-width: 480px) {
+      .section { padding: 28px 0; }
     }
 
     .section-header {
-      margin-bottom: 40px;
+      margin-bottom: 36px;
     }
+    @media (max-width: 768px) {
+      .section-header { margin-bottom: 24px; }
+    }
+
     .section-header-flex {
       display: flex;
       justify-content: space-between;
@@ -242,6 +241,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
+        margin-bottom: 20px;
       }
     }
 
@@ -261,32 +261,44 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
     }
     @media (max-width: 768px) {
       .section-title { font-size: 24px; }
+      .section-subtitle { font-size: 11px; }
     }
     .section-desc {
       font-size: 15px;
       color: var(--color-muted);
       margin-top: 6px;
     }
+    @media (max-width: 480px) {
+      .section-desc { font-size: 13.5px; }
+    }
 
-    /* 2. Compact Horizontal Category Navigation Slider */
-    .compact-category-section {
-      padding: 24px 0 16px 0;
-      background-color: #FAFAF8;
+    /* 2. Explore Categories (Uniform Circular Images) */
+    .explore-categories-section {
+      padding: 30px 0 24px 0;
+      background-color: #FFFFFF;
       border-bottom: 1px solid var(--color-border-light);
     }
 
-    .compact-category-header {
+    .explore-cat-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
+      align-items: flex-end;
+      margin-bottom: 20px;
     }
-    .category-nav-title {
-      font-size: 14px;
+    .explore-cat-subtitle {
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       text-transform: uppercase;
+      color: var(--color-gold);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .explore-cat-title {
+      font-size: 22px;
+      font-weight: 700;
       color: var(--color-text-heading);
+      margin: 0;
     }
     .explore-more-link {
       font-size: 13px;
@@ -294,75 +306,200 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       color: #9F3D62;
       text-decoration: none;
       transition: var(--transition);
+      white-space: nowrap;
     }
     .explore-more-link:hover {
       color: #7F2A4C;
       text-decoration: underline;
     }
 
-    .category-slider-wrapper {
+    .category-scroll-container {
       width: 100%;
-      overflow: hidden;
-    }
-
-    .category-track-scroll {
-      display: flex;
-      gap: 10px;
       overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      padding-bottom: 6px;
+      scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: none; /* Firefox */
+      padding: 4px 0 8px 0;
     }
-    .category-track-scroll::-webkit-scrollbar {
-      display: none; /* Chrome/Safari */
+    .category-scroll-container::-webkit-scrollbar {
+      display: none;
     }
 
-    .cat-pill {
-      display: inline-flex;
+    .category-circles-track {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 28px;
+    }
+    @media (max-width: 992px) {
+      .category-circles-track {
+        justify-content: flex-start;
+        gap: 20px;
+      }
+    }
+
+    .category-circle-card {
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: #FFFFFF;
-      border: 1px solid var(--color-border);
-      border-radius: 30px;
+      text-decoration: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      width: 88px;
+      transition: transform 0.25s ease;
+      scroll-snap-align: start;
+    }
+    .category-circle-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .category-circle-avatar {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      background: #F8F5F2;
+      border: 2px solid #E8E2DC;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .category-circle-card:hover .category-circle-avatar {
+      border-color: #9F3D62;
+      box-shadow: 0 6px 18px rgba(159, 61, 98, 0.22);
+    }
+    .circle-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 25%;
+      border-radius: 50%;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+    .category-circle-card:hover .circle-img {
+      transform: scale(1.08);
+    }
+
+    .category-circle-label {
+      margin-top: 10px;
       font-size: 13px;
       font-weight: 600;
-      color: var(--color-text);
-      text-decoration: none;
+      color: #2D2D2D;
+      text-align: center;
+      line-height: 1.25;
       white-space: nowrap;
-      scroll-snap-align: start;
-      transition: all 0.25s ease;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: color 0.2s ease;
     }
-    .cat-pill:hover {
-      border-color: #9F3D62;
+    .category-circle-card:hover .category-circle-label {
       color: #9F3D62;
-      background: #FFF5F8;
-      transform: translateY(-1px);
-    }
-    .cat-pill.active {
-      background-color: #9F3D62;
-      border-color: #9F3D62;
-      color: #FFFFFF;
-    }
-    .pill-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background-color: #FFFFFF;
     }
 
-    .cat-pill.explore-pill {
-      background-color: #FAF0F4;
-      border-color: rgba(159, 61, 98, 0.4);
-      color: #9F3D62;
-      font-weight: 700;
+    @media (max-width: 576px) {
+      .explore-categories-section {
+        padding: 18px 0 14px 0;
+      }
+      .explore-cat-header {
+        margin-bottom: 12px;
+      }
+      .explore-cat-subtitle {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+      }
+      .explore-cat-title {
+        font-size: 18px;
+      }
+      .explore-more-link {
+        font-size: 11.5px;
+      }
+      .category-circles-track {
+        gap: 14px;
+      }
+      .category-circle-card {
+        width: 70px;
+      }
+      .category-circle-avatar {
+        width: 68px;
+        height: 68px;
+        border-width: 1.5px;
+      }
+      .category-circle-label {
+        font-size: 11px;
+        margin-top: 6px;
+      }
     }
-    .cat-pill.explore-pill:hover {
-      background-color: #9F3D62;
+
+    /* 3. New Arrivals Header (Mobile same row requirement) */
+    .new-arrivals-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      gap: 16px;
+      width: 100%;
+    }
+    .new-arrivals-title-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+    .btn-new-arrivals {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border: 1.5px solid #9F3D62;
+      color: #9F3D62;
+      background: transparent;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+    .btn-new-arrivals:hover {
+      background: #9F3D62;
       color: #FFFFFF;
-      border-color: #9F3D62;
+      box-shadow: 0 4px 12px rgba(159, 61, 98, 0.25);
+    }
+    @media (max-width: 576px) {
+      .new-arrivals-header {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        margin-bottom: 16px;
+        gap: 10px;
+      }
+      .new-arrivals-title-wrap .section-subtitle {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        margin-bottom: 2px;
+      }
+      .new-arrivals-title-wrap .section-title {
+        font-size: 20px;
+        line-height: 1.15;
+        white-space: nowrap;
+      }
+      .btn-new-arrivals {
+        padding: 6px 11px;
+        font-size: 11px;
+        letter-spacing: 0.3px;
+        flex-shrink: 0;
+        border-width: 1.5px;
+      }
+    }
+    @media (max-width: 380px) {
+      .new-arrivals-title-wrap .section-title {
+        font-size: 17px;
+      }
+      .btn-new-arrivals {
+        padding: 5px 8px;
+        font-size: 10px;
+      }
     }
 
     /* Product Grid */
@@ -375,10 +512,10 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       .product-grid { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 768px) {
-      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
     }
     @media (max-width: 480px) {
-      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     }
 
     /* Editorial Story Section */
@@ -386,11 +523,6 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       background-color: #FAF8F6;
       border-top: 1px solid var(--color-border-light);
       border-bottom: 1px solid var(--color-border-light);
-    }
-    @media (max-width: 768px) {
-      .story-editorial-section {
-        display: none !important;
-      }
     }
     .story-grid {
       display: grid;
@@ -401,7 +533,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
     @media (max-width: 992px) {
       .story-grid {
         grid-template-columns: 1fr;
-        gap: 32px;
+        gap: 28px;
       }
     }
     .story-image-col {
@@ -410,10 +542,17 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
     .story-image-frame {
       position: relative;
       width: 100%;
-      padding-top: 120%; /* Aspect ratio */
+      padding-top: 100%;
       border-radius: var(--radius-lg);
       overflow: hidden;
       box-shadow: var(--shadow-lg);
+    }
+    @media (max-width: 768px) {
+      .story-image-frame {
+        padding-top: 60%;
+        max-height: 280px;
+        border-radius: 12px;
+      }
     }
     .story-img {
       position: absolute;
@@ -429,17 +568,25 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
     }
     .story-badge-floating {
       position: absolute;
-      bottom: 24px;
-      left: 24px;
+      bottom: 20px;
+      left: 20px;
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(8px);
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: var(--radius-full);
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 1.5px;
       color: #9F3D62;
       box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    @media (max-width: 480px) {
+      .story-badge-floating {
+        bottom: 12px;
+        left: 12px;
+        padding: 6px 12px;
+        font-size: 9.5px;
+      }
     }
 
     .story-content-col {
@@ -449,30 +596,36 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       .story-content-col { padding-right: 0; }
     }
     .story-title {
-      font-size: 36px;
+      font-size: 34px;
       font-weight: 700;
       line-height: 1.25;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       color: var(--color-text-heading);
     }
     @media (max-width: 768px) {
-      .story-title { font-size: 26px; }
+      .story-title { font-size: 22px; margin-bottom: 12px; }
     }
     .story-paragraph {
       font-size: 15px;
       line-height: 1.7;
       color: var(--color-muted);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 480px) {
+      .story-paragraph { font-size: 13.5px; line-height: 1.6; }
     }
     .story-action {
-      margin-top: 28px;
+      margin-top: 24px;
+    }
+    @media (max-width: 480px) {
+      .story-action { margin-top: 16px; }
     }
     .btn-story-primary {
       display: inline-flex;
       align-items: center;
       background-color: #9F3D62;
       color: #FFFFFF !important;
-      padding: 14px 32px;
+      padding: 13px 30px;
       border-radius: var(--radius-full);
       font-weight: 600;
       font-size: 14px;
@@ -485,6 +638,14 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(127, 42, 76, 0.5);
     }
+    @media (max-width: 480px) {
+      .btn-story-primary {
+        padding: 11px 22px;
+        font-size: 13px;
+        width: 100%;
+        justify-content: center;
+      }
+    }
 
     /* Instagram Section */
     .instagram-grid {
@@ -494,7 +655,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       margin-top: 32px;
     }
     @media (max-width: 768px) {
-      .instagram-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .instagram-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; }
     }
     .insta-item {
       position: relative;
@@ -528,12 +689,12 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
     .wa-cta-box {
       background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
       color: #FFFFFF;
-      padding: 60px 32px;
+      padding: 56px 32px;
       border-radius: var(--radius-lg);
       text-align: center;
     }
     .wa-cta-box h2 {
-      font-size: 32px;
+      font-size: 30px;
       color: #FFFFFF;
       margin-bottom: 12px;
     }
@@ -549,7 +710,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       gap: 10px;
       background-color: #25D366;
       color: #FFFFFF;
-      padding: 16px 36px;
+      padding: 15px 34px;
       border-radius: var(--radius-full);
       font-weight: 600;
       font-size: 15px;
@@ -560,6 +721,37 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       background-color: #1EBE57;
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+    }
+    @media (max-width: 768px) {
+      .wa-cta-box {
+        padding: 36px 20px;
+      }
+      .wa-cta-box h2 {
+        font-size: 22px;
+      }
+      .wa-cta-box p {
+        font-size: 13.5px;
+        margin-bottom: 22px;
+      }
+    }
+    @media (max-width: 480px) {
+      .wa-cta-box {
+        padding: 28px 14px;
+        border-radius: 12px;
+      }
+      .wa-cta-box h2 {
+        font-size: 19px;
+      }
+      .wa-cta-box p {
+        font-size: 13px;
+        margin-bottom: 18px;
+      }
+      .btn-wa {
+        width: 100%;
+        justify-content: center;
+        padding: 13px 20px;
+        font-size: 14px;
+      }
     }
 
     /* Loading Spinner */
@@ -588,6 +780,76 @@ export class HomeComponent implements OnInit {
   newArrivals: Product[] = [];
   featuredProducts: Product[] = [];
 
+  readonly defaultEthnicImage = 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png';
+  readonly defaultJewelleryImage = 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png';
+
+  readonly defaultCategories: Category[] = [
+    {
+      id: 'cat-kurtis',
+      name: 'Kurtis',
+      slug: 'kurtis',
+      department: 'ethnic',
+      active: true,
+      image_url: 'https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg'
+    },
+    {
+      id: 'cat-anarkali',
+      name: 'Anarkalis',
+      slug: 'anarkali',
+      department: 'ethnic',
+      active: true,
+      image_url: 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg'
+    },
+    {
+      id: 'cat-sarees',
+      name: 'Sarees',
+      slug: 'sarees',
+      department: 'ethnic',
+      active: true,
+      image_url: 'https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg'
+    },
+    {
+      id: 'cat-coord',
+      name: 'Co-ord Sets',
+      slug: 'coord-sets',
+      department: 'ethnic',
+      active: true,
+      image_url: 'https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png'
+    },
+    {
+      id: 'cat-dresses',
+      name: 'Midi Dresses',
+      slug: 'midi-dress',
+      department: 'ethnic',
+      active: true,
+      image_url: 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png'
+    },
+    {
+      id: 'cat-necklaces',
+      name: 'Necklaces',
+      slug: 'necklaces',
+      department: 'jewellery',
+      active: true,
+      image_url: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
+    },
+    {
+      id: 'cat-earrings',
+      name: 'Earrings',
+      slug: 'earrings',
+      department: 'jewellery',
+      active: true,
+      image_url: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
+    },
+    {
+      id: 'cat-bangles',
+      name: 'Bangles',
+      slug: 'bangles',
+      department: 'jewellery',
+      active: true,
+      image_url: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
+    }
+  ];
+
   constructor(
     private productService: ProductService,
     private cartService: CartService
@@ -613,6 +875,25 @@ export class HomeComponent implements OnInit {
     } finally {
       this.isHomeLoading = false;
     }
+  }
+
+  get displayedCategories(): Category[] {
+    return (this.categories && this.categories.length > 0) ? this.categories : this.defaultCategories;
+  }
+
+  getCategoryCover(cat: Category): string {
+    if (cat.image_url && cat.image_url.trim()) {
+      return cat.image_url.trim();
+    }
+    const isJewel = (cat.department === 'jewellery') || 
+      /jewel|necklace|earring|bangle|ring|bracelet|choker/i.test((cat.slug || '') + ' ' + (cat.name || ''));
+    if (isJewel) return this.defaultJewelleryImage;
+
+    const slug = (cat.slug || '').toLowerCase();
+    if (slug.includes('saree')) return 'https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg';
+    if (slug.includes('anarkali')) return 'https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg';
+    if (slug.includes('coord') || slug.includes('dress') || slug.includes('midi')) return 'https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png';
+    return this.defaultEthnicImage;
   }
 
   onImageError(event: Event) {

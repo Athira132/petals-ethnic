@@ -33,27 +33,7 @@ import { handleImageError } from '../../core/utils/image.utils';
         </div>
       </div>
 
-      <!-- Department Selector Switcher -->
-      <div class="department-switch-bar">
-        <div class="container">
-          <div class="dept-pills">
-            <a 
-              [routerLink]="['/ethnics']" 
-              class="dept-pill" 
-              [class.active]="currentDepartment === 'ethnic'"
-            >
-              🌸 Ethnics Boutique
-            </a>
-            <a 
-              [routerLink]="['/jewellery']" 
-              class="dept-pill" 
-              [class.active]="currentDepartment === 'jewellery'"
-            >
-              ✨ Handcrafted Jewellery
-            </a>
-          </div>
-        </div>
-      </div>
+
 
       <!-- Category Hero Section -->
       <div class="category-hero" [style.background-image]="'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.4)), url(' + activeCategoryBannerImage + ')'">
@@ -283,39 +263,7 @@ import { handleImageError } from '../../core/utils/image.utils';
       font-weight: 600;
     }
 
-    /* Department Switcher */
-    .department-switch-bar {
-      background: #FFFFFF;
-      border-bottom: 1px solid var(--color-border-light);
-      padding: 10px 0;
-    }
-    .dept-pills {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-    .dept-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 8px 20px;
-      border-radius: 30px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--color-text-heading);
-      background: #F3F4F6;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
-    }
-    .dept-pill:hover {
-      background: #E5E7EB;
-    }
-    .dept-pill.active {
-      background: var(--color-pink-dark);
-      color: #FFFFFF;
-      border-color: var(--color-pink-dark);
-      box-shadow: 0 4px 10px rgba(192, 86, 118, 0.25);
-    }
+
 
     /* Category Hero Header */
     .category-hero {

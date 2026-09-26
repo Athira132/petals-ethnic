@@ -6,6 +6,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
+import { WishlistService } from '../../core/services/wishlist.service';
 import { Product, ProductImage, SizeOption, ColorVariant } from '../../core/models/product.model';
 import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageItem, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
@@ -29,7 +30,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
         </nav>
 
         <div class="pd-grid">
-          <!-- Image & Video Gallery Column -->
+          <!-- Image Gallery Column -->
           <div class="pd-gallery">
             <div class="main-image-box">
               <!-- Shimmer Skeleton Placeholder -->
@@ -57,6 +58,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                 class="thumb-btn"
                 [class.active]="img.image_url === activeImageUrl"
                 (click)="activeImageUrl = img.image_url; isMainLoaded = false"
+                [attr.aria-label]="'View image ' + img.display_order"
               >
                 <img 
                   [src]="img.image_url" 
@@ -68,38 +70,11 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                 />
               </button>
             </div>
-
-            <!-- Embedded Product Video (if configured) -->
-            <div class="product-video-card" *ngIf="activeVideoUrl">
-              <div class="video-header">
-                <span class="video-icon">🎥</span>
-                <span class="video-title">Product Showcase Video</span>
-              </div>
-              <div class="video-container">
-                <ng-container *ngIf="isEmbedVideo(activeVideoUrl); else directVideo">
-                  <iframe 
-                    [src]="getSafeVideoUrl(activeVideoUrl)" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen
-                    class="video-frame"
-                  ></iframe>
-                </ng-container>
-                <ng-template #directVideo>
-                  <video 
-                    [src]="activeVideoUrl" 
-                    controls 
-                    playsinline 
-                    preload="metadata" 
-                    class="video-player"
-                  ></video>
-                </ng-template>
-              </div>
-            </div>
           </div>
 
           <!-- Product Details Column -->
           <div class="pd-info">
+            <!-- Brand & Category Badges -->
             <div class="brand-badge-row">
               <span class="pd-dept-tag">{{ product.department === 'jewellery' ? '✨ Fine Jewellery' : '🌸 Ethnic Boutique' }}</span>
               <span class="pd-category" *ngIf="product.category">{{ product.category.name }}</span>
@@ -122,7 +97,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               <span class="tax-info">(Inclusive of all taxes)</span>
             </div>
 
-            <!-- Low Stock Badge (CRITICAL: NEVER exposes exact numeric stock to customers) -->
+            <!-- Availability & Low Stock Notice -->
             <div class="stock-status-banner" *ngIf="isLowStock && isAvailable">
               <span class="pulse-dot"></span>
               <span class="status-msg">{{ lowStockMessage }}</span>
@@ -130,11 +105,6 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
 
             <div class="out-of-stock-banner" *ngIf="!isAvailable">
               <span>❌ Currently Out of Stock</span>
-            </div>
-
-            <!-- Description -->
-            <div class="pd-description" *ngIf="product.description">
-              <p>{{ product.description }}</p>
             </div>
 
             <!-- Color Variations (if configured) -->
@@ -160,15 +130,15 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               </div>
             </div>
 
-            <!-- Size Selector (Only for Products with Sizes!) -->
-            <div class="pd-size-section" *ngIf="product.has_size !== false">
+            <!-- Size Selector (Only for Products with Sizes) -->
+            <div class="pd-size-section" *ngIf="product.has_size !== false && sizeList.length > 0">
               <div class="size-header">
                 <div class="size-header-left">
                   <span class="section-label">Select Size:</span>
                   <span class="selected-val-label" *ngIf="selectedSize">{{ selectedSize }}</span>
                 </div>
 
-                <!-- Size Chart Modal Trigger -->
+                <!-- Size Chart Trigger (Only if configured) -->
                 <button 
                   *ngIf="product.show_size_chart && product.size_chart_url" 
                   (click)="isSizeChartOpen = true" 
@@ -192,56 +162,57 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               </div>
             </div>
 
-            <!-- Purchase Actions: Online Purchase vs Contact / Enquiry Mode -->
+            <!-- Actions: Quantity + Add to Cart + Buy Now + Wishlist -->
             <div class="pd-actions-wrapper">
-              <!-- Mode A: Contact / WhatsApp Enquiry Mode -->
-              <div *ngIf="product.purchase_mode === 'enquiry'; else onlinePurchaseBlock" class="enquiry-box">
-                <p class="enquiry-note">This piece is available by bespoke enquiry and store consultation.</p>
-                <a 
-                  [href]="whatsAppEnquiryUrl" 
-                  target="_blank" 
-                  rel="noopener" 
-                  class="btn-whatsapp-enquiry"
-                >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.054-1.89-.477-1.464-.615-2.42-2.115-2.493-2.215-.07-.099-.606-.807-.606-1.54 0-.733.385-1.094.521-1.242.136-.149.297-.186.396-.186.099 0 .198.001.284.005.09.004.21.033.328.316.12.288.411 1.002.447 1.076.036.074.06.161.01.261-.05.099-.074.161-.148.248-.074.086-.157.193-.224.26-.075.074-.153.155-.066.304.087.148.387.639.831 1.034.572.509 1.054.667 1.203.741.149.074.235.062.323-.037.086-.1.371-.433.47-.582.099-.148.198-.124.334-.074.136.05.866.408 1.015.482.148.074.247.112.284.173.037.062.037.359-.107.764z"/>
-                  </svg>
-                  <span>Chat & Enquire on WhatsApp</span>
-                </a>
-              </div>
-
-              <!-- Mode B: Online Purchase via Razorpay -->
-              <ng-template #onlinePurchaseBlock>
-                <div class="pd-actions-row">
-                  <!-- Quantity Stepper -->
-                  <div class="quantity-stepper" *ngIf="isAvailable">
-                    <button (click)="decreaseQty()" [disabled]="quantity <= 1" class="step-btn">-</button>
-                    <span class="qty-num">{{ quantity }}</span>
-                    <button (click)="increaseQty()" [disabled]="quantity >= maxQuantity" class="step-btn">+</button>
-                  </div>
-
-                  <!-- Add to Cart & Buy Now Buttons -->
-                  <button 
-                    class="btn-primary flex-1" 
-                    [disabled]="!isAvailable"
-                    (click)="addToCart()"
-                  >
-                    {{ isAvailable ? '🛒 Add to Cart' : 'Out of Stock' }}
-                  </button>
-
-                  <button 
-                    class="btn-gold flex-1" 
-                    [disabled]="!isAvailable"
-                    (click)="buyNow()"
-                  >
-                    ⚡ Buy Now
-                  </button>
+              <div class="pd-actions-row">
+                <!-- Quantity Stepper -->
+                <div class="quantity-stepper" *ngIf="isAvailable">
+                  <button (click)="decreaseQty()" [disabled]="quantity <= 1" class="step-btn" aria-label="Decrease quantity">-</button>
+                  <span class="qty-num">{{ quantity }}</span>
+                  <button (click)="increaseQty()" [disabled]="quantity >= maxQuantity" class="step-btn" aria-label="Increase quantity">+</button>
                 </div>
-              </ng-template>
+
+                <!-- Add to Cart -->
+                <button 
+                  class="btn-primary flex-1" 
+                  [disabled]="!isAvailable"
+                  (click)="addToCart()"
+                >
+                  {{ isAvailable ? '🛒 Add to Cart' : 'Out of Stock' }}
+                </button>
+
+                <!-- Buy Now -->
+                <button 
+                  class="btn-gold flex-1" 
+                  [disabled]="!isAvailable"
+                  (click)="buyNow()"
+                >
+                  ⚡ Buy Now
+                </button>
+
+                <!-- Wishlist Toggle -->
+                <button 
+                  class="btn-wishlist" 
+                  (click)="toggleWishlist()"
+                  [class.active]="isWishlisted()"
+                  [title]="isWishlisted() ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                  aria-label="Wishlist"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" [attr.fill]="isWishlisted() ? '#C2185B' : 'none'" stroke="#C2185B" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <!-- Return Policy Section -->
-            <div class="pd-policy-box">
+            <!-- Description (Conditional) -->
+            <div class="pd-description" *ngIf="product.description">
+              <h3 class="desc-heading">Product Overview</h3>
+              <p>{{ product.description }}</p>
+            </div>
+
+            <!-- Return Policy (Conditional) -->
+            <div class="pd-policy-box" *ngIf="productReturnPolicy">
               <div class="policy-header" (click)="isPolicyOpen = !isPolicyOpen">
                 <div class="policy-title">
                   <span>🔄</span>
@@ -254,15 +225,43 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               </div>
             </div>
 
-            <!-- Shipping & Helpline Badges -->
+            <!-- Embedded Product Video (Conditional) -->
+            <div class="product-video-card" *ngIf="activeVideoUrl">
+              <div class="video-header">
+                <span class="video-icon">🎥</span>
+                <span class="video-title">Product Video Showcase</span>
+              </div>
+              <div class="video-container">
+                <ng-container *ngIf="isEmbedVideo(activeVideoUrl); else directVideo">
+                  <iframe 
+                    [src]="getSafeVideoUrl(activeVideoUrl)" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen
+                    class="video-frame"
+                  ></iframe>
+                </ng-container>
+                <ng-template #directVideo>
+                  <video 
+                    [src]="activeVideoUrl" 
+                    controls 
+                    playsinline 
+                    preload="metadata" 
+                    class="video-player"
+                  ></video>
+                </ng-template>
+              </div>
+            </div>
+
+            <!-- Shipping & Support Perks -->
             <div class="pd-perks">
               <div class="perk-item">
                 <span>🚚</span>
-                <span>Free delivery across India on orders above ₹1499.</span>
+                <span>Free delivery across India on prepaid orders.</span>
               </div>
               <div class="perk-item">
                 <span>💬</span>
-                <span>Need assistance? <a [href]="whatsAppEnquiryUrl" target="_blank">Chat with our store concierge on WhatsApp</a></span>
+                <span>Need styling advice? <a [href]="whatsAppEnquiryUrl" target="_blank">Chat with our store concierge on WhatsApp</a></span>
               </div>
             </div>
           </div>
@@ -332,12 +331,16 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
 
     .pd-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 50px;
+      grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+      gap: 48px;
       margin-bottom: 60px;
+      align-items: start;
     }
     @media (max-width: 992px) {
-      .pd-grid { grid-template-columns: 1fr; gap: 32px; }
+      .pd-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+      }
     }
 
     /* Gallery */
@@ -345,15 +348,20 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       display: flex;
       flex-direction: column;
       gap: 16px;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
     }
     .main-image-box {
       width: 100%;
-      padding-top: 125%;
+      max-width: 500px;
+      aspect-ratio: 1 / 1;
       position: relative;
       background-color: var(--color-bg-alt, #F8F9FA);
       border-radius: var(--radius-md);
       overflow: hidden;
       border: 1px solid var(--color-border-light);
+      margin: 0 auto;
     }
     .image-skeleton {
       position: absolute;
@@ -379,7 +387,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: top center;
+      object-position: center;
       transition: opacity 0.4s ease;
     }
     .pd-main-img.full-res-img {
@@ -394,14 +402,16 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       display: flex;
       gap: 12px;
       overflow-x: auto;
-      padding-bottom: 4px;
+      padding-bottom: 6px;
+      justify-content: flex-start;
     }
     .thumb-btn {
-      width: 76px;
-      height: 95px;
+      width: 72px;
+      height: 72px;
+      aspect-ratio: 1 / 1;
       border-radius: var(--radius-sm);
       overflow: hidden;
-      border: 2px solid transparent;
+      border: 2px solid var(--color-border-light);
       padding: 0;
       background: #F8F9FA;
       cursor: pointer;
@@ -420,7 +430,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
 
     /* Product Video Showcase */
     .product-video-card {
-      margin-top: 10px;
+      margin-top: 16px;
       background: #FFFFFF;
       border-radius: var(--radius-md);
       border: 1px solid var(--color-border-light);
@@ -448,6 +458,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       inset: 0;
       width: 100%;
       height: 100%;
+      border: none;
     }
 
     /* Info Column */
@@ -758,39 +769,37 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       opacity: 0.5;
       cursor: not-allowed;
     }
-    .flex-1 { flex: 1; }
+    .desc-heading {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-heading);
+      margin-bottom: 8px;
+    }
 
-    /* WhatsApp Enquiry Mode Button */
-    .enquiry-box {
-      background: #F0FDF4;
-      border: 1px solid #BBF7D0;
-      border-radius: var(--radius-md);
-      padding: 16px;
-      text-align: center;
-    }
-    .enquiry-note {
-      font-size: 13px;
-      color: #166534;
-      margin-bottom: 12px;
-    }
-    .btn-whatsapp-enquiry {
-      display: inline-flex;
+    /* Wishlist Button */
+    .btn-wishlist {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--color-border);
+      background: #FFFFFF;
+      border-radius: var(--radius-sm);
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      width: 100%;
-      height: 50px;
-      background: #25D366;
-      color: #FFFFFF;
-      text-decoration: none;
-      border-radius: var(--radius-sm);
-      font-size: 15px;
-      font-weight: 700;
-      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
-      transition: background 0.2s ease;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
     }
-    .btn-whatsapp-enquiry:hover {
-      background: #1EBE5D;
+    .btn-wishlist:hover {
+      background: #FFF0F4;
+      border-color: var(--color-pink-dark);
+      transform: translateY(-1px);
+    }
+    .btn-wishlist.active {
+      background: #FFF0F4;
+      border-color: var(--color-pink-dark);
     }
 
     /* Policy Accordion */
@@ -945,6 +954,42 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       margin: 0 auto 16px auto;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 576px) {
+      .product-detail-page {
+        padding: 16px 0 60px 0;
+      }
+      .pd-grid {
+        gap: 20px;
+      }
+      .main-image-box {
+        max-width: 100%;
+        border-radius: 8px;
+      }
+      .thumb-btn {
+        width: 60px;
+        height: 60px;
+      }
+      .pd-title {
+        font-size: 22px;
+      }
+      .pd-actions-row {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .btn-primary, .btn-gold {
+        min-width: 130px;
+        font-size: 13px;
+        height: 44px;
+      }
+      .btn-wishlist {
+        height: 44px;
+        width: 44px;
+      }
+      .quantity-stepper {
+        height: 44px;
+      }
+    }
   `]
 })
 export class ProductDetailComponent implements OnInit {
@@ -973,6 +1018,7 @@ export class ProductDetailComponent implements OnInit {
     private router: Router,
     private productService: ProductService,
     private cartService: CartService,
+    private wishlistService: WishlistService,
     private cdr: ChangeDetectorRef,
     private sanitizer: DomSanitizer
   ) {}
@@ -1197,6 +1243,20 @@ export class ProductDetailComponent implements OnInit {
     const sizeToPass = this.product.has_size !== false ? (this.selectedSize as SizeOption) : undefined;
     this.cartService.addToCart(this.product, sizeToPass, this.quantity, this.selectedColor || undefined, this.activeImageUrl);
     this.router.navigate(['/checkout']);
+  }
+
+  isWishlisted(): boolean {
+    return this.product ? this.wishlistService.isInWishlist(this.product.id) : false;
+  }
+
+  toggleWishlist() {
+    if (!this.product) return;
+    const added = this.wishlistService.toggleWishlist(this.product);
+    if (added) {
+      alert(`Added ${this.product.name} to your Wishlist!`);
+    } else {
+      alert(`Removed ${this.product.name} from your Wishlist.`);
+    }
   }
 
   onQuickAddRelated(event: { product: Product; size?: SizeOption }) {

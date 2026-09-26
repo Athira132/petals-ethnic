@@ -116,27 +116,20 @@ export default async function handler(req, res) {
     let whatsappMessage = '';
 
     if (fullOrder) {
-      const itemsList = (fullOrder.order_items || []).map((it, idx) => {
-        const sizeText = (it.size && it.size !== 'N/A' && it.size !== 'One Size') ? ` | Size: ${it.size}` : '';
-        const colorText = it.color ? ` | Color: ${it.color}` : '';
-        return `${idx + 1}. *${it.product_name}* (Qty: ${it.quantity}${sizeText}${colorText}) - ₹${it.total_price}`;
+      const itemsList = (fullOrder.order_items || []).map((it) => {
+        let details = `- ${it.product_name} × ${it.quantity}`;
+        if (it.color) details += `\n  Colour: ${it.color}`;
+        if (it.size && it.size !== 'N/A' && it.size !== 'One Size') details += `\n  Size: ${it.size}`;
+        return details;
       }).join('\n');
 
-      whatsappMessage = `🛍️ *NEW ORDER - Petal Ethnics & Jewellers*\n` +
-        `----------------------------------------\n` +
-        `*Order ID:* ${fullOrder.order_number}\n` +
-        `*Customer:* ${fullOrder.customer_name}\n` +
-        `*Phone:* ${fullOrder.customer_phone}\n` +
-        `*Delivery Address:*\n${fullOrder.address}, ${fullOrder.city}, ${fullOrder.state} - ${fullOrder.pincode}\n` +
-        `----------------------------------------\n` +
-        `*Items Ordered:*\n${itemsList || 'N/A'}\n` +
-        `----------------------------------------\n` +
-        `*Total Amount:* ₹${fullOrder.total}\n` +
-        `*Payment Method:* Razorpay (Online)\n` +
-        `*Payment Status:* Paid ✅\n` +
-        `*Payment ID:* ${razorpay_payment_id}\n` +
-        `----------------------------------------\n` +
-        `Please verify packaging and schedule dispatch.`;
+      whatsappMessage = `New Order Received\n` +
+        `Order ID: #${fullOrder.order_number}\n` +
+        `Customer: ${fullOrder.customer_name}\n` +
+        `Phone: ${fullOrder.customer_phone}\n` +
+        `Items:\n${itemsList || 'N/A'}\n` +
+        `Total: ₹${fullOrder.total}\n` +
+        `Payment: Razorpay`;
 
       whatsappUrl = `https://wa.me/918113899319?text=${encodeURIComponent(whatsappMessage)}`;
     }

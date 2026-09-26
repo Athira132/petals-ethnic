@@ -1,237 +1,139 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, ChangeDetectorRef, NgZone } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { handleImageError } from '../../../core/utils/image.utils';
-
-export interface HeroSlide {
-  id: number;
-  imageUrl: string;
-  title: string;
-  subtitle: string;
-  ctaText: string;
-  ctaLink: string;
-  objectPosition?: string;
-}
 
 @Component({
   selector: 'app-hero-carousel',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <section 
-      class="hero-carousel-section"
-      (touchstart)="onTouchStart($event)"
-      (touchend)="onTouchEnd($event)"
-    >
-      <div 
-        class="carousel-track"
-        [class.no-transition]="!isTransitioning"
-        [style.transform]="'translate3d(-' + (currentIndex * 100) + '%, 0, 0)'"
-      >
-        <div 
-          *ngFor="let slide of displaySlides; let i = index"
-          class="carousel-slide"
-          [class.active]="(currentIndex % slides.length) === (i % slides.length)"
-        >
-          <!-- Semantic High-Priority Hero Image + Right-Center Biased Crop -->
-          <img 
-            [src]="slide.imageUrl" 
-            [alt]="slide.title"
-            class="slide-img" 
-            [style.object-position]="slide.objectPosition || '85% center'"
-            [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
-            [loading]="i === 0 ? 'eager' : 'lazy'"
-            decoding="async"
-            (error)="onImageError($event)"
-          />
+    <section class="hero-static-section">
+      <!-- High-Performance Single Static Hero Image -->
+      <img 
+        src="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" 
+        alt="Petal Ethnics & Jewellers Collection" 
+        class="hero-static-img"
+        fetchpriority="high"
+        loading="eager"
+        decoding="async"
+        (error)="onImageError($event)"
+      />
 
-          <!-- Bottom Gradient Overlay Behind Text -->
-          <div class="slide-overlay"></div>
+      <!-- Subtle Gradient Overlay for Text Readability -->
+      <div class="hero-gradient-overlay"></div>
 
-          <!-- Hero Content Aligned To Bottom -->
-          <div class="hero-container">
-            <div class="hero-content">
-              <span class="hero-badge">NEW SEASON 2026</span>
-              <h1 class="hero-title">{{ slide.title }}</h1>
-              <p class="hero-subtitle">{{ slide.subtitle }}</p>
-              <div class="hero-cta-group">
-                <a [routerLink]="slide.ctaLink" class="btn-hero-primary">
-                  {{ slide.ctaText }}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                </a>
-                <a routerLink="/jewellery" class="btn-hero-explore">✨ Explore Jewellery</a>
-              </div>
-            </div>
+      <!-- Hero Content -->
+      <div class="hero-inner-container">
+        <div class="hero-text-card">
+          <span class="hero-pill-badge">NEW SEASON 2026</span>
+          <h1 class="hero-main-title">Timeless Ethnic Couture & Handcrafted Jewellery</h1>
+          <p class="hero-desc">Discover our handpicked designer sarees, anarkalis, festive kurtis, and curated statement jewellery.</p>
+          <div class="hero-buttons-row">
+            <a routerLink="/ethnics" class="btn-hero-primary">
+              Explore Ethnics
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+            <a routerLink="/jewellery" class="btn-hero-secondary">
+              ✨ Explore Jewellery
+            </a>
           </div>
         </div>
-      </div>
-
-      <!-- Minimal Unobtrusive Slider Indicators (Dots) -->
-      <div class="carousel-indicators">
-        <button 
-          *ngFor="let slide of slides; let i = index"
-          class="indicator-dot"
-          [class.active]="(currentIndex % slides.length) === i"
-          (click)="goToSlide(i)"
-          [attr.aria-label]="'Go to slide ' + (i + 1)"
-        ></button>
       </div>
     </section>
   `,
   styles: [`
-    .hero-carousel-section {
+    .hero-static-section {
       position: relative;
       width: 100%;
-      height: 88vh;
-      min-height: 580px;
-      max-height: 850px;
+      height: 72vh;
+      min-height: 500px;
+      max-height: 700px;
       overflow: hidden;
       background-color: #0D0D0D;
-      user-select: none;
-    }
-    @media (max-width: 992px) {
-      .hero-carousel-section {
-        height: 58vh;
-        min-height: 400px;
-        max-height: 550px;
-      }
-    }
-    @media (max-width: 768px) {
-      .hero-carousel-section {
-        height: 42vh;
-        min-height: 280px;
-        max-height: 350px;
-      }
-    }
-    @media (max-width: 576px) {
-      .hero-carousel-section {
-        height: 38vh;
-        min-height: 250px;
-        max-height: 320px;
-      }
-    }
-
-    .carousel-track {
       display: flex;
-      width: 100%;
-      height: 100%;
-      transition: transform 700ms cubic-bezier(0.25, 1, 0.5, 1);
-      will-change: transform;
-    }
-    .carousel-track.no-transition {
-      transition: none !important;
+      align-items: flex-end;
     }
 
-    .carousel-slide {
-      flex: 0 0 100%;
-      min-width: 100%;
-      width: 100%;
-      height: 100%;
-      position: relative;
-      opacity: 1;
-      visibility: visible;
-      display: flex;
-      align-items: flex-end; /* ALIGN HERO TEXT TO BOTTOM */
-      padding-bottom: 60px; /* Padding above carousel indicators */
-    }
-    @media (max-width: 768px) {
-      .carousel-slide {
-        padding-bottom: 24px;
-      }
-    }
-    @media (max-width: 576px) {
-      .carousel-slide {
-        padding-bottom: 18px;
-      }
-    }
-
-    .slide-img {
+    .hero-static-img {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: 85% center;
+      object-position: center 25%;
     }
 
-    @media (max-width: 768px) {
-      .slide-img {
-        object-position: right center;
-      }
-    }
-
-    .slide-overlay {
+    .hero-gradient-overlay {
       position: absolute;
       inset: 0;
       background: linear-gradient(
-        0deg, 
-        rgba(0, 0, 0, 0.75) 0%, 
-        rgba(0, 0, 0, 0.35) 45%, 
-        rgba(0, 0, 0, 0) 80%
+        to bottom,
+        rgba(0, 0, 0, 0.15) 0%,
+        rgba(0, 0, 0, 0.25) 45%,
+        rgba(15, 10, 12, 0.85) 100%
       );
-      z-index: 2;
+      pointer-events: none;
     }
 
-    .hero-container {
+    .hero-inner-container {
       position: relative;
-      z-index: 3;
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 0 40px;
+      z-index: 2;
       width: 100%;
-    }
-    @media (max-width: 768px) {
-      .hero-container {
-        padding: 0 24px;
-      }
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 44px 24px;
     }
 
-    .hero-content {
-      max-width: 640px;
-      color: #FFFFFF;
+    .hero-text-card {
+      max-width: 650px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
     }
 
-    .hero-badge {
+    .hero-pill-badge {
       display: inline-block;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #F8BBD0;
-      background: rgba(159, 61, 98, 0.45);
-      border: 1px solid rgba(248, 187, 208, 0.4);
-      padding: 6px 14px;
+      background: rgba(159, 61, 98, 0.6);
+      border: 1px solid rgba(248, 187, 208, 0.45);
+      padding: 5px 14px;
       border-radius: 20px;
-      margin-bottom: 12px;
-      backdrop-filter: blur(4px);
-    }
-    @media (max-width: 576px) {
-      .hero-badge {
-        font-size: 9px;
-        padding: 2px 8px;
-        margin-bottom: 4px;
-      }
-      .hero-title {
-        font-size: 20px;
-        margin-bottom: 4px;
-      }
-      .hero-subtitle {
-        font-size: 11px;
-        line-height: 1.3;
-        margin-bottom: 10px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+      backdrop-filter: blur(6px);
     }
 
-    .hero-cta-group {
+    .hero-main-title {
+      font-family: var(--font-heading, "Playfair Display", Georgia, serif);
+      font-size: 40px;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.18;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      margin: 0;
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.5;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+      margin: 0;
+      max-width: 560px;
+    }
+
+    .hero-buttons-row {
       display: flex;
       gap: 14px;
       align-items: center;
+      margin-top: 6px;
       flex-wrap: wrap;
     }
 
@@ -241,238 +143,99 @@ export interface HeroSlide {
       gap: 8px;
       background-color: #9F3D62;
       color: #FFFFFF !important;
-      padding: 13px 26px;
+      padding: 12px 26px;
       border-radius: 30px;
       font-size: 14px;
       font-weight: 600;
       text-decoration: none;
       transition: all 0.3s ease;
       box-shadow: 0 4px 16px rgba(159, 61, 98, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .btn-hero-primary:hover {
-      background-color: #7F2A4C;
-      color: #FFFFFF !important;
+      background-color: #BD4A75;
       transform: translateY(-2px);
-      box-shadow: 0 6px 22px rgba(127, 42, 76, 0.6);
+      box-shadow: 0 6px 20px rgba(159, 61, 98, 0.7);
     }
 
-    .btn-hero-explore {
+    .btn-hero-secondary {
       display: inline-flex;
       align-items: center;
-      background-color: rgba(255, 255, 255, 0.15);
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
       color: #FFFFFF !important;
-      padding: 13px 24px;
+      padding: 12px 24px;
       border-radius: 30px;
       font-size: 14px;
       font-weight: 600;
       text-decoration: none;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(6px);
       transition: all 0.3s ease;
     }
-    .btn-hero-explore:hover {
-      background-color: #9F3D62;
-      color: #FFFFFF !important;
-      transform: translateY(-2px);
+    .btn-hero-secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
       border-color: #FFFFFF;
-      box-shadow: 0 6px 22px rgba(159, 61, 98, 0.6);
+      transform: translateY(-2px);
     }
 
-    @media (max-width: 480px) {
-      .btn-hero-primary, .btn-hero-explore {
-        padding: 9px 16px;
-        font-size: 12px;
-        min-height: 38px;
+    /* Tablet Responsiveness */
+    @media (max-width: 992px) {
+      .hero-static-section {
+        height: 55vh;
+        min-height: 380px;
+        max-height: 480px;
+      }
+      .hero-main-title {
+        font-size: 30px;
+      }
+      .hero-desc {
+        font-size: 13px;
       }
     }
 
-    /* Minimal Bottom Indicators */
-    .carousel-indicators {
-      position: absolute;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 4;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      padding: 5px 12px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(8px);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .indicator-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.4);
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      transition: all 0.3s ease;
-    }
-    .indicator-dot:hover {
-      background: rgba(255, 255, 255, 0.75);
-    }
-    .indicator-dot.active {
-      width: 20px;
-      border-radius: 10px;
-      background: #9F3D62;
-      box-shadow: 0 0 10px rgba(159, 61, 98, 0.8);
+    /* Mobile Responsiveness: Compact & Immediate Viewport Discovery */
+    @media (max-width: 576px) {
+      .hero-static-section {
+        height: 44vh;
+        min-height: 280px;
+        max-height: 350px;
+      }
+      .hero-static-img {
+        object-position: center 15%;
+      }
+      .hero-inner-container {
+        padding: 0 16px 20px 16px;
+      }
+      .hero-text-card {
+        gap: 8px;
+      }
+      .hero-pill-badge {
+        font-size: 9px;
+        padding: 3px 10px;
+      }
+      .hero-main-title {
+        font-size: 20px;
+        line-height: 1.22;
+      }
+      .hero-desc {
+        display: none; /* Hide long subtitle on small phones to maximize visibility of buttons and products below! */
+      }
+      .hero-buttons-row {
+        gap: 10px;
+        margin-top: 4px;
+      }
+      .btn-hero-primary {
+        padding: 9px 18px;
+        font-size: 12px;
+      }
+      .btn-hero-secondary {
+        padding: 9px 16px;
+        font-size: 12px;
+      }
     }
   `]
 })
-export class HeroCarouselComponent implements OnInit, OnDestroy {
-  // 4 Required Hero Fashion Slides
-  slides: HeroSlide[] = [
-    { 
-      id: 1, 
-      imageUrl: 'https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png',
-      title: 'Elevate Your Ethnic Style',
-      subtitle: 'Discover our latest collection of premium handcrafted sarees, kurtis, and designer festive wear tailored for perfection.',
-      ctaText: 'Explore Ethnics Collection',
-      ctaLink: '/ethnics',
-      objectPosition: '85% center'
-    },
-    { 
-      id: 2, 
-      imageUrl: 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png',
-      title: 'Grace & Elegance in Every Thread',
-      subtitle: 'Handpicked fabrics, soft watercolor florals, and timeless ethnic silhouettes designed for effortless celebration.',
-      ctaText: 'Explore Kurtis & Sets',
-      ctaLink: '/ethnics',
-      objectPosition: '80% center'
-    },
-    { 
-      id: 3, 
-      imageUrl: 'https://i.ibb.co/5ZcYbZx/Chat-GPT-Image-Aug-13-2026-12-15-54-PM.png',
-      title: 'Royal Festive Anarkalis & Co-Ords',
-      subtitle: 'Step into joyous occasions with regal flare Anarkalis, intricate embroideries, and modern ethnic two-piece sets.',
-      ctaText: 'View Festive Edits',
-      ctaLink: '/ethnics',
-      objectPosition: 'right center'
-    },
-    { 
-      id: 4, 
-      imageUrl: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png',
-      title: 'Authentic Kerala Kasavu & Tissue Silk',
-      subtitle: 'Traditional golden zari Kasavu weaves combined with shimmering tissue silk kurtas for timeless elegance.',
-      ctaText: 'Explore Kasavu Series',
-      ctaLink: '/ethnics',
-      objectPosition: '85% center'
-    }
-  ];
-
-  displaySlides: HeroSlide[] = [];
-  currentIndex = 0;
-  isTransitioning = true;
-  timer: any;
-
-  // Touch Swipe Variables
-  private touchStartX = 0;
-  private touchEndX = 0;
-
-  constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
-  ) {}
-
-  ngOnInit() {
-    // Clone first slide to the end for seamless infinite looping
-    this.displaySlides = [...this.slides, { ...this.slides[0], id: 999 }];
-    this.startAutoSlider();
-  }
-
-  ngOnDestroy() {
-    this.stopTimer();
-  }
-
-  /**
-   * SEAMLESS INFINITE LOOPING SLIDER:
-   * - Each image remains fully visible for ~2.8 seconds
-   * - Transition duration: ~0.7 seconds
-   * - Total loop step: ~3.5 seconds
-   */
-  startAutoSlider() {
-    if (!isPlatformBrowser(this.platformId)) return;
-    this.stopTimer();
-
-    this.ngZone.runOutsideAngular(() => {
-      this.timer = setInterval(() => {
-        this.ngZone.run(() => {
-          this.nextSlide();
-        });
-      }, 3500); // 2.8s visibility + 0.7s transition
-    });
-  }
-
-  nextSlide() {
-    this.isTransitioning = true;
-    this.currentIndex++;
-    this.cdr.markForCheck();
-
-    // When transitioning to the cloned slide (index === slides.length)
-    if (this.currentIndex === this.slides.length) {
-      setTimeout(() => {
-        this.ngZone.run(() => {
-          this.isTransitioning = false;
-          this.currentIndex = 0;
-          this.cdr.markForCheck();
-        });
-      }, 700); // Match transition duration (700ms)
-    }
-  }
-
-  prevSlide() {
-    this.isTransitioning = true;
-    if (this.currentIndex === 0) {
-      this.currentIndex = this.slides.length - 1;
-    } else {
-      this.currentIndex--;
-    }
-    this.cdr.markForCheck();
-  }
-
-  goToSlide(index: number) {
-    this.isTransitioning = true;
-    this.currentIndex = index;
-    this.cdr.markForCheck();
-    this.startAutoSlider();
-  }
-
-  stopTimer() {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = null;
-    }
-  }
-
-  // Touch Swipe Support
-  onTouchStart(event: TouchEvent) {
-    this.touchStartX = event.touches[0].clientX;
-  }
-
-  onTouchEnd(event: TouchEvent) {
-    this.touchEndX = event.changedTouches[0].clientX;
-    this.handleSwipe();
-  }
-
-  private handleSwipe() {
-    const deltaX = this.touchStartX - this.touchEndX;
-    if (Math.abs(deltaX) > 40) {
-      if (deltaX > 0) {
-        this.nextSlide();
-      } else {
-        this.prevSlide();
-      }
-      this.startAutoSlider();
-    }
-  }
-
+export class HeroCarouselComponent {
   onImageError(event: Event) {
     handleImageError(event);
   }

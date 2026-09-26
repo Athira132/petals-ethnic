@@ -672,24 +672,20 @@ export class CheckoutComponent implements OnInit {
           this.completedOrder = createdOrder;
 
           // 3. Format WhatsApp Notification for Store Admin (+91 81138 99319)
-          const itemsList = (this.summary.items || []).map((it, idx) => {
-            const sizeStr = (it.selectedSize && it.selectedSize !== 'N/A' && it.selectedSize !== 'One Size') ? ` | Size: ${it.selectedSize}` : '';
-            const colorStr = it.selectedColor ? ` | Color: ${it.selectedColor}` : '';
-            return `${idx + 1}. *${it.product.name}* (Qty: ${it.quantity}${sizeStr}${colorStr}) - ₹${it.totalPrice}`;
+          const itemsList = (this.summary.items || []).map((it) => {
+            let details = `- ${it.product.name} × ${it.quantity}`;
+            if (it.selectedColor) details += `\n  Colour: ${it.selectedColor}`;
+            if (it.selectedSize && it.selectedSize !== 'N/A' && it.selectedSize !== 'One Size') details += `\n  Size: ${it.selectedSize}`;
+            return details;
           }).join('\n');
 
-          const waText = `🛍️ *NEW ORDER - Petal Ethnics & Jewellers*\n` +
-            `----------------------------------------\n` +
-            `*Order ID:* ${createdOrder.order_number}\n` +
-            `*Customer:* ${this.shipping.customer_name}\n` +
-            `*Phone:* ${this.shipping.customer_phone}\n` +
-            `*Address:*\n${this.shipping.address}, ${this.shipping.city}, ${this.shipping.state} - ${this.shipping.pincode}\n` +
-            `----------------------------------------\n` +
-            `*Items:*\n${itemsList}\n` +
-            `----------------------------------------\n` +
-            `*Total Amount:* ₹${this.summary.grandTotal}\n` +
-            `*Payment Status:* Paid via Razorpay ✅\n` +
-            `*Payment Ref:* ${paymentId}`;
+          const waText = `New Order Received\n` +
+            `Order ID: #${createdOrder.order_number}\n` +
+            `Customer: ${this.shipping.customer_name}\n` +
+            `Phone: ${this.shipping.customer_phone}\n` +
+            `Items:\n${itemsList || 'N/A'}\n` +
+            `Total: ₹${this.summary.grandTotal}\n` +
+            `Payment: Razorpay`;
 
           this.whatsappNotificationUrl = `https://wa.me/918113899319?text=${encodeURIComponent(waText)}`;
 

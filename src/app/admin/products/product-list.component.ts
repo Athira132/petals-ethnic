@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { Product, SizeOption, ColorVariant } from '../../core/models/product.model';
 import { Category, DepartmentType } from '../../core/models/category.model';
-import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShareUrl, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
+import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
 @Component({
   selector: 'app-product-list',
@@ -83,7 +83,7 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
                 <th>Department</th>
                 <th>Category</th>
                 <th>Price</th>
-                <th>Stock / Mode</th>
+                <th>Stock</th>
                 <th>Flags</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -106,7 +106,6 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
                 <td>
                   <strong>{{ prod.name }}</strong>
                   <div class="sku-text" *ngIf="prod.sku">SKU: {{ prod.sku }}</div>
-                  <div class="mode-tag" *ngIf="prod.purchase_mode === 'enquiry'">💬 WhatsApp Enquiry Only</div>
                 </td>
                 <td>
                   <span class="badge" [class.badge-pink]="(prod.department || 'ethnic') === 'ethnic'" [class.badge-dark]="prod.department === 'jewellery'">
@@ -250,23 +249,7 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
                 </div>
               </div>
 
-              <!-- Purchase Mode Selector -->
-              <div class="form-group">
-                <label class="form-label">Purchase Mode</label>
-                <div class="dept-selector-row">
-                  <label class="dept-radio-label" [class.selected]="formProduct.purchase_mode !== 'enquiry'">
-                    <input type="radio" name="purchase_mode" value="online" [(ngModel)]="formProduct.purchase_mode" />
-                    <span>🛒 Online Purchase (Add to Cart & Checkout)</span>
-                  </label>
-                  <label class="dept-radio-label" [class.selected]="formProduct.purchase_mode === 'enquiry'">
-                    <input type="radio" name="purchase_mode" value="enquiry" [(ngModel)]="formProduct.purchase_mode" />
-                    <span>💬 WhatsApp Enquiry Only</span>
-                  </label>
-                </div>
-                <small class="help-text">
-                  {{ formProduct.purchase_mode === 'enquiry' ? 'Customers will see an "Enquire on WhatsApp" button instead of direct checkout.' : 'Standard ecommerce purchase with Razorpay online payment.' }}
-                </small>
-              </div>
+
 
               <!-- Stock Display Mode -->
               <div class="form-row">
@@ -346,7 +329,7 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
               </div>
 
               <div *ngIf="formProduct.has_colors" class="color-variants-container">
-                <p class="section-subtitle">Add available color variations. Selecting a color on the product page instantly switches the product image without reloading!</p>
+                <p class="section-subtitle">Add available color variations and upload their matching photos. Selecting a color on the product page instantly switches the product photo without reloading!</p>
 
                 <div class="color-variant-card" *ngFor="let cv of formColorVariants; let i = index">
                   <div class="cv-header">
@@ -369,15 +352,33 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
                     </div>
                   </div>
 
+                  <!-- Direct File Upload for this Color -->
                   <div class="form-group">
-                    <label class="form-label">Variant Image URL (Instant Switch)</label>
-                    <input 
-                      type="text" 
-                      [(ngModel)]="cv.image_urls_text" 
-                      [name]="'cv_img_' + i" 
-                      class="form-control" 
-                      placeholder="https://i.ibb.co/... Direct image for this color"
-                    />
+                    <label class="form-label">Photos for {{ cv.name || 'this color' }}</label>
+                    <div class="color-upload-controls">
+                      <label class="btn-color-upload">
+                        <span>📁 + Upload Photos for {{ cv.name || 'Color' }}</span>
+                        <input 
+                          type="file" 
+                          accept="image/jpeg,image/png,image/webp" 
+                          multiple 
+                          (change)="onColorFileSelected($event, i)" 
+                          [disabled]="cv.isUploading || isSaving"
+                          class="hidden-file-input"
+                        />
+                      </label>
+                      <span *ngIf="cv.isUploading" class="inline-upload-status">
+                        <span class="inline-spinner"></span> {{ cv.uploadStatus || 'Uploading...' }}
+                      </span>
+                    </div>
+
+                    <!-- Thumbnails for this color -->
+                    <div class="color-thumbs-grid" *ngIf="cv.images && cv.images.length > 0">
+                      <div class="color-thumb-item" *ngFor="let cimg of cv.images; let ci = index">
+                        <img [src]="cimg" alt="Color photo preview" class="color-thumb-img" (error)="onImageError($event)" />
+                        <button type="button" (click)="removeColorImage(i, ci)" class="btn-color-thumb-del" title="Remove this photo">&times;</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -389,20 +390,25 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
 
             <!-- SECTION 5: MEDIA & VIDEO -->
             <div class="form-section">
-              <h3 class="section-title">5. Product Media & Video</h3>
+              <h3 class="section-title">5. Product Photos & Video</h3>
 
-              <!-- Upload Images -->
+              <!-- Direct File Upload Button for Product Photos -->
               <div class="form-group">
-                <label class="form-label">Upload Product Images (JPG, PNG, WEBP — Max 10MB)</label>
-                <div class="file-upload-container">
-                  <input 
-                    type="file" 
-                    accept="image/jpeg,image/png,image/webp" 
-                    multiple 
-                    (change)="onFileSelected($event)" 
-                    [disabled]="isUploadingImages || isSaving"
-                    class="form-control-file"
-                  />
+                <label class="form-label">Product Photos (Direct Upload from Computer)</label>
+                <div class="main-upload-box">
+                  <label class="btn-main-upload">
+                    <span class="upload-btn-icon">📸</span>
+                    <span class="upload-btn-title">+ Choose Photos from Computer</span>
+                    <span class="upload-btn-subtitle">JPG, PNG, WEBP — Multiple photos can be selected</span>
+                    <input 
+                      type="file" 
+                      accept="image/jpeg,image/png,image/webp" 
+                      multiple 
+                      (change)="onFileSelected($event)" 
+                      [disabled]="isUploadingImages || isSaving"
+                      class="hidden-file-input"
+                    />
+                  </label>
                   <div *ngIf="uploadStatusText" class="upload-status-badge" [class.error]="uploadHasError">
                     <span *ngIf="isUploadingImages" class="inline-spinner"></span>
                     {{ uploadStatusText }}
@@ -410,16 +416,36 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
                 </div>
               </div>
 
-              <!-- Direct URLs -->
-              <div class="form-group">
-                <label class="form-label">Product Image Direct URLs (1 per line)</label>
-                <textarea 
-                  [(ngModel)]="imageUrlsText" 
-                  name="imageUrlsText" 
-                  rows="3" 
-                  class="form-control" 
-                  placeholder="https://i.ibb.co/..."
-                ></textarea>
+              <!-- Product Photo Previews with Delete & Make Primary -->
+              <div class="form-group" *ngIf="productImagesList.length > 0">
+                <label class="form-label">Uploaded Photos ({{ productImagesList.length }}) — First photo is displayed as Primary:</label>
+                <div class="preview-gallery-grid">
+                  <div class="preview-gallery-card" *ngFor="let url of productImagesList; let idx = index" [class.is-primary]="idx === 0">
+                    <div class="preview-img-container">
+                      <img [src]="url" alt="Product photo" class="preview-card-img" (error)="onImageError($event)" />
+                      <span class="primary-badge" *ngIf="idx === 0">★ Primary</span>
+                    </div>
+                    <div class="preview-btn-row">
+                      <button 
+                        type="button" 
+                        *ngIf="idx > 0" 
+                        (click)="setAsPrimaryImage(idx)" 
+                        class="btn-make-primary" 
+                        title="Set as primary product photo"
+                      >
+                        Set Primary
+                      </button>
+                      <button 
+                        type="button" 
+                        (click)="removeProductImage(idx)" 
+                        class="btn-del-img" 
+                        title="Delete photo"
+                      >
+                        🗑 Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Product Video -->
@@ -596,6 +622,159 @@ import { extractProductImages, parseImageUrlsInput, handleImageError, isIbbShare
     .color-picker-input { width: 36px; height: 36px; border: 1px solid #E0E0E0; border-radius: 4px; cursor: pointer; padding: 2px; }
     .color-hex-text { font-family: monospace; font-size: 12px; color: #555; }
 
+    /* Direct File Upload & Preview Gallery Styles */
+    .hidden-file-input { display: none; }
+    
+    .main-upload-box {
+      border: 2px dashed #C2185B;
+      border-radius: 8px;
+      background: #FFF5F8;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .main-upload-box:hover { background: #FFEBF1; }
+    .btn-main-upload {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .upload-btn-icon { font-size: 32px; }
+    .upload-btn-title { font-size: 15px; font-weight: 700; color: #C2185B; }
+    .upload-btn-subtitle { font-size: 12px; color: #666; }
+
+    .preview-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .preview-gallery-card {
+      background: #FFFFFF;
+      border: 1px solid #E0E0E0;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    .preview-gallery-card.is-primary {
+      border: 2px solid #C2185B;
+      box-shadow: 0 2px 8px rgba(194, 24, 91, 0.2);
+    }
+    .preview-img-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #F5F5F5;
+    }
+    .preview-card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .primary-badge {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: #C2185B;
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .preview-btn-row {
+      display: flex;
+      flex-direction: column;
+      padding: 6px;
+      gap: 4px;
+      background: #FAFAFA;
+      border-top: 1px solid #EEE;
+    }
+    .btn-make-primary {
+      background: #FFF0F4;
+      color: #C2185B;
+      border: 1px solid #FFCDD2;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px;
+      cursor: pointer;
+    }
+    .btn-make-primary:hover { background: #C2185B; color: #FFFFFF; }
+    .btn-del-img {
+      background: #FFEBEE;
+      color: #D32F2F;
+      border: 1px solid #FFCDD2;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px;
+      cursor: pointer;
+    }
+    .btn-del-img:hover { background: #D32F2F; color: #FFFFFF; }
+
+    /* Color Variant Upload & Thumbs */
+    .color-upload-controls { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+    .btn-color-upload {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border: 1px dashed #C2185B;
+      background: #FFF5F8;
+      color: #C2185B;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-color-upload:hover { background: #FFEBF1; }
+    .inline-upload-status { font-size: 12px; color: #2E7D32; display: inline-flex; align-items: center; gap: 6px; }
+    .color-thumbs-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .color-thumb-item {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #E0E0E0;
+    }
+    .color-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .btn-color-thumb-del {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 18px;
+      height: 18px;
+      background: rgba(0,0,0,0.65);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 50%;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .btn-color-thumb-del:hover { background: #D32F2F; }
+
     .flags-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 14px; }
     .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; user-select: none; }
 
@@ -659,7 +838,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     active: true
   };
 
-  imageUrlsText = '';
+  productImagesList: string[] = [];
   formSizes: { size: SizeOption; stock: number }[] = [
     { size: 'XS', stock: 5 },
     { size: 'S', stock: 5 },
@@ -669,7 +848,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     { size: 'XXL', stock: 5 }
   ];
 
-  formColorVariants: { name: string; color_code: string; image_urls_text: string }[] = [];
+  formColorVariants: { name: string; color_code: string; images: string[]; isUploading?: boolean; uploadStatus?: string }[] = [];
 
   constructor(
     private productService: ProductService,
@@ -774,13 +953,63 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.formColorVariants.push({
       name: '',
       color_code: '#C2185B',
-      image_urls_text: ''
+      images: []
     });
     this.cdr.markForCheck();
   }
 
   removeColorVariant(index: number) {
     this.formColorVariants.splice(index, 1);
+    this.cdr.markForCheck();
+  }
+
+  removeColorImage(colorIndex: number, imgIndex: number) {
+    if (this.formColorVariants[colorIndex]?.images) {
+      this.formColorVariants[colorIndex].images.splice(imgIndex, 1);
+      this.cdr.markForCheck();
+    }
+  }
+
+  async onColorFileSelected(event: Event, colorIndex: number) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const files = Array.from(input.files);
+    const cv = this.formColorVariants[colorIndex];
+    if (!cv) return;
+
+    cv.isUploading = true;
+    cv.uploadStatus = `Uploading ${files.length} photo(s)...`;
+    this.cdr.markForCheck();
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        cv.uploadStatus = `Uploading ${i + 1} of ${files.length}...`;
+        this.cdr.markForCheck();
+        const url = await this.productService.uploadProductImage(file);
+        cv.images.push(url);
+      }
+      cv.uploadStatus = '';
+    } catch (err: any) {
+      console.error('Error uploading color variant image:', err);
+      alert('Failed to upload image for color variant: ' + (err.message || ''));
+    } finally {
+      cv.isUploading = false;
+      input.value = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  setAsPrimaryImage(index: number) {
+    if (index <= 0 || index >= this.productImagesList.length) return;
+    const img = this.productImagesList.splice(index, 1)[0];
+    this.productImagesList.unshift(img);
+    this.cdr.markForCheck();
+  }
+
+  removeProductImage(index: number) {
+    this.productImagesList.splice(index, 1);
     this.cdr.markForCheck();
   }
 
@@ -838,7 +1067,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
     this.selectedPolicyPresetIndex = 0;
     this.formColorVariants = [];
-    this.imageUrlsText = '';
+    this.productImagesList = [];
     this.uploadStatusText = '';
     this.uploadHasError = false;
     this.isUploadingImages = false;
@@ -851,11 +1080,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
       { size: 'XL', stock: 5 },
       { size: 'XXL', stock: 5 }
     ];
-
-    setTimeout(() => {
-      const fileInput = document.querySelector('.form-control-file') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-    }, 0);
 
     this.isModalOpen = true;
     this.cdr.markForCheck();
@@ -877,7 +1101,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
       department: dept,
       has_size: prod.has_size !== undefined ? prod.has_size : (dept !== 'jewellery'),
       show_size_chart: Boolean(prod.show_size_chart),
-      purchase_mode: prod.purchase_mode || 'online',
+      purchase_mode: 'online',
       stock_display: prod.stock_display || 'normal',
       has_colors: Boolean(prod.has_colors),
       return_policy: prod.return_policy || this.returnPolicyPresets[0].text
@@ -892,7 +1116,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     const validUrls = extractedImgs
       .map(img => img.image_url)
       .filter(url => url && url !== DEFAULT_FALLBACK_IMAGE);
-    this.imageUrlsText = validUrls.join('\n');
+    this.productImagesList = [...validUrls];
 
     this.uploadStatusText = '';
     this.uploadHasError = false;
@@ -918,16 +1142,13 @@ export class ProductListComponent implements OnInit, OnDestroy {
       this.formColorVariants = prod.color_variants.map(cv => ({
         name: cv.name || '',
         color_code: cv.color_code || '#C2185B',
-        image_urls_text: (cv.image_urls || []).join('\n')
+        images: Array.isArray(cv.images) && cv.images.length > 0
+          ? [...cv.images]
+          : (Array.isArray(cv.image_urls) ? [...cv.image_urls] : [])
       }));
     } else {
       this.formColorVariants = [];
     }
-
-    setTimeout(() => {
-      const fileInput = document.querySelector('.form-control-file') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-    }, 0);
 
     this.isModalOpen = true;
     this.cdr.markForCheck();
@@ -940,26 +1161,20 @@ export class ProductListComponent implements OnInit, OnDestroy {
     const files = Array.from(input.files);
     this.isUploadingImages = true;
     this.uploadHasError = false;
-    this.uploadStatusText = `Starting upload of ${files.length} image(s)...`;
+    this.uploadStatusText = `Starting upload of ${files.length} photo(s)...`;
     this.cdr.markForCheck();
 
     try {
-      const uploadedUrls: string[] = [];
-
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        this.uploadStatusText = `Uploading image ${i + 1} of ${files.length}... (${file.name})`;
+        this.uploadStatusText = `Uploading photo ${i + 1} of ${files.length}... (${file.name})`;
         this.cdr.markForCheck();
 
         const url = await this.productService.uploadProductImage(file);
-        uploadedUrls.push(url);
+        this.productImagesList.push(url);
       }
 
-      const currentList = parseImageUrlsInput(this.imageUrlsText);
-      const combined = [...currentList, ...uploadedUrls];
-      this.imageUrlsText = combined.join('\n');
-
-      this.uploadStatusText = `✓ Successfully uploaded ${files.length} image(s)!`;
+      this.uploadStatusText = `✓ Successfully uploaded ${files.length} photo(s)!`;
       this.uploadHasError = false;
     } catch (err: any) {
       console.error('Error uploading product images:', err);
@@ -1008,15 +1223,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
       best_seller: false,
       active: true
     };
-    this.imageUrlsText = '';
+    this.productImagesList = [];
     this.formColorVariants = [];
     this.uploadStatusText = '';
     this.uploadHasError = false;
     this.isUploadingImages = false;
     this.isSaving = false;
-
-    const fileInput = document.querySelector('.form-control-file') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
 
     this.cdr.markForCheck();
   }
@@ -1041,14 +1253,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     try {
-      const imagesList = parseImageUrlsInput(this.imageUrlsText);
-
-      const invalidShareUrl = imagesList.find(url => isIbbShareUrl(url));
-      if (invalidShareUrl) {
-        alert('Please use direct image URLs (e.g. https://i.ibb.co/...).');
-        this.isSaving = false;
-        return;
-      }
+      const imagesList = [...this.productImagesList];
 
       // Format color variations
       const colorVariants: ColorVariant[] = this.formProduct.has_colors
@@ -1056,12 +1261,14 @@ export class ProductListComponent implements OnInit, OnDestroy {
             .map(cv => ({
               name: cv.name.trim(),
               color_code: cv.color_code || '#C2185B',
-              image_urls: cv.image_urls_text ? cv.image_urls_text.split(/[\n,]+/).map(u => u.trim()).filter(Boolean) : []
+              images: [...cv.images],
+              image_urls: [...cv.images]
             }))
             .filter(cv => cv.name)
         : [];
 
       this.formProduct.color_variants = colorVariants;
+      this.formProduct.purchase_mode = 'online';
 
       // Format sizes list
       let sizesList = this.formSizes.map(sz => ({

@@ -8,17 +8,16 @@ import { Observable } from 'rxjs';
 import { CartSummary } from '../../../core/models/cart.model';
 import { User } from '@supabase/supabase-js';
 import { UserProfile } from '../../../core/models/user.model';
-import { handleImageError } from '../../../core/utils/image.utils';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
-    <!-- Main Navigation Header -->
+    <!-- Main Navigation Header (Company Name & Logo Removed) -->
     <header class="navbar-header" [class.scrolled]="isScrolled">
       <div class="container navbar-container">
-        <!-- Mobile Menu Toggle Button -->
+        <!-- Mobile Menu Toggle Button (Left on Mobile) -->
         <button class="mobile-toggle" (click)="toggleMobileMenu()" aria-label="Toggle Navigation">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path *ngIf="!isMobileMenuOpen" d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round" stroke-linejoin="round"/>
@@ -26,18 +25,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
           </svg>
         </button>
 
-        <!-- Brand Logo with Circular Frame -->
-        <a routerLink="/" class="brand-logo">
-          <div class="logo-circle">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="logo-img" (error)="onImageError($event)" />
-          </div>
-          <div class="brand-text">
-            <span class="brand-name">PETAL ETHNICS & JEWELLERS</span>
-            <span class="brand-tagline">BOUTIQUE & JEWELLERY</span>
-          </div>
-        </a>
-
-        <!-- Desktop Navigation Links: Home | Ethnics | Jewellery | About | Contact -->
+        <!-- Desktop Navigation Links: Home | Ethnics | Jewellery | About Us | Contact -->
         <nav class="desktop-nav">
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
           <a routerLink="/ethnics" routerLinkActive="active" class="nav-link">Ethnics</a>
@@ -46,7 +34,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
           <a routerLink="/contact" routerLinkActive="active" class="nav-link">Contact</a>
         </nav>
 
-        <!-- Navbar Actions (Search, Account, Cart) -->
+        <!-- Navbar Actions (Search, Account/Admin, Cart) -->
         <div class="nav-actions">
           <!-- Search Bar Trigger -->
           <div class="search-box" [class.active]="isSearchOpen">
@@ -103,17 +91,11 @@ import { handleImageError } from '../../../core/utils/image.utils';
     <div class="mobile-drawer-overlay" *ngIf="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
     <aside class="mobile-drawer" [class.open]="isMobileMenuOpen">
       <div class="mobile-drawer-header">
-        <div class="logo-circle drawer-logo-circle">
-          <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers" class="drawer-logo" (error)="onImageError($event)" />
-        </div>
-        <div class="drawer-brand-info">
-          <div class="drawer-brand-name">PETAL ETHNICS</div>
-          <div class="drawer-brand-sub">& JEWELLERS</div>
-        </div>
+        <span class="drawer-menu-heading">Menu</span>
         <button (click)="toggleMobileMenu()" class="close-btn">&times;</button>
       </div>
 
-      <!-- Mobile Navigation Links: Home | Ethnics | Jewellery | About | Contact -->
+      <!-- Mobile Navigation Links -->
       <nav class="mobile-nav-links">
         <a routerLink="/" (click)="toggleMobileMenu()" class="mobile-link">Home</a>
         <a routerLink="/ethnics" (click)="toggleMobileMenu()" class="mobile-link">
@@ -154,71 +136,17 @@ import { handleImageError } from '../../../core/utils/image.utils';
       top: 0;
       z-index: 100;
       background-color: #FFFFFF;
-      border-bottom: 1px solid var(--color-border-light);
-      transition: var(--transition);
+      border-bottom: 1px solid var(--color-border-light, #EAE6E1);
+      transition: var(--transition, all 0.3s ease);
     }
     .navbar-header.scrolled {
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
     }
     .navbar-container {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 80px;
-    }
-
-    .brand-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .logo-circle {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 1.5px solid var(--color-gold);
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      background-color: #FFFFFF;
-      flex-shrink: 0;
-    }
-    .logo-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .drawer-logo-circle {
-      width: 44px;
-      height: 44px;
-    }
-    .drawer-logo {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-    }
-    .brand-name {
-      font-family: var(--font-heading);
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: var(--color-text-heading);
-      line-height: 1.1;
-    }
-    .brand-tagline {
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 2.5px;
-      color: var(--color-gold);
+      height: 70px;
     }
 
     .desktop-nav {
@@ -227,10 +155,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
       gap: 32px;
     }
     .nav-link {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 500;
       letter-spacing: 0.5px;
-      color: var(--color-text);
+      color: var(--color-text, #1A1A1A);
       padding: 8px 0;
       position: relative;
       text-decoration: none;
@@ -243,14 +171,14 @@ import { handleImageError } from '../../../core/utils/image.utils';
       left: 0;
       width: 0;
       height: 2px;
-      background-color: var(--color-pink-dark);
-      transition: var(--transition);
+      background-color: var(--color-pink-dark, #C2185B);
+      transition: all 0.25s ease;
     }
     .nav-link:hover::after, .nav-link.active::after {
       width: 100%;
     }
     .nav-link.active {
-      color: var(--color-text-heading);
+      color: var(--color-pink-dark, #C2185B);
       font-weight: 600;
     }
 
@@ -264,17 +192,17 @@ import { handleImageError } from '../../../core/utils/image.utils';
       align-items: center;
       gap: 6px;
       padding: 8px;
-      color: var(--color-text-heading);
-      border-radius: var(--radius-full);
-      transition: var(--transition);
+      color: var(--color-text-heading, #0D0D0D);
+      border-radius: var(--radius-full, 9999px);
+      transition: all 0.2s ease;
       position: relative;
       background: transparent;
       border: none;
       cursor: pointer;
     }
     .action-btn:hover {
-      background-color: var(--color-pink-light);
-      color: var(--color-pink-dark);
+      background-color: rgba(194, 24, 91, 0.08);
+      color: var(--color-pink-dark, #C2185B);
     }
     .nav-label {
       font-size: 13px;
@@ -284,7 +212,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       position: absolute;
       top: 0;
       right: 0;
-      background-color: var(--color-pink-dark);
+      background-color: var(--color-pink-dark, #C2185B);
       color: #FFFFFF;
       font-size: 10px;
       font-weight: 700;
@@ -297,12 +225,12 @@ import { handleImageError } from '../../../core/utils/image.utils';
       padding: 0 4px;
     }
     .admin-badge {
-      background-color: var(--color-gold);
+      background-color: #C5A059;
       color: #FFFFFF;
       font-size: 11px;
       font-weight: 600;
       padding: 4px 10px;
-      border-radius: var(--radius-full);
+      border-radius: 20px;
       letter-spacing: 0.5px;
       text-decoration: none;
     }
@@ -317,20 +245,20 @@ import { handleImageError } from '../../../core/utils/image.utils';
       padding: 0;
       border: none;
       opacity: 0;
-      transition: var(--transition);
-      background-color: var(--color-bg-alt);
-      border-radius: var(--radius-full);
+      transition: all 0.3s ease;
+      background-color: var(--color-bg-alt, #FAF8F6);
+      border-radius: 20px;
     }
     .search-box.active .search-input {
       width: 200px;
       padding: 8px 16px;
       opacity: 1;
-      border: 1px solid var(--color-border);
+      border: 1px solid var(--color-border, #EAE6E1);
     }
 
     .mobile-toggle {
       display: none;
-      color: var(--color-text-heading);
+      color: var(--color-text-heading, #0D0D0D);
       background: transparent;
       border: none;
       cursor: pointer;
@@ -343,13 +271,9 @@ import { handleImageError } from '../../../core/utils/image.utils';
     }
 
     @media (max-width: 480px) {
-      .navbar-container { height: 66px; padding: 0 12px; }
-      .brand-logo { gap: 8px; }
-      .logo-circle { width: 38px; height: 38px; }
-      .brand-name { font-size: 14px; letter-spacing: 0.8px; }
-      .brand-tagline { font-size: 7.5px; letter-spacing: 1.2px; }
-      .nav-actions { gap: 6px; }
-      .search-box.active .search-input { width: 130px; font-size: 12px; }
+      .navbar-container { height: 60px; padding: 0 16px; }
+      .nav-actions { gap: 8px; }
+      .search-box.active .search-input { width: 140px; font-size: 12px; }
     }
 
     /* Mobile Drawer */
@@ -364,7 +288,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       top: 0;
       left: 0;
       bottom: 0;
-      width: 300px;
+      width: 280px;
       background-color: #FFFFFF;
       z-index: 999;
       transform: translateX(-100%);
@@ -381,13 +305,22 @@ import { handleImageError } from '../../../core/utils/image.utils';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--color-border-light, #EAE6E1);
+    }
+    .drawer-menu-heading {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text-heading, #0D0D0D);
+      letter-spacing: 0.5px;
     }
     .close-btn {
       font-size: 28px;
-      color: var(--color-muted);
+      color: var(--color-muted, #666666);
       background: transparent;
       border: none;
       cursor: pointer;
+      line-height: 1;
     }
     .mobile-nav-links {
       display: flex;
@@ -397,26 +330,26 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .mobile-link {
       font-size: 16px;
       font-weight: 500;
-      color: var(--color-text-heading);
+      color: var(--color-text-heading, #0D0D0D);
       padding: 10px 0;
       text-decoration: none;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
     .mobile-link.highlight {
-      color: #C05676;
+      color: var(--color-pink-dark, #C2185B);
       font-weight: 600;
     }
     .mobile-link.admin-link {
-      color: var(--color-gold);
+      color: #C5A059;
     }
     .nav-pill-icon {
       font-size: 16px;
     }
     .mobile-divider {
       height: 1px;
-      background-color: var(--color-border-light);
+      background-color: var(--color-border-light, #EAE6E1);
       margin: 8px 0;
     }
     .logout-btn {
@@ -428,29 +361,12 @@ import { handleImageError } from '../../../core/utils/image.utils';
     }
     .mobile-drawer-footer {
       margin-top: auto;
-      padding-top: 24px;
-      border-top: 1px solid var(--color-border-light);
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border-light, #EAE6E1);
       font-size: 13px;
     }
-    .drawer-brand-info {
-      display: flex;
-      flex-direction: column;
-    }
-    .drawer-brand-name {
-      font-family: var(--font-heading);
-      font-weight: 700;
-      font-size: 16px;
-      letter-spacing: 1px;
-      color: var(--color-text-heading);
-    }
-    .drawer-brand-sub {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      color: var(--color-gold);
-    }
     .drawer-contact-label {
-      color: var(--color-muted);
+      color: var(--color-muted, #666666);
       margin-bottom: 8px;
     }
     .mobile-wa-btn {
@@ -462,7 +378,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       color: #FFFFFF;
       text-align: center;
       padding: 10px;
-      border-radius: var(--radius-sm);
+      border-radius: 4px;
       font-weight: 600;
       text-decoration: none;
     }
@@ -509,10 +425,6 @@ export class NavbarComponent implements OnInit {
     if (this.isSearchOpen && this.searchQuery) {
       this.onSearch();
     }
-  }
-
-  onImageError(event: Event) {
-    handleImageError(event);
   }
 
   onSearch() {

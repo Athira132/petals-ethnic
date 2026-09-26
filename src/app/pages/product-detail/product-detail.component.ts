@@ -76,7 +76,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
           <div class="pd-info">
             <!-- Brand & Category Badges -->
             <div class="brand-badge-row">
-              <span class="pd-dept-tag">{{ product.department === 'jewellery' ? '✨ Fine Jewellery' : '🌸 Ethnic Boutique' }}</span>
+              <span class="pd-dept-tag">{{ product.department === 'jewellery' ? 'Fine Jewellery' : 'Ethnic Boutique' }}</span>
               <span class="pd-category" *ngIf="product.category">{{ product.category.name }}</span>
             </div>
 
@@ -104,7 +104,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
             </div>
 
             <div class="out-of-stock-banner" *ngIf="!isAvailable">
-              <span>❌ Currently Out of Stock</span>
+              <span>Currently Out of Stock</span>
             </div>
 
             <!-- Color Variations (if configured) -->
@@ -138,13 +138,13 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                   <span class="selected-val-label" *ngIf="selectedSize">{{ selectedSize }}</span>
                 </div>
 
-                <!-- Size Chart Trigger (Only if configured) -->
+                <!-- Size Chart Trigger -->
                 <button 
-                  *ngIf="product.show_size_chart && product.size_chart_url" 
+                  *ngIf="product.show_size_chart !== false" 
                   (click)="isSizeChartOpen = true" 
                   class="size-chart-trigger-btn"
                 >
-                  📏 View Size Chart
+                  View Size Chart
                 </button>
               </div>
 
@@ -178,7 +178,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                   [disabled]="!isAvailable"
                   (click)="addToCart()"
                 >
-                  {{ isAvailable ? '🛒 Add to Cart' : 'Out of Stock' }}
+                  {{ isAvailable ? 'Add to Cart' : 'Out of Stock' }}
                 </button>
 
                 <!-- Buy Now -->
@@ -187,7 +187,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                   [disabled]="!isAvailable"
                   (click)="buyNow()"
                 >
-                  ⚡ Buy Now
+                  Buy Now
                 </button>
 
                 <!-- Wishlist Toggle -->
@@ -215,7 +215,6 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
             <div class="pd-policy-box" *ngIf="productReturnPolicy">
               <div class="policy-header" (click)="isPolicyOpen = !isPolicyOpen">
                 <div class="policy-title">
-                  <span>🔄</span>
                   <strong>Return & Exchange Policy</strong>
                 </div>
                 <span class="policy-toggle">{{ isPolicyOpen ? '▲' : '▼' }}</span>
@@ -228,7 +227,6 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
             <!-- Embedded Product Video (Conditional) -->
             <div class="product-video-card" *ngIf="activeVideoUrl">
               <div class="video-header">
-                <span class="video-icon">🎥</span>
                 <span class="video-title">Product Video Showcase</span>
               </div>
               <div class="video-container">
@@ -256,11 +254,9 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
             <!-- Shipping & Support Perks -->
             <div class="pd-perks">
               <div class="perk-item">
-                <span>🚚</span>
                 <span>Free delivery across India on prepaid orders.</span>
               </div>
               <div class="perk-item">
-                <span>💬</span>
                 <span>Need styling advice? <a [href]="whatsAppEnquiryUrl" target="_blank">Chat with our store concierge on WhatsApp</a></span>
               </div>
             </div>
@@ -286,19 +282,49 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     </div>
 
     <!-- Size Chart Modal -->
+    <!-- Size Chart Modal with 3XL standard table and custom image if available -->
     <div class="modal-backdrop" *ngIf="isSizeChartOpen" (click)="isSizeChartOpen = false">
       <div class="modal-card size-chart-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Size Chart</h3>
-          <button class="close-modal-btn" (click)="isSizeChartOpen = false">&times;</button>
+          <button class="close-modal-btn" (click)="isSizeChartOpen = false" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body">
-          <img 
-            [src]="product?.size_chart_url" 
-            alt="Product Size Chart" 
-            class="size-chart-img" 
-            (error)="onImageError($event)" 
-          />
+          <div *ngIf="product?.size_chart_url" class="custom-chart-wrapper">
+            <img 
+              [src]="product?.size_chart_url" 
+              alt="Product Size Chart" 
+              class="size-chart-img" 
+              (error)="onImageError($event)" 
+            />
+          </div>
+
+          <div class="size-table-container">
+            <div class="table-intro">Standard Ethnic Sizing (Inches & CM)</div>
+            <table class="size-guide-table">
+              <thead>
+                <tr>
+                  <th>Size</th>
+                  <th>Bust (in)</th>
+                  <th>Waist (in)</th>
+                  <th>Hip (in)</th>
+                  <th>Bust (cm)</th>
+                  <th>Waist (cm)</th>
+                  <th>Hip (cm)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>XS</strong></td><td>34</td><td>28</td><td>36</td><td>86</td><td>71</td><td>91</td></tr>
+                <tr><td><strong>S</strong></td><td>36</td><td>30</td><td>38</td><td>91</td><td>76</td><td>96</td></tr>
+                <tr><td><strong>M</strong></td><td>38</td><td>32</td><td>40</td><td>96</td><td>81</td><td>101</td></tr>
+                <tr><td><strong>L</strong></td><td>40</td><td>34</td><td>42</td><td>101</td><td>86</td><td>106</td></tr>
+                <tr><td><strong>XL</strong></td><td>42</td><td>36</td><td>44</td><td>106</td><td>91</td><td>111</td></tr>
+                <tr><td><strong>XXL</strong></td><td>44</td><td>38</td><td>46</td><td>111</td><td>96</td><td>116</td></tr>
+                <tr class="highlight-row"><td><strong>3XL</strong></td><td>46</td><td>40</td><td>48</td><td>116</td><td>101</td><td>121</td></tr>
+              </tbody>
+            </table>
+            <p class="size-guide-note">Measurements are body measurements. For relaxed fits or custom adjustments, feel free to contact us.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -939,6 +965,61 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       height: auto;
       border-radius: 4px;
     }
+    .custom-chart-wrapper {
+      margin-bottom: 20px;
+    }
+    .size-table-container {
+      overflow-x: auto;
+      margin-top: 10px;
+      border: 1px solid var(--color-border-light);
+      border-radius: 6px;
+      padding: 12px;
+      background: #FFFFFF;
+    }
+    .table-intro {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-heading);
+      margin-bottom: 10px;
+      text-align: left;
+      letter-spacing: 0.5px;
+    }
+    .size-guide-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: center;
+    }
+    .size-guide-table th {
+      background: #FDF4F6;
+      color: var(--color-pink-dark);
+      padding: 9px 8px;
+      font-weight: 600;
+      border: 1px solid #EAE6E1;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .size-guide-table td {
+      padding: 8px 8px;
+      border: 1px solid #EAE6E1;
+      color: #333333;
+    }
+    .size-guide-table tr:nth-child(even) td {
+      background-color: #FAFAFA;
+    }
+    .size-guide-table tr.highlight-row td {
+      background-color: #FFF5F7;
+      font-weight: 600;
+      color: var(--color-pink-dark);
+    }
+    .size-guide-note {
+      font-size: 12px;
+      color: #666666;
+      margin-top: 10px;
+      text-align: left;
+      line-height: 1.5;
+    }
 
     .loading-box {
       text-align: center;
@@ -1011,7 +1092,7 @@ export class ProductDetailComponent implements OnInit {
 
   relatedProducts: Product[] = [];
 
-  readonly defaultReturnPolicy = '📦 7-Day Hassle-Free Returns & Exchanges. Items must be in original condition with tags and boutique packaging intact. Contact our support team for quick assistance.';
+  readonly defaultReturnPolicy = '7-Day Hassle-Free Returns & Exchanges. Items must be in original condition with tags and boutique packaging intact. Contact our support team for quick assistance.';
 
   constructor(
     private route: ActivatedRoute,
@@ -1080,7 +1161,7 @@ export class ProductDetailComponent implements OnInit {
 
     // Build Sizes (if product has sizes)
     if (this.product.has_size !== false) {
-      const availableSizesList: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+      const availableSizesList: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
       if (this.product.sizes && this.product.sizes.length > 0) {
         this.sizeList = this.product.sizes.map(s => ({ size: s.size, stock: s.stock }));
       } else {

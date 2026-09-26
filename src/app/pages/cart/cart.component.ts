@@ -127,7 +127,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                 </button>
 
                 <div class="payment-badges">
-                  <span>🔒 100% Secure Checkout via Razorpay & UPI</span>
+                  <span>100% Secure Checkout via Razorpay & UPI</span>
                 </div>
               </div>
             </div>
@@ -138,7 +138,13 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
 
     <ng-template #emptyCart>
       <div class="empty-cart-box">
-        <div class="cart-icon">🛍️</div>
+        <div class="cart-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
         <h2>Your Shopping Cart is Empty</h2>
         <p>Explore our latest Indian ethnic wear collections and add your favorite outfits to cart.</p>
         <a routerLink="/ethnics" class="btn-primary">Explore Collections</a>

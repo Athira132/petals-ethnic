@@ -27,10 +27,10 @@ import { handleImageError } from '../../core/utils/image.utils';
           <div>
             <span class="welcome-text">WELCOME BACK</span>
             <h1 class="user-name">{{ profile.name }}</h1>
-            <p class="user-email">✉️ {{ profile.email }} | 📞 {{ profile.phone || 'Not provided' }}</p>
+            <p class="user-email">{{ profile.email }} | {{ profile.phone || 'Not provided' }}</p>
           </div>
           <div class="account-header-actions">
-            <a *ngIf="isAdmin" routerLink="/admin" class="btn-gold">⚙️ Admin Dashboard</a>
+            <a *ngIf="isAdmin" routerLink="/admin" class="btn-gold">Admin Dashboard</a>
             <button (click)="logout()" class="btn-outline">Sign Out</button>
           </div>
         </div>
@@ -38,10 +38,10 @@ import { handleImageError } from '../../core/utils/image.utils';
         <!-- Navigation Tabs -->
         <div class="account-tabs">
           <button class="tab-btn" [class.active]="activeTab === 'orders'" (click)="activeTab = 'orders'">
-            🛍️ My Orders ({{ orders.length }})
+            My Orders ({{ orders.length }})
           </button>
           <button class="tab-btn" [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">
-            👤 Edit Profile
+            Edit Profile
           </button>
         </div>
 
@@ -96,8 +96,8 @@ import { handleImageError } from '../../core/utils/image.utils';
         <div *ngIf="activeTab === 'profile'" class="tab-content max-w-500">
           <div class="profile-card">
             <h3>Profile Settings</h3>
-            <div *ngIf="profileSuccess" class="alert success">✅ Profile updated successfully!</div>
-            <div *ngIf="profileError" class="alert error">⚠️ {{ profileError }}</div>
+            <div *ngIf="profileSuccess" class="alert success">Profile updated successfully!</div>
+            <div *ngIf="profileError" class="alert error">{{ profileError }}</div>
 
             <form (ngSubmit)="updateProfile()" class="profile-form">
               <div class="form-group">

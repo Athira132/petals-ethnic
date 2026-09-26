@@ -37,14 +37,14 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
           [class.active]="selectedDeptFilter === 'ethnic'"
           (click)="setDeptFilter('ethnic')"
         >
-          🌸 Ethnics ({{ getDeptCount('ethnic') }})
+          Ethnics ({{ getDeptCount('ethnic') }})
         </button>
         <button 
           class="dept-filter-btn" 
           [class.active]="selectedDeptFilter === 'jewellery'"
           (click)="setDeptFilter('jewellery')"
         >
-          ✨ Jewellery ({{ getDeptCount('jewellery') }})
+          Jewellery ({{ getDeptCount('jewellery') }})
         </button>
       </div>
 
@@ -68,7 +68,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
 
       <!-- Error State -->
       <div *ngIf="errorMessage" class="error-card">
-        <p>⚠️ {{ errorMessage }}</p>
+        <p>{{ errorMessage }}</p>
         <button type="button" (click)="loadData()" class="btn-outline btn-sm">Retry Loading</button>
       </div>
 
@@ -183,15 +183,15 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                 <div class="dept-selector-row">
                   <label class="dept-radio-label" [class.selected]="formProduct.department === 'ethnic'">
                     <input type="radio" name="prod_dept" value="ethnic" [ngModel]="formProduct.department" (ngModelChange)="onDepartmentChange('ethnic')" />
-                    <span>🌸 Ethnics Boutique (Clothing)</span>
+                    <span>Ethnics Boutique (Clothing)</span>
                   </label>
                   <label class="dept-radio-label" [class.selected]="formProduct.department === 'jewellery'">
                     <input type="radio" name="prod_dept" value="jewellery" [ngModel]="formProduct.department" (ngModelChange)="onDepartmentChange('jewellery')" />
-                    <span>✨ Handcrafted Jewellery</span>
+                    <span>Handcrafted Jewellery</span>
                   </label>
                 </div>
                 <small class="help-text">
-                  {{ formProduct.department === 'jewellery' ? 'Jewellery items default to direct quantity ordering without size options.' : 'Ethnic wear defaults to standard sizing (XS–XXL) with size chart support.' }}
+                  {{ formProduct.department === 'jewellery' ? 'Jewellery items default to direct quantity ordering without size options.' : 'Ethnic wear defaults to standard sizing (XS–3XL) with size chart support.' }}
                 </small>
               </div>
 
@@ -276,7 +276,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
               <div class="toggle-row">
                 <label class="checkbox-label font-bold">
                   <input type="checkbox" [(ngModel)]="formProduct.has_size" name="has_size" />
-                  <span>Enable Size Variations (XS, S, M, L, XL, XXL)</span>
+                  <span>Enable Size Variations (XS, S, M, L, XL, XXL, 3XL)</span>
                 </label>
               </div>
 
@@ -357,7 +357,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                     <label class="form-label">Photos for {{ cv.name || 'this color' }}</label>
                     <div class="color-upload-controls">
                       <label class="btn-color-upload">
-                        <span>📁 + Upload Photos for {{ cv.name || 'Color' }}</span>
+                        <span>+ Upload Photos for {{ cv.name || 'Color' }}</span>
                         <input 
                           type="file" 
                           accept="image/jpeg,image/png,image/webp" 
@@ -397,7 +397,6 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                 <label class="form-label">Product Photos (Direct Upload from Computer)</label>
                 <div class="main-upload-box">
                   <label class="btn-main-upload">
-                    <span class="upload-btn-icon">📸</span>
                     <span class="upload-btn-title">+ Choose Photos from Computer</span>
                     <span class="upload-btn-subtitle">JPG, PNG, WEBP — Multiple photos can be selected</span>
                     <input 
@@ -423,7 +422,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                   <div class="preview-gallery-card" *ngFor="let url of productImagesList; let idx = index" [class.is-primary]="idx === 0">
                     <div class="preview-img-container">
                       <img [src]="url" alt="Product photo" class="preview-card-img" (error)="onImageError($event)" />
-                      <span class="primary-badge" *ngIf="idx === 0">★ Primary</span>
+                      <span class="primary-badge" *ngIf="idx === 0">Primary</span>
                     </div>
                     <div class="preview-btn-row">
                       <button 
@@ -441,7 +440,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                         class="btn-del-img" 
                         title="Delete photo"
                       >
-                        🗑 Delete
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -845,7 +844,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
     { size: 'M', stock: 5 },
     { size: 'L', stock: 5 },
     { size: 'XL', stock: 5 },
-    { size: 'XXL', stock: 5 }
+    { size: 'XXL', stock: 5 },
+    { size: '3XL', stock: 5 }
   ];
 
   formColorVariants: { name: string; color_code: string; images: string[]; isUploading?: boolean; uploadStatus?: string }[] = [];
@@ -1078,7 +1078,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
       { size: 'M', stock: 5 },
       { size: 'L', stock: 5 },
       { size: 'XL', stock: 5 },
-      { size: 'XXL', stock: 5 }
+      { size: 'XXL', stock: 5 },
+      { size: '3XL', stock: 5 }
     ];
 
     this.isModalOpen = true;
@@ -1123,7 +1124,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.isUploadingImages = false;
 
     if (prod.sizes && prod.sizes.length > 0) {
-      this.formSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(sz => {
+      this.formSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'].map(sz => {
         const found = prod.sizes?.find(s => s.size === sz);
         return { size: sz as SizeOption, stock: found ? found.stock : 0 };
       });
@@ -1134,7 +1135,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
         { size: 'M', stock: 0 },
         { size: 'L', stock: 0 },
         { size: 'XL', stock: 0 },
-        { size: 'XXL', stock: 0 }
+        { size: 'XXL', stock: 0 },
+        { size: '3XL', stock: 0 }
       ];
     }
 
@@ -1174,11 +1176,11 @@ export class ProductListComponent implements OnInit, OnDestroy {
         this.productImagesList.push(url);
       }
 
-      this.uploadStatusText = `✓ Successfully uploaded ${files.length} photo(s)!`;
+      this.uploadStatusText = `Successfully uploaded ${files.length} photo(s)!`;
       this.uploadHasError = false;
     } catch (err: any) {
       console.error('Error uploading product images:', err);
-      this.uploadStatusText = `⚠️ Upload failed: ${err.message || 'Image upload request failed.'}`;
+      this.uploadStatusText = `Upload failed: ${err.message || 'Image upload request failed.'}`;
       this.uploadHasError = true;
     } finally {
       this.isUploadingImages = false;

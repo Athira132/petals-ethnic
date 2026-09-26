@@ -82,7 +82,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                   (click)="addToCart(product)"
                   [disabled]="product.stock === 0"
                 >
-                  {{ product.stock === 0 ? 'Out of Stock' : '🛒 Add to Cart' }}
+                  {{ product.stock === 0 ? 'Out of Stock' : 'Add to Cart' }}
                 </button>
               </div>
             </div>

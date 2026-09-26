@@ -59,7 +59,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
         <div class="size-quick-bar" *ngIf="product.stock > 0">
           <ng-container *ngIf="product.purchase_mode === 'enquiry'; else normalQuickBar">
             <a [href]="whatsAppEnquiryUrl" target="_blank" rel="noopener" class="quick-enquiry-btn">
-              💬 Enquire on WhatsApp
+              Enquire on WhatsApp
             </a>
           </ng-container>
           <ng-template #normalQuickBar>
@@ -426,7 +426,7 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   get availableSizes(): { size: SizeOption; stock: number }[] {
-    const allSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    const allSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
     if (this.product.sizes && this.product.sizes.length > 0) {
       return this.product.sizes.map(s => ({ size: s.size, stock: s.stock }));
     }

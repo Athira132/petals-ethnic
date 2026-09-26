@@ -43,7 +43,7 @@ export interface FlattenedInventoryItem {
 
       <!-- Error State -->
       <div *ngIf="errorMessage" class="error-card">
-        <p>⚠️ {{ errorMessage }}</p>
+        <p>{{ errorMessage }}</p>
         <button (click)="loadInventory()" class="btn-outline btn-sm">Retry Loading</button>
       </div>
 

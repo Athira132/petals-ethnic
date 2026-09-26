@@ -36,14 +36,14 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
           [class.active]="selectedDeptFilter === 'ethnic'"
           (click)="selectedDeptFilter = 'ethnic'"
         >
-          🌸 Ethnics ({{ getDeptCount('ethnic') }})
+          Ethnics ({{ getDeptCount('ethnic') }})
         </button>
         <button 
           class="dept-filter-btn" 
           [class.active]="selectedDeptFilter === 'jewellery'"
           (click)="selectedDeptFilter = 'jewellery'"
         >
-          ✨ Jewellery ({{ getDeptCount('jewellery') }})
+          Jewellery ({{ getDeptCount('jewellery') }})
         </button>
       </div>
 
@@ -123,11 +123,11 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
               <div class="dept-selector-row">
                 <label class="dept-radio-label" [class.selected]="formCat.department === 'ethnic'">
                   <input type="radio" name="dept" value="ethnic" [(ngModel)]="formCat.department" />
-                  <span>🌸 Ethnics Boutique</span>
+                  <span>Ethnics Boutique</span>
                 </label>
                 <label class="dept-radio-label" [class.selected]="formCat.department === 'jewellery'">
                   <input type="radio" name="dept" value="jewellery" [(ngModel)]="formCat.department" />
-                  <span>✨ Handcrafted Jewellery</span>
+                  <span>Handcrafted Jewellery</span>
                 </label>
               </div>
             </div>
@@ -180,7 +180,6 @@ import { handleImageError, sanitizeImageUrl, isIbbShareUrl } from '../../core/ut
                     [disabled]="isUploadingImage"
                   />
                   <div class="upload-instructions">
-                    <span class="upload-icon">📁</span>
                     <span>Upload image from device (JPG, PNG, WEBP max 10MB)</span>
                   </div>
                 </div>
@@ -450,11 +449,11 @@ export class CategoryListComponent implements OnInit, OnDestroy {
       const uploadedUrl = await this.productService.uploadCategoryImage(file);
       this.formCat.image_url = uploadedUrl;
       this.imagePreviewUrl = uploadedUrl;
-      this.uploadStatusText = '✓ Image uploaded successfully!';
+      this.uploadStatusText = 'Image uploaded successfully!';
       this.uploadHasError = false;
     } catch (err: any) {
       console.error('Category image upload failed:', err);
-      this.uploadStatusText = `⚠️ Upload failed: ${err.message || 'Image upload request failed.'}`;
+      this.uploadStatusText = `Upload failed: ${err.message || 'Image upload request failed.'}`;
       this.uploadHasError = true;
     } finally {
       this.isUploadingImage = false;

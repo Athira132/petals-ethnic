@@ -9,7 +9,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
   imports: [CommonModule, RouterModule],
   template: `
     <section class="hero-static-section">
-      <!-- High-Performance Single Static Hero Image -->
+      <!-- Maximum Brightness Single Static Hero Image (No dark overlay, no shading) -->
       <img 
         src="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" 
         alt="Petal Ethnics & Jewellers Collection" 
@@ -20,12 +20,9 @@ import { handleImageError } from '../../../core/utils/image.utils';
         (error)="onImageError($event)"
       />
 
-      <!-- Subtle bottom gradient for button contrast -->
-      <div class="hero-gradient-overlay"></div>
-
-      <!-- Exploration Buttons Only (No text, heading, or tagline) -->
+      <!-- Side-Aligned Exploration Buttons (Vertically stacked on the side, fully visible & accessible) -->
       <div class="hero-cta-container">
-        <div class="hero-buttons-row">
+        <div class="hero-buttons-col">
           <a routerLink="/ethnics" class="btn-hero-cta btn-ethnics">
             EXPLORE ETHNICS
           </a>
@@ -44,12 +41,12 @@ import { handleImageError } from '../../../core/utils/image.utils';
       min-height: 480px;
       max-height: 660px;
       overflow: hidden;
-      background-color: #0D0D0D;
+      background-color: #FAFAFA;
       display: flex;
       align-items: flex-end;
-      justify-content: center;
     }
 
+    /* Crisp, bright, vivid hero image with preserved natural colors and maximum clarity */
     .hero-static-img {
       position: absolute;
       inset: 0;
@@ -57,129 +54,116 @@ import { handleImageError } from '../../../core/utils/image.utils';
       height: 100%;
       object-fit: cover;
       object-position: center 20%;
+      opacity: 1;
+      filter: none;
     }
 
-    .hero-gradient-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.05) 0%,
-        rgba(0, 0, 0, 0.1) 50%,
-        rgba(15, 10, 12, 0.55) 100%
-      );
-      pointer-events: none;
-    }
-
+    /* Positioned on one side (left) with clean margin */
     .hero-cta-container {
-      position: relative;
-      z-index: 3;
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px 44px 24px;
+      position: absolute;
+      left: 5%;
+      bottom: 12%;
+      z-index: 10;
       display: flex;
-      justify-content: center;
     }
 
-    .hero-buttons-row {
+    /* Vertically aligned side stack */
+    .hero-buttons-col {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
     }
 
-    /* Minimal, Elegant Exploration Buttons */
+    /* High-contrast solid button styling ensuring 100% readability over bright imagery */
     .btn-hero-cta {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 200px;
-      padding: 14px 30px;
+      min-width: 220px;
+      padding: 14px 28px;
       border-radius: 4px;
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       text-decoration: none;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(8px);
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
       user-select: none;
+      cursor: pointer;
     }
 
-    /* Soft Rose Accent Button for Ethnics */
+    /* Rose Accent Button for Ethnics */
     .btn-ethnics {
       background: #FFFFFF;
-      color: #0D0D0D;
-      border: 1.5px solid rgba(194, 24, 91, 0.7);
+      color: #1A1A1A;
+      border: 2px solid #C2185B;
     }
     .btn-ethnics:hover {
       background: #C2185B;
       color: #FFFFFF;
-      border-color: #C2185B;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(194, 24, 91, 0.35);
+      transform: translateX(4px);
+      box-shadow: 0 8px 24px rgba(194, 24, 91, 0.4);
     }
 
-    /* Soft Gold Accent Button for Jewellery */
+    /* Gold Accent Button for Jewellery */
     .btn-jewellery {
       background: #FFFFFF;
-      color: #0D0D0D;
-      border: 1.5px solid rgba(197, 160, 89, 0.9);
+      color: #1A1A1A;
+      border: 2px solid #C5A059;
     }
     .btn-jewellery:hover {
       background: #C5A059;
       color: #FFFFFF;
-      border-color: #C5A059;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(197, 160, 89, 0.4);
+      transform: translateX(4px);
+      box-shadow: 0 8px 24px rgba(197, 160, 89, 0.45);
     }
 
-    /* Mobile Responsiveness */
+    /* Tablet Responsiveness */
     @media (max-width: 768px) {
       .hero-static-section {
         height: 52vh;
         min-height: 340px;
-        max-height: 420px;
+        max-height: 440px;
       }
       .hero-cta-container {
-        padding: 0 16px 28px 16px;
+        left: 20px;
+        bottom: 24px;
       }
-      .hero-buttons-row {
-        gap: 12px;
+      .hero-buttons-col {
+        gap: 10px;
       }
       .btn-hero-cta {
-        min-width: 150px;
+        min-width: 175px;
         padding: 11px 20px;
         font-size: 11px;
-        letter-spacing: 1.2px;
+        letter-spacing: 1px;
       }
     }
 
+    /* Mobile Phone Responsiveness */
     @media (max-width: 480px) {
       .hero-static-section {
-        height: 46vh;
-        min-height: 290px;
-        max-height: 360px;
+        height: 48vh;
+        min-height: 300px;
+        max-height: 380px;
       }
       .hero-static-img {
         object-position: center 15%;
       }
       .hero-cta-container {
-        padding: 0 12px 20px 12px;
+        left: 14px;
+        bottom: 18px;
       }
-      .hero-buttons-row {
-        gap: 10px;
-        width: 100%;
+      .hero-buttons-col {
+        gap: 8px;
       }
       .btn-hero-cta {
-        flex: 1;
-        min-width: 135px;
-        padding: 10px 14px;
+        min-width: 155px;
+        padding: 10px 16px;
         font-size: 11px;
-        letter-spacing: 1px;
+        letter-spacing: 0.8px;
       }
     }
   `]

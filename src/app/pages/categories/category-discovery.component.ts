@@ -36,14 +36,14 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image
               [class.active]="selectedDept === 'ethnic'" 
               (click)="setDepartment('ethnic')"
             >
-              🌸 Ethnic Wear ({{ ethnicCategories.length }})
+              Ethnic Wear ({{ ethnicCategories.length }})
             </button>
             <button 
               class="tab-btn" 
               [class.active]="selectedDept === 'jewellery'" 
               (click)="setDepartment('jewellery')"
             >
-              ✨ Jewellery ({{ jewelleryCategories.length }})
+              Jewellery ({{ jewelleryCategories.length }})
             </button>
           </div>
         </div>
@@ -67,7 +67,7 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image
           <section *ngIf="(selectedDept === 'all' || selectedDept === 'ethnic') && ethnicCategories.length > 0" class="collection-section">
             <div class="section-header" *ngIf="selectedDept === 'all'">
               <div>
-                <h2 class="section-title">🌸 Ethnic Wear Collections</h2>
+                <h2 class="section-title">Ethnic Wear Collections</h2>
                 <p class="section-subtitle">Kurtis, Anarkalis, Sarees, Co-ord Sets, and Midi Dresses</p>
               </div>
               <a [routerLink]="['/ethnics']" class="view-all-link">Browse All Ethnics &rarr;</a>
@@ -104,7 +104,7 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image
           <section *ngIf="(selectedDept === 'all' || selectedDept === 'jewellery') && jewelleryCategories.length > 0" class="collection-section">
             <div class="section-header" *ngIf="selectedDept === 'all'">
               <div>
-                <h2 class="section-title">✨ Jewellery Collections</h2>
+                <h2 class="section-title">Jewellery Collections</h2>
                 <p class="section-subtitle">Chokers, Necklaces, Earrings, Bangles, Rings & Temple Jewellery</p>
               </div>
               <a [routerLink]="['/jewellery']" class="view-all-link">Browse All Jewellery &rarr;</a>

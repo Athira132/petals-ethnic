@@ -21,11 +21,11 @@ import { SupabaseService } from '../../core/services/supabase.service';
         </div>
 
         <div *ngIf="successMessage" class="auth-alert success">
-          ✅ {{ successMessage }}
+          {{ successMessage }}
         </div>
 
         <div *ngIf="errorMessage" class="auth-alert error">
-          ⚠️ {{ errorMessage }}
+          {{ errorMessage }}
         </div>
 
         <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="!successMessage && !isLinkExpired">

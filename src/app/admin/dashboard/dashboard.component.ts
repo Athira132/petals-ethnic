@@ -20,7 +20,12 @@ import { Product } from '../../core/models/product.model';
       <!-- Key Metric Cards Grid -->
       <div class="metrics-grid">
         <div class="metric-card gold">
-          <div class="metric-icon">💰</div>
+          <div class="metric-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
           <div class="metric-data">
             <span class="metric-label">Total Revenue</span>
             <h2 class="metric-value">₹{{ totalRevenue | number:'1.0-0' }}</h2>
@@ -28,7 +33,13 @@ import { Product } from '../../core/models/product.model';
         </div>
 
         <div class="metric-card pink">
-          <div class="metric-icon">📦</div>
+          <div class="metric-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
           <div class="metric-data">
             <span class="metric-label">Total Orders</span>
             <h2 class="metric-value">{{ totalOrdersCount }}</h2>
@@ -36,7 +47,12 @@ import { Product } from '../../core/models/product.model';
         </div>
 
         <div class="metric-card dark">
-          <div class="metric-icon">⏳</div>
+          <div class="metric-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
           <div class="metric-data">
             <span class="metric-label">Pending Orders</span>
             <h2 class="metric-value">{{ pendingOrdersCount }}</h2>
@@ -44,7 +60,13 @@ import { Product } from '../../core/models/product.model';
         </div>
 
         <div class="metric-card warning">
-          <div class="metric-icon">⚠️</div>
+          <div class="metric-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
           <div class="metric-data">
             <span class="metric-label">Low Stock Alerts</span>
             <h2 class="metric-value">{{ lowStockCount }}</h2>

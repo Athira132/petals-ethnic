@@ -54,7 +54,12 @@ import { handleImageError } from '../../core/utils/image.utils';
               (click)="selectCategoryBySlug('')"
             >
               <div class="mini-card-icon-wrap all-icon">
-                <span>✦</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
               </div>
               <span class="mini-card-title">All {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }}</span>
             </button>
@@ -171,7 +176,7 @@ import { handleImageError } from '../../core/utils/image.utils';
           <!-- Top Bar (Mobile Filter Toggle + Sorting) -->
           <div class="shop-toolbar">
             <button class="mobile-filter-btn" (click)="toggleMobileFilter()">
-              ⚡ Filter & Refine
+              Filter & Refine
             </button>
 
             <span class="results-count" *ngIf="!isLoading">
@@ -221,7 +226,12 @@ import { handleImageError } from '../../core/utils/image.utils';
     <!-- Empty Collection State -->
     <ng-template #emptyState>
       <div class="empty-products-box">
-        <div class="empty-icon">{{ currentDepartment === 'jewellery' ? '✨' : '🌸' }}</div>
+        <div class="empty-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
         <h3>No {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }} Available in this Selection</h3>
         <p>Try clearing your filter or explore our other collections.</p>
         <button (click)="resetFilters()" class="btn-primary">View All {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }}</button>
@@ -658,7 +668,7 @@ export class ShopComponent implements OnInit, OnDestroy {
 
   isMobileFilterOpen = false;
 
-  readonly availableSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  readonly availableSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
   readonly defaultCardImage = 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png';
 
   private destroy$ = new Subject<void>();

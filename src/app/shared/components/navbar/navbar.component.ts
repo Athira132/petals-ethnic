@@ -133,12 +133,8 @@ import { handleImageError } from '../../../core/utils/image.utils';
       <!-- Mobile Navigation Links: Home, Ethnics, Jewellery, About Us, Contact, Wishlist, Cart, Account -->
       <nav class="mobile-nav-links">
         <a routerLink="/" (click)="toggleMobileMenu()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-link">Home</a>
-        <a routerLink="/ethnics" (click)="toggleMobileMenu()" routerLinkActive="active" class="mobile-link">
-          <span class="nav-pill-icon">🌸</span> Ethnics
-        </a>
-        <a routerLink="/jewellery" (click)="toggleMobileMenu()" routerLinkActive="active" class="mobile-link">
-          <span class="nav-pill-icon">✨</span> Jewellery
-        </a>
+        <a routerLink="/ethnics" (click)="toggleMobileMenu()" routerLinkActive="active" class="mobile-link">Ethnics</a>
+        <a routerLink="/jewellery" (click)="toggleMobileMenu()" routerLinkActive="active" class="mobile-link">Jewellery</a>
         <a routerLink="/about" (click)="toggleMobileMenu()" routerLinkActive="active" class="mobile-link">About Us</a>
         <a routerLink="/contact" (click)="toggleMobileMenu()" routerLinkActive="active" class="mobile-link">Contact</a>
         
@@ -146,13 +142,13 @@ import { handleImageError } from '../../../core/utils/image.utils';
 
         <!-- Wishlist link in mobile drawer with live badge -->
         <a routerLink="/wishlist" (click)="toggleMobileMenu()" routerLinkActive="active" class="mobile-link">
-          <span class="nav-pill-icon">♡</span> Wishlist
+          <span>Wishlist</span>
           <span *ngIf="(wishlistCount$ | async) as wCount" class="drawer-badge">{{ wCount }}</span>
         </a>
 
         <!-- Cart link in mobile drawer with live badge -->
         <a routerLink="/cart" (click)="toggleMobileMenu()" routerLinkActive="active" class="mobile-link">
-          <span class="nav-pill-icon">🛍</span> Shopping Cart
+          <span>Shopping Cart</span>
           <span *ngIf="(cartSummary$ | async)?.totalQuantity as count" class="drawer-badge">{{ count }}</span>
         </a>
         
@@ -195,7 +191,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 70px;
+      height: 76px;
     }
 
     /* Left Side: Mobile Toggle + Logo */
@@ -212,9 +208,9 @@ import { handleImageError } from '../../../core/utils/image.utils';
       flex-shrink: 0;
     }
     .navbar-logo-img {
-      height: 52px;
+      height: 64px;
       width: auto;
-      max-height: 52px;
+      max-height: 64px;
       object-fit: contain;
       display: block;
       transition: transform 0.2s ease;
@@ -387,17 +383,19 @@ import { handleImageError } from '../../../core/utils/image.utils';
         gap: 0;
       }
       .navbar-logo-img {
-        height: 46px;
+        height: 56px;
+        max-height: 56px;
       }
     }
 
     @media (max-width: 480px) {
       .navbar-container {
-        height: 64px;
+        height: 68px;
         padding: 0 12px;
       }
       .navbar-logo-img {
-        height: 42px;
+        height: 50px;
+        max-height: 50px;
       }
       .nav-left {
         gap: 8px;
@@ -454,7 +452,8 @@ import { handleImageError } from '../../../core/utils/image.utils';
       align-items: center;
     }
     .drawer-logo-img {
-      height: 42px;
+      height: 56px;
+      max-height: 56px;
       width: auto;
       object-fit: contain;
     }

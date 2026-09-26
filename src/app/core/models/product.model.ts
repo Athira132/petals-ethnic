@@ -1,6 +1,6 @@
 import { Category, DepartmentType } from './category.model';
 
-export type SizeOption = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | string;
+export type SizeOption = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | '3XL' | string;
 export type PurchaseMode = 'online' | 'enquiry';
 export type StockDisplayMode = 'normal' | 'few_left' | 'custom' | 'hide';
 

@@ -20,7 +20,7 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
 
         <div *ngIf="errorMessage" class="auth-alert error" role="alert">
-          <span>⚠️</span> {{ errorMessage }}
+          {{ errorMessage }}
         </div>
 
         <form (ngSubmit)="onSubmit()" class="auth-form" novalidate>

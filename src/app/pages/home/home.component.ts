@@ -43,7 +43,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
 
               <!-- All Jewellery Pill -->
               <a routerLink="/jewellery" class="cat-pill">
-                ✨ Jewellery
+                Jewellery
               </a>
 
               <!-- Dynamic Category Pills -->

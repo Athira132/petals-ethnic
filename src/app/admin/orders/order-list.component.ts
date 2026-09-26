@@ -139,7 +139,7 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
               <p><strong>Shipping Address:</strong> {{ selectedOrderModal.address }}, {{ selectedOrderModal.city }}, {{ selectedOrderModal.state }} - {{ selectedOrderModal.pincode }}</p>
               <div class="whatsapp-customer-btn-wrap" *ngIf="selectedOrderModal.customer_phone">
                 <a [href]="getCustomerWhatsAppUrl(selectedOrderModal)" target="_blank" rel="noopener" class="customer-wa-btn">
-                  💬 Contact Customer on WhatsApp
+                  Contact Customer on WhatsApp
                 </a>
               </div>
             </div>

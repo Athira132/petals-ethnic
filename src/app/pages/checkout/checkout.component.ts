@@ -137,17 +137,21 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
               <div class="payment-method-options">
                 <!-- Exclusive Razorpay Gateway Card -->
                 <div class="payment-option selected active-razorpay-card">
-                  <div class="option-icon">🔒</div>
+                  <div class="option-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </div>
                   <div class="option-details">
                     <span class="option-title">Razorpay Secure Online Gateway</span>
                     <span class="option-desc">Fast, encrypted online checkout. Supports UPI (Google Pay, PhonePe, Paytm), All Major Credit & Debit Cards, NetBanking, and Wallets.</span>
                   </div>
-                  <span class="verified-badge">✓ ACTIVE</span>
+                  <span class="verified-badge">ACTIVE</span>
                 </div>
               </div>
 
               <div class="payment-assurance-box">
-                <span class="shield-icon">🛡️</span>
                 <p>100% Secure 256-bit SSL encrypted checkout. Cash on Delivery is discontinued to guarantee touchless and swift courier dispatch.</p>
               </div>
             </div>
@@ -193,7 +197,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
               </div>
 
               <div *ngIf="errorMessage" class="checkout-error">
-                ⚠️ {{ errorMessage }}
+                {{ errorMessage }}
               </div>
 
               <button 
@@ -216,7 +220,12 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
     <!-- Order Success Modal / Screen -->
     <div class="order-success-modal" *ngIf="completedOrder">
       <div class="success-box">
-        <div class="success-icon">🎉</div>
+        <div class="success-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
         <h2>Order Confirmed!</h2>
         <p class="order-no">Order Reference: <strong>{{ completedOrder.order_number }}</strong></p>
         <p class="success-desc">
@@ -234,7 +243,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
         <!-- WhatsApp Store Notification Backup Button -->
         <div class="whatsapp-backup-action" *ngIf="whatsappNotificationUrl">
           <a [href]="whatsappNotificationUrl" target="_blank" rel="noopener" class="btn-whatsapp-notify">
-            <span>📱 Notify Admin on WhatsApp (+91 81138 99319)</span>
+            <span>Notify Admin on WhatsApp (+91 81138 99319)</span>
           </a>
           <small class="whatsapp-hint">Click to send an instant order receipt copy to our store WhatsApp helpline.</small>
         </div>

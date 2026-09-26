@@ -13,10 +13,14 @@ import { handleImageError } from '../../../core/utils/image.utils';
         <!-- Brand Column -->
         <div class="footer-col brand-col">
           <div class="footer-brand">
-            <div class="footer-logo-circle">
-              <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="footer-logo-img" (error)="onImageError($event)" />
+            <div class="footer-logo-badge">
+              <img 
+                src="https://i.ibb.co/RGtNVzyC/Untitled-design-7-removebg-preview.png" 
+                alt="Petal Ethnics & Jewellers Logo" 
+                class="footer-logo-img" 
+                (error)="onImageError($event)" 
+              />
             </div>
-            <span class="footer-brand-title">PETAL ETHNICS & JEWELLERS</span>
           </div>
           <p class="footer-brand-quote">
             "Step up your style with our curated ethnic couture and handcrafted jewellery collection. Premium quality fabrics and timeless designs that fit every occasion."
@@ -107,21 +111,21 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .footer-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
       margin-bottom: 16px;
     }
-    .footer-logo-circle {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      border: 1.5px solid var(--color-gold);
-      overflow: hidden;
+    .footer-logo-badge {
+      display: inline-flex;
+      align-items: center;
       background: #FFFFFF;
+      padding: 6px 14px;
+      border-radius: 6px;
     }
     .footer-logo-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: 48px;
+      width: auto;
+      max-width: 220px;
+      object-fit: contain;
+      display: block;
     }
     .footer-brand-title {
       font-family: var(--font-heading);

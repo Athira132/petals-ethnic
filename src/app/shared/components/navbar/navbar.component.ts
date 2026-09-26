@@ -34,7 +34,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
           <!-- Provided Logo on the LEFT (Clean, professional size, aspect ratio preserved) -->
           <a routerLink="/" class="navbar-logo-link" title="Petals Ethnics & Jewellers">
             <img 
-              src="https://i.ibb.co/wFBwv0NT/Untitled-design-7-removebg-preview.png" 
+              src="https://i.ibb.co/RGtNVzyC/Untitled-design-7-removebg-preview.png" 
               alt="Petals Ethnics & Jewellers" 
               class="navbar-logo-img"
               (error)="onImageError($event)"
@@ -121,7 +121,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       <div class="mobile-drawer-header">
         <a routerLink="/" (click)="toggleMobileMenu()" class="drawer-logo-wrap">
           <img 
-            src="https://i.ibb.co/wFBwv0NT/Untitled-design-7-removebg-preview.png" 
+            src="https://i.ibb.co/RGtNVzyC/Untitled-design-7-removebg-preview.png" 
             alt="Petals Ethnics & Jewellers" 
             class="drawer-logo-img"
             (error)="onImageError($event)"
@@ -191,7 +191,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 76px;
+      height: 78px;
     }
 
     /* Left Side: Mobile Toggle + Logo */
@@ -211,6 +211,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       height: 64px;
       width: auto;
       max-height: 64px;
+      max-width: 250px;
       object-fit: contain;
       display: block;
       transition: transform 0.2s ease;
@@ -385,6 +386,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       .navbar-logo-img {
         height: 56px;
         max-height: 56px;
+        max-width: 220px;
       }
     }
 
@@ -394,8 +396,9 @@ import { handleImageError } from '../../../core/utils/image.utils';
         padding: 0 12px;
       }
       .navbar-logo-img {
-        height: 50px;
-        max-height: 50px;
+        height: 48px;
+        max-height: 48px;
+        max-width: 175px;
       }
       .nav-left {
         gap: 8px;
@@ -452,8 +455,9 @@ import { handleImageError } from '../../../core/utils/image.utils';
       align-items: center;
     }
     .drawer-logo-img {
-      height: 56px;
-      max-height: 56px;
+      height: 52px;
+      max-height: 52px;
+      max-width: 200px;
       width: auto;
       object-fit: contain;
     }

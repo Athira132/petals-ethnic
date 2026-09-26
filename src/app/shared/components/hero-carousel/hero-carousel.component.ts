@@ -20,9 +20,9 @@ import { handleImageError } from '../../../core/utils/image.utils';
         (error)="onImageError($event)"
       />
 
-      <!-- Side-Aligned Exploration Buttons (Vertically stacked on the side, fully visible & accessible) -->
+      <!-- Side-Positioned Exploration Buttons in a Horizontal Row -->
       <div class="hero-cta-container">
-        <div class="hero-buttons-col">
+        <div class="hero-buttons-row">
           <a routerLink="/ethnics" class="btn-hero-cta btn-ethnics">
             EXPLORE ETHNICS
           </a>
@@ -58,7 +58,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       filter: none;
     }
 
-    /* Positioned on one side (left) with clean margin */
+    /* Positioned on the side (left) with clean margins */
     .hero-cta-container {
       position: absolute;
       left: 5%;
@@ -67,12 +67,12 @@ import { handleImageError } from '../../../core/utils/image.utils';
       display: flex;
     }
 
-    /* Vertically aligned side stack */
-    .hero-buttons-col {
+    /* Horizontal row layout - beside each other (NOT stacked) */
+    .hero-buttons-row {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 14px;
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
     }
 
     /* High-contrast solid button styling ensuring 100% readability over bright imagery */
@@ -80,7 +80,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 220px;
+      min-width: 200px;
       padding: 14px 28px;
       border-radius: 4px;
       font-size: 13px;
@@ -92,6 +92,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
       user-select: none;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     /* Rose Accent Button for Ethnics */
@@ -103,7 +104,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .btn-ethnics:hover {
       background: #C2185B;
       color: #FFFFFF;
-      transform: translateX(4px);
+      transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(194, 24, 91, 0.4);
     }
 
@@ -116,7 +117,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .btn-jewellery:hover {
       background: #C5A059;
       color: #FFFFFF;
-      transform: translateX(4px);
+      transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(197, 160, 89, 0.45);
     }
 
@@ -131,18 +132,18 @@ import { handleImageError } from '../../../core/utils/image.utils';
         left: 20px;
         bottom: 24px;
       }
-      .hero-buttons-col {
-        gap: 10px;
+      .hero-buttons-row {
+        gap: 12px;
       }
       .btn-hero-cta {
-        min-width: 175px;
+        min-width: 160px;
         padding: 11px 20px;
         font-size: 11px;
         letter-spacing: 1px;
       }
     }
 
-    /* Mobile Phone Responsiveness */
+    /* Mobile Phone Responsiveness - keep side-by-side in a row without overflow */
     @media (max-width: 480px) {
       .hero-static-section {
         height: 48vh;
@@ -153,17 +154,22 @@ import { handleImageError } from '../../../core/utils/image.utils';
         object-position: center 15%;
       }
       .hero-cta-container {
-        left: 14px;
-        bottom: 18px;
+        left: 12px;
+        right: 12px;
+        bottom: 16px;
       }
-      .hero-buttons-col {
+      .hero-buttons-row {
+        display: flex;
+        flex-direction: row;
         gap: 8px;
+        width: 100%;
       }
       .btn-hero-cta {
-        min-width: 155px;
-        padding: 10px 16px;
-        font-size: 11px;
-        letter-spacing: 0.8px;
+        flex: 1;
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 10.5px;
+        letter-spacing: 0.6px;
       }
     }
   `]

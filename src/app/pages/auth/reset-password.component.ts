@@ -13,8 +13,8 @@ import { SupabaseService } from '../../core/services/supabase.service';
     <div class="auth-page">
       <div class="auth-card">
         <div class="auth-header">
-          <div class="logo-circle-wrapper">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="auth-logo" />
+          <div class="logo-wrapper">
+            <img src="https://i.ibb.co/RGtNVzyC/Untitled-design-7-removebg-preview.png" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Update Password</h1>
           <p class="auth-subtitle">Enter your new password to update your Petals Ethnic account.</p>
@@ -92,22 +92,17 @@ import { SupabaseService } from '../../core/services/supabase.service';
       text-align: center;
       margin-bottom: 28px;
     }
-    .logo-circle-wrapper {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      overflow: hidden;
+    .logo-wrapper {
       margin: 0 auto 16px auto;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      background: #FFFFFF;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .auth-logo {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: 56px;
+      max-width: 240px;
+      width: auto;
+      object-fit: contain;
     }
     .auth-title {
       font-size: 28px;

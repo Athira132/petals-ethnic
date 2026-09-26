@@ -855,25 +855,45 @@ export class HomeComponent implements OnInit {
     private cartService: CartService
   ) {}
 
-  async ngOnInit() {
-    try {
-      this.categories = await this.productService.getCategories();
-      const allProds = await this.productService.getProducts();
+  ngOnInit() {
+    // 1. Instant paint from sync/session cache if already available (0ms!)
+    const syncCats = this.productService.getCachedCategoriesSync();
+    if (syncCats && syncCats.length > 0) {
+      this.categories = syncCats;
+    }
 
-      if (allProds.length > 0) {
-        const newArr = allProds.filter(p => p.new_arrival);
-        this.newArrivals = newArr.length > 0 ? newArr : allProds.slice(0, 4);
-
-        const feat = allProds.filter(p => p.featured);
-        this.featuredProducts = feat.length > 0 ? feat : allProds.slice(0, Math.min(allProds.length, 4));
-      } else {
-        this.newArrivals = [];
-        this.featuredProducts = [];
-      }
-    } catch (e) {
-      console.error('Error loading home data:', e);
-    } finally {
+    const syncProds = this.productService.getProductsSync();
+    if (syncProds && syncProds.length > 0) {
+      this.setProducts(syncProds);
       this.isHomeLoading = false;
+    }
+
+    // 2. Fetch categories and products concurrently in parallel without blocking each other
+    this.productService.getCategories().then(cats => {
+      if (cats && cats.length > 0) {
+        this.categories = cats;
+      }
+    }).catch(e => console.warn('Categories load note:', e));
+
+    this.productService.getProducts().then(prods => {
+      this.setProducts(prods);
+      this.isHomeLoading = false;
+    }).catch(e => {
+      console.error('Error loading home products:', e);
+      this.isHomeLoading = false;
+    });
+  }
+
+  private setProducts(allProds: Product[]) {
+    if (allProds.length > 0) {
+      const newArr = allProds.filter(p => p.new_arrival);
+      this.newArrivals = newArr.length > 0 ? newArr : allProds.slice(0, 4);
+
+      const feat = allProds.filter(p => p.featured || p.best_seller);
+      this.featuredProducts = feat.length > 0 ? feat : allProds.slice(0, Math.min(allProds.length, 4));
+    } else {
+      this.newArrivals = [];
+      this.featuredProducts = [];
     }
   }
 

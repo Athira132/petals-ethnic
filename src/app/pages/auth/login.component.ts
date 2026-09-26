@@ -12,8 +12,8 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="auth-page">
       <div class="auth-card">
         <div class="auth-header">
-          <div class="logo-circle-wrapper">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
+          <div class="auth-logo-wrapper">
+            <img src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Welcome Back</h1>
           <p class="auth-subtitle">Log in to your Petal Ethnics & Jewellers account to manage orders, catalog, and profile.</p>
@@ -91,22 +91,17 @@ import { AuthService } from '../../core/services/auth.service';
       text-align: center;
       margin-bottom: 28px;
     }
-    .logo-circle-wrapper {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin: 0 auto 16px auto;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      background: #FFFFFF;
+    .auth-logo-wrapper {
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin: 0 auto 16px auto;
     }
     .auth-logo {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: 56px;
+      max-width: 220px;
+      object-fit: contain;
     }
     .auth-title {
       font-size: 28px;

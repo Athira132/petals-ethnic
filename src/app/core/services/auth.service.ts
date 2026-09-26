@@ -108,17 +108,44 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    const { data, error } = await this.supabaseService.supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: password
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    let { data, error } = await this.supabaseService.supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password: cleanPassword
     });
+
+    // If login failed because an existing user was created previously without email confirmation,
+    // auto-confirm and retry signInWithPassword
+    if (error && (error.message.includes('Email not confirmed') || error.message.includes('Invalid login credentials'))) {
+      try {
+        const confirmRes = await fetch('/api/auth-register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'confirm_email', email: cleanEmail })
+        });
+        if (confirmRes.ok) {
+          const retryResult = await this.supabaseService.supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: cleanPassword
+          });
+          if (!retryResult.error && retryResult.data?.user) {
+            data = retryResult.data;
+            error = null;
+          }
+        }
+      } catch (confirmErr) {
+        console.warn('Auto-confirmation attempt notice:', confirmErr);
+      }
+    }
 
     if (error) {
       console.error('Supabase signInWithPassword error:', error);
       throw error;
     }
 
-    if (data.user) {
+    if (data?.user) {
       this.currentUserSubject.next(data.user);
       // Asynchronously fetch profile without delaying immediate authentication response
       this.loadUserProfile(data.user.id).catch(err => console.warn('Background profile load note:', err));
@@ -127,32 +154,45 @@ export class AuthService {
   }
 
   async register(name: string, email: string, password: string, phone: string = '') {
-    const { data, error } = await this.supabaseService.supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        data: {
-          name: name.trim(),
-          phone: phone.trim()
-        }
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim();
+
+    // 1. Register and auto-confirm via serverless API
+    try {
+      const res = await fetch('/api/auth-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: cleanName,
+          email: cleanEmail,
+          password: cleanPassword,
+          phone: cleanPhone
+        })
+      });
+
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || 'Registration failed.');
       }
-    });
-
-    if (error) throw error;
-
-    if (data.user) {
-      // Asynchronously create profile record without delaying registration completion
-      this.supabaseService.supabase.from('profiles').insert([{
-        id: data.user.id,
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        role: 'customer',
-        created_at: new Date().toISOString()
-      }]).then(() => {}, (err: any) => console.warn('Profile creation note during registration:', err));
+    } catch (apiErr: any) {
+      console.warn('API registration notice, attempting direct fallback:', apiErr?.message);
+      const { data, error } = await this.supabaseService.supabase.auth.signUp({
+        email: cleanEmail,
+        password: cleanPassword,
+        options: {
+          data: {
+            name: cleanName,
+            phone: cleanPhone
+          }
+        }
+      });
+      if (error) throw error;
     }
 
-    return data;
+    // 2. Immediately authenticate and return session
+    return await this.login(cleanEmail, cleanPassword);
   }
 
   async logout() {

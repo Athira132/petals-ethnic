@@ -77,10 +77,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
       align-items: center;
       justify-content: center;
       gap: 18px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
-    /* Solid high-contrast buttons with rose & gold accents */
+    /* Transparent buttons with black outline/border */
     .btn-hero-cta {
       display: inline-flex;
       align-items: center;
@@ -93,36 +93,37 @@ import { handleImageError } from '../../../core/utils/image.utils';
       letter-spacing: 1.5px;
       text-transform: uppercase;
       text-decoration: none;
+      background: transparent;
+      border: 2px solid #000000;
+      color: #000000;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       transition: all 0.25s ease;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       user-select: none;
       cursor: pointer;
     }
 
-    /* Rose Accent Button for Ethnics */
-    .btn-ethnics {
-      background: #FFFFFF;
-      color: #1A1A1A;
-      border: 2px solid #C2185B;
-    }
-    .btn-ethnics:hover {
-      background: #C2185B;
-      color: #FFFFFF;
+    .btn-hero-cta:hover {
+      background: rgba(0, 0, 0, 0.08);
+      border-color: #000000;
+      color: #000000;
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(194, 24, 91, 0.4);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
     }
 
-    /* Gold Accent Button for Jewellery */
-    .btn-jewellery {
-      background: #FFFFFF;
-      color: #1A1A1A;
-      border: 2px solid #C5A059;
+    /* Keep button classes transparent with black border & subtle hover */
+    .btn-ethnics, .btn-jewellery {
+      background: transparent;
+      border: 2px solid #000000;
+      color: #000000;
     }
-    .btn-jewellery:hover {
-      background: #C5A059;
-      color: #FFFFFF;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(197, 160, 89, 0.45);
+
+    .btn-ethnics:hover, .btn-jewellery:hover {
+      background: rgba(0, 0, 0, 0.08);
+      border-color: #000000;
+      color: #000000;
     }
 
     /* Tablet Responsiveness */
@@ -136,10 +137,11 @@ import { handleImageError } from '../../../core/utils/image.utils';
       }
       .hero-buttons-row {
         gap: 12px;
+        flex-wrap: nowrap;
       }
       .btn-hero-cta {
-        min-width: 160px;
-        padding: 11px 20px;
+        min-width: 150px;
+        padding: 11px 18px;
         font-size: 11px;
         letter-spacing: 1px;
       }
@@ -171,6 +173,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
         letter-spacing: 0.5px;
         white-space: nowrap;
         text-align: center;
+        border-width: 1.5px;
       }
     }
   `]

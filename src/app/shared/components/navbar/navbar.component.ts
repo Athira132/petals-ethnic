@@ -191,7 +191,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 74px;
+      height: 88px;
     }
 
     /* Left Side: Mobile Toggle + Logo */
@@ -208,16 +208,16 @@ import { handleImageError } from '../../../core/utils/image.utils';
       flex-shrink: 0;
     }
     .navbar-logo-img {
-      height: 52px;
+      height: 74px;
       width: auto;
-      max-height: 52px;
-      max-width: 220px;
+      max-height: 74px;
+      max-width: 290px;
       object-fit: contain;
       display: block;
       transition: transform 0.2s ease;
     }
     .navbar-logo-link:hover .navbar-logo-img {
-      transform: scale(1.03);
+      transform: scale(1.02);
     }
 
     /* Right Side: All Links and Actions Clustered on the Right */
@@ -380,25 +380,28 @@ import { handleImageError } from '../../../core/utils/image.utils';
       .mobile-toggle {
         display: block;
       }
+      .navbar-container {
+        height: 80px;
+      }
       .nav-right-cluster {
         gap: 0;
       }
       .navbar-logo-img {
-        height: 44px;
-        max-height: 44px;
-        max-width: 175px;
+        height: 64px;
+        max-height: 64px;
+        max-width: 240px;
       }
     }
 
     @media (max-width: 480px) {
       .navbar-container {
-        height: 64px;
+        height: 72px;
         padding: 0 12px;
       }
       .navbar-logo-img {
-        height: 38px;
-        max-height: 38px;
-        max-width: 145px;
+        height: 52px;
+        max-height: 52px;
+        max-width: 195px;
       }
       .nav-left {
         gap: 8px;
@@ -455,10 +458,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
       align-items: center;
     }
     .drawer-logo-img {
-      height: 46px;
-      max-height: 46px;
+      height: 58px;
+      max-height: 58px;
       width: auto;
-      max-width: 180px;
+      max-width: 220px;
       object-fit: contain;
     }
     .close-btn {

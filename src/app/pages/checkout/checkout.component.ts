@@ -620,16 +620,35 @@ export class CheckoutComponent implements OnInit {
     this.summary = this.cartService.currentSummary;
     this.userProfile = this.authService.userProfile;
 
-    if (!this.authService.currentUser) {
+    const user = this.authService.currentUser;
+    if (!user) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/checkout' } });
       return;
     }
 
-    if (this.userProfile) {
-      this.shipping.customer_name = this.userProfile.name || '';
-      this.shipping.customer_email = this.userProfile.email || '';
-      this.shipping.customer_phone = this.userProfile.phone || '';
+    if (user.email && !this.shipping.customer_email) {
+      this.shipping.customer_email = user.email;
     }
+    if (user.user_metadata?.['name'] && !this.shipping.customer_name) {
+      this.shipping.customer_name = user.user_metadata['name'];
+    }
+    if (user.user_metadata?.['phone'] && !this.shipping.customer_phone) {
+      this.shipping.customer_phone = user.user_metadata['phone'];
+    }
+
+    if (this.userProfile) {
+      if (this.userProfile.name) this.shipping.customer_name = this.userProfile.name;
+      if (this.userProfile.email) this.shipping.customer_email = this.userProfile.email;
+      if (this.userProfile.phone) this.shipping.customer_phone = this.userProfile.phone;
+    }
+
+    this.authService.userProfile$.subscribe(profile => {
+      if (profile) {
+        if (!this.shipping.customer_name && profile.name) this.shipping.customer_name = profile.name;
+        if (!this.shipping.customer_email && profile.email) this.shipping.customer_email = profile.email;
+        if (!this.shipping.customer_phone && profile.phone) this.shipping.customer_phone = profile.phone;
+      }
+    });
   }
 
   getItemImage(item: any): string {

@@ -13,10 +13,14 @@ import { handleImageError } from '../../../core/utils/image.utils';
         <!-- Brand Column -->
         <div class="footer-col brand-col">
           <div class="footer-brand">
-            <div class="footer-logo-circle">
-              <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="footer-logo-img" (error)="onImageError($event)" />
-            </div>
-            <span class="footer-brand-title">PETAL ETHNICS & JEWELLERS</span>
+            <a routerLink="/" class="footer-logo-link" title="Petal Ethnics & Jewellers">
+              <img 
+                src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
+                alt="Petal Ethnics & Jewellers" 
+                class="footer-logo-img" 
+                (error)="onImageError($event)" 
+              />
+            </a>
           </div>
           <p class="footer-brand-quote">
             "Step up your style with our curated ethnic couture and handcrafted jewellery collection. Premium quality fabrics and timeless designs that fit every occasion."
@@ -107,28 +111,24 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .footer-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
-    .footer-logo-circle {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      border: 1.5px solid var(--color-gold);
-      overflow: hidden;
-      background: #FFFFFF;
+    .footer-logo-link {
+      display: inline-block;
+      text-decoration: none;
     }
     .footer-logo-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: 52px;
+      width: auto;
+      max-height: 52px;
+      max-width: 230px;
+      object-fit: contain;
+      display: block;
+      filter: brightness(1.08);
+      transition: transform 0.2s ease;
     }
-    .footer-brand-title {
-      font-family: var(--font-heading);
-      font-size: 18px;
-      font-weight: 700;
-      color: #FFFFFF;
-      letter-spacing: 1px;
+    .footer-logo-link:hover .footer-logo-img {
+      transform: scale(1.03);
     }
     .footer-brand-quote {
       font-size: 13px;

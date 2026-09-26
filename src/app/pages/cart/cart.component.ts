@@ -141,7 +141,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
         <div class="cart-icon">🛍️</div>
         <h2>Your Shopping Cart is Empty</h2>
         <p>Explore our latest Indian ethnic wear collections and add your favorite outfits to cart.</p>
-        <a routerLink="/shop" class="btn-primary">Shop Our Collection</a>
+        <a routerLink="/ethnics" class="btn-primary">Explore Collections</a>
       </div>
     </ng-template>
   `,

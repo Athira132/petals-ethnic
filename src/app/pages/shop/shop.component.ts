@@ -22,7 +22,7 @@ import { handleImageError } from '../../core/utils/image.utils';
           <nav class="breadcrumb-nav" aria-label="Breadcrumb">
             <a [routerLink]="['/']">Home</a>
             <span class="sep">/</span>
-            <a [routerLink]="[currentDepartment === 'jewellery' ? '/shop/jewellery' : '/shop/ethnics']">
+            <a [routerLink]="[currentDepartment === 'jewellery' ? '/jewellery' : '/ethnics']">
               {{ currentDepartment === 'jewellery' ? 'Jewellery' : 'Ethnics' }}
             </a>
             <ng-container *ngIf="selectedCategorySlug">
@@ -38,14 +38,14 @@ import { handleImageError } from '../../core/utils/image.utils';
         <div class="container">
           <div class="dept-pills">
             <a 
-              [routerLink]="['/shop/ethnics']" 
+              [routerLink]="['/ethnics']" 
               class="dept-pill" 
               [class.active]="currentDepartment === 'ethnic'"
             >
               🌸 Ethnics Boutique
             </a>
             <a 
-              [routerLink]="['/shop/jewellery']" 
+              [routerLink]="['/jewellery']" 
               class="dept-pill" 
               [class.active]="currentDepartment === 'jewellery'"
             >

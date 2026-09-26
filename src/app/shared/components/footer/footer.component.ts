@@ -46,10 +46,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
           <h4 class="footer-heading">Quick Links</h4>
           <ul class="footer-links">
             <li><a routerLink="/">Home</a></li>
-            <li><a routerLink="/shop">Shop Collection</a></li>
-            <li><a routerLink="/categories">Categories</a></li>
+            <li><a routerLink="/ethnics">Ethnics</a></li>
+            <li><a routerLink="/jewellery">Jewellery</a></li>
             <li><a routerLink="/about">About Us</a></li>
-            <li><a routerLink="/contact">Contact Us</a></li>
+            <li><a routerLink="/contact">Contact</a></li>
           </ul>
         </div>
 

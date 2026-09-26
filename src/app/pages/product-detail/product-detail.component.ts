@@ -19,10 +19,10 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
         <!-- Breadcrumbs -->
         <nav class="breadcrumbs">
           <a routerLink="/">Home</a> &gt;
-          <a [routerLink]="[product.department === 'jewellery' ? '/shop/jewellery' : '/shop/ethnics']">
+          <a [routerLink]="[product.department === 'jewellery' ? '/jewellery' : '/ethnics']">
             {{ product.department === 'jewellery' ? 'Jewellery' : 'Ethnics' }}
           </a> &gt;
-          <a *ngIf="product.category" [routerLink]="[product.department === 'jewellery' ? '/shop/jewellery' : '/shop/ethnics']" [queryParams]="{category: product.category.slug}">
+          <a *ngIf="product.category" [routerLink]="[product.department === 'jewellery' ? '/jewellery' : '/ethnics']" [queryParams]="{category: product.category.slug}">
             {{ product.category.name }}
           </a> &gt;
           <span>{{ product.name }}</span>
@@ -999,7 +999,7 @@ export class ProductDetailComponent implements OnInit {
 
     const targetProduct = await this.productService.getProductBySlug(slug);
     if (!targetProduct) {
-      this.router.navigate(['/shop']);
+      this.router.navigate(['/ethnics']);
       return;
     }
 

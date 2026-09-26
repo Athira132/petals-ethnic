@@ -62,7 +62,7 @@ export interface HeroSlide {
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
                 </a>
-                <a routerLink="/shop" class="btn-hero-explore">Explore All Categories</a>
+                <a routerLink="/jewellery" class="btn-hero-explore">✨ Explore Jewellery</a>
               </div>
             </div>
           </div>
@@ -333,8 +333,8 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       imageUrl: 'https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png',
       title: 'Elevate Your Ethnic Style',
       subtitle: 'Discover our latest collection of premium handcrafted sarees, kurtis, and designer festive wear tailored for perfection.',
-      ctaText: 'Shop New Collection',
-      ctaLink: '/shop',
+      ctaText: 'Explore Ethnics Collection',
+      ctaLink: '/ethnics',
       objectPosition: '85% center'
     },
     { 
@@ -343,7 +343,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       title: 'Grace & Elegance in Every Thread',
       subtitle: 'Handpicked fabrics, soft watercolor florals, and timeless ethnic silhouettes designed for effortless celebration.',
       ctaText: 'Explore Kurtis & Sets',
-      ctaLink: '/shop',
+      ctaLink: '/ethnics',
       objectPosition: '80% center'
     },
     { 
@@ -352,7 +352,7 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       title: 'Royal Festive Anarkalis & Co-Ords',
       subtitle: 'Step into joyous occasions with regal flare Anarkalis, intricate embroideries, and modern ethnic two-piece sets.',
       ctaText: 'View Festive Edits',
-      ctaLink: '/shop',
+      ctaLink: '/ethnics',
       objectPosition: 'right center'
     },
     { 
@@ -360,8 +360,8 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
       imageUrl: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png',
       title: 'Authentic Kerala Kasavu & Tissue Silk',
       subtitle: 'Traditional golden zari Kasavu weaves combined with shimmering tissue silk kurtas for timeless elegance.',
-      ctaText: 'Shop Kasavu Series',
-      ctaLink: '/shop',
+      ctaText: 'Explore Kasavu Series',
+      ctaLink: '/ethnics',
       objectPosition: '85% center'
     }
   ];

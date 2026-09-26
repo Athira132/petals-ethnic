@@ -13,7 +13,7 @@ import { handleImageError } from '../../core/utils/image.utils';
       <div class="about-header-banner">
         <div class="container">
           <span class="about-tag">AUTHENTIC BOUTIQUE HERITAGE</span>
-          <h1 class="about-header-title">About Petals Ethnic</h1>
+          <h1 class="about-header-title">About Petal Ethnics & Jewellers</h1>
           <p class="about-header-subtitle">Celebrating Indian craftsmanship, soft watercolor florals, and timeless ethnic drapes.</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ import { handleImageError } from '../../core/utils/image.utils';
               </p>
 
               <div class="about-cta-group">
-                <a routerLink="/shop" class="btn-primary">Explore Our Collection &rarr;</a>
+                <a routerLink="/ethnics" class="btn-primary">Explore Our Collection &rarr;</a>
                 <a href="https://wa.me/918113899319?text=Hello%20Petal%20Ethnics%20%26%20Jewellers,%20I%20would%20like%20to%20know%20more%20about%20your%20collection." target="_blank" rel="noopener" class="btn-outline">Styling Advice on WhatsApp</a>
               </div>
             </div>

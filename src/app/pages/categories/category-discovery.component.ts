@@ -70,13 +70,13 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image
                 <h2 class="section-title">🌸 Ethnic Wear Collections</h2>
                 <p class="section-subtitle">Kurtis, Anarkalis, Sarees, Co-ord Sets, and Midi Dresses</p>
               </div>
-              <a [routerLink]="['/shop/ethnics']" class="view-all-link">Browse All Ethnics &rarr;</a>
+              <a [routerLink]="['/ethnics']" class="view-all-link">Browse All Ethnics &rarr;</a>
             </div>
 
             <div class="cards-grid">
               <a 
                 *ngFor="let cat of ethnicCategories" 
-                [routerLink]="['/shop/ethnics']" 
+                [routerLink]="['/ethnics']" 
                 [queryParams]="{ category: cat.slug }"
                 class="category-card"
               >
@@ -107,13 +107,13 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image
                 <h2 class="section-title">✨ Jewellery Collections</h2>
                 <p class="section-subtitle">Chokers, Necklaces, Earrings, Bangles, Rings & Temple Jewellery</p>
               </div>
-              <a [routerLink]="['/shop/jewellery']" class="view-all-link">Browse All Jewellery &rarr;</a>
+              <a [routerLink]="['/jewellery']" class="view-all-link">Browse All Jewellery &rarr;</a>
             </div>
 
             <div class="cards-grid">
               <a 
                 *ngFor="let cat of jewelleryCategories" 
-                [routerLink]="['/shop/jewellery']" 
+                [routerLink]="['/jewellery']" 
                 [queryParams]="{ category: cat.slug }"
                 class="category-card"
               >

@@ -27,7 +27,6 @@ import { handleImageError } from '../../../core/utils/image.utils';
         </button>
 
         <!-- Brand Logo with Circular Frame -->
-        <!-- Brand Logo with Circular Frame -->
         <a routerLink="/" class="brand-logo">
           <div class="logo-circle">
             <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="logo-img" (error)="onImageError($event)" />
@@ -38,35 +37,11 @@ import { handleImageError } from '../../../core/utils/image.utils';
           </div>
         </a>
 
-        <!-- Desktop Navigation Links -->
+        <!-- Desktop Navigation Links: Home | Ethnics | Jewellery | About | Contact -->
         <nav class="desktop-nav">
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
-          <div class="nav-dropdown-wrapper" (mouseenter)="isShopDropdownOpen = true" (mouseleave)="isShopDropdownOpen = false">
-            <a routerLink="/shop" routerLinkActive="active" class="nav-link dropdown-toggle-link">
-              Shop <span class="arrow-indicator">▾</span>
-            </a>
-            <div class="dropdown-popover" *ngIf="isShopDropdownOpen">
-              <a routerLink="/shop/ethnics" class="dropdown-popover-item" (click)="isShopDropdownOpen = false">
-                <span class="dropdown-icon">🌸</span>
-                <div>
-                  <div class="popover-title">Ethnics</div>
-                  <div class="popover-desc">Kurtis, Sarees, Anarkalis & Midi Dresses</div>
-                </div>
-              </a>
-              <a routerLink="/shop/jewellery" class="dropdown-popover-item" (click)="isShopDropdownOpen = false">
-                <span class="dropdown-icon">✨</span>
-                <div>
-                  <div class="popover-title">Jewellery</div>
-                  <div class="popover-desc">Necklaces, Earrings, Bangles & Rings</div>
-                </div>
-              </a>
-              <div class="dropdown-divider"></div>
-              <a routerLink="/shop" class="dropdown-popover-item all-link" (click)="isShopDropdownOpen = false">
-                <span>Browse All Collections &rarr;</span>
-              </a>
-            </div>
-          </div>
-          <a routerLink="/categories" routerLinkActive="active" class="nav-link">Categories</a>
+          <a routerLink="/ethnics" routerLinkActive="active" class="nav-link">Ethnics</a>
+          <a routerLink="/jewellery" routerLinkActive="active" class="nav-link">Jewellery</a>
           <a routerLink="/about" routerLinkActive="active" class="nav-link">About Us</a>
           <a routerLink="/contact" routerLinkActive="active" class="nav-link">Contact</a>
         </nav>
@@ -138,26 +113,17 @@ import { handleImageError } from '../../../core/utils/image.utils';
         <button (click)="toggleMobileMenu()" class="close-btn">&times;</button>
       </div>
 
+      <!-- Mobile Navigation Links: Home | Ethnics | Jewellery | About | Contact -->
       <nav class="mobile-nav-links">
         <a routerLink="/" (click)="toggleMobileMenu()" class="mobile-link">Home</a>
-
-        <!-- Mobile Shop Sections -->
-        <div class="mobile-nav-section-label">SHOP COLLECTIONS</div>
-        <a routerLink="/shop/ethnics" (click)="toggleMobileMenu()" class="mobile-link mobile-sub-link">
-          <span class="nav-pill-icon">🌸</span> Ethnics Collection
+        <a routerLink="/ethnics" (click)="toggleMobileMenu()" class="mobile-link">
+          <span class="nav-pill-icon">🌸</span> Ethnics
         </a>
-        <a routerLink="/shop/jewellery" (click)="toggleMobileMenu()" class="mobile-link mobile-sub-link">
-          <span class="nav-pill-icon">✨</span> Jewellery Collection
+        <a routerLink="/jewellery" (click)="toggleMobileMenu()" class="mobile-link">
+          <span class="nav-pill-icon">✨</span> Jewellery
         </a>
-        <a routerLink="/shop" (click)="toggleMobileMenu()" class="mobile-link mobile-sub-link secondary">
-          All Products
-        </a>
-
-        <div class="mobile-divider"></div>
-
-        <a routerLink="/categories" (click)="toggleMobileMenu()" class="mobile-link">Category Discovery</a>
         <a routerLink="/about" (click)="toggleMobileMenu()" class="mobile-link">About Us</a>
-        <a routerLink="/contact" (click)="toggleMobileMenu()" class="mobile-link">Contact Us</a>
+        <a routerLink="/contact" (click)="toggleMobileMenu()" class="mobile-link">Contact</a>
         
         <div class="mobile-divider"></div>
         
@@ -267,6 +233,8 @@ import { handleImageError } from '../../../core/utils/image.utils';
       color: var(--color-text);
       padding: 8px 0;
       position: relative;
+      text-decoration: none;
+      transition: color 0.2s ease;
     }
     .nav-link::after {
       content: '';
@@ -336,6 +304,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       padding: 4px 10px;
       border-radius: var(--radius-full);
       letter-spacing: 0.5px;
+      text-decoration: none;
     }
 
     .search-box {
@@ -411,7 +380,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     .close-btn {
       font-size: 28px;
@@ -423,13 +392,17 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .mobile-nav-links {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
     .mobile-link {
       font-size: 16px;
       font-weight: 500;
       color: var(--color-text-heading);
-      padding: 8px 0;
+      padding: 10px 0;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .mobile-link.highlight {
       color: #C05676;
@@ -438,10 +411,13 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .mobile-link.admin-link {
       color: var(--color-gold);
     }
+    .nav-pill-icon {
+      font-size: 16px;
+    }
     .mobile-divider {
       height: 1px;
       background-color: var(--color-border-light);
-      margin: 12px 0;
+      margin: 8px 0;
     }
     .logout-btn {
       text-align: left;
@@ -455,100 +431,6 @@ import { handleImageError } from '../../../core/utils/image.utils';
       padding-top: 24px;
       border-top: 1px solid var(--color-border-light);
       font-size: 13px;
-    }
-    .nav-dropdown-wrapper {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-toggle-link {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-    }
-    .arrow-indicator {
-      font-size: 11px;
-      transition: transform 0.2s ease;
-    }
-    .dropdown-popover {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 280px;
-      background: #FFFFFF;
-      border: 1px solid var(--color-border-light);
-      border-radius: var(--radius-md);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-      padding: 12px;
-      z-index: 200;
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      animation: fadeInDropdown 0.2s ease;
-    }
-    @keyframes fadeInDropdown {
-      from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .dropdown-popover-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      text-decoration: none;
-      color: var(--color-text-heading);
-      transition: background-color 0.2s ease;
-    }
-    .dropdown-popover-item:hover {
-      background-color: var(--color-bg-alt);
-    }
-    .dropdown-icon {
-      font-size: 20px;
-    }
-    .popover-title {
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--color-text-heading);
-    }
-    .popover-desc {
-      font-size: 11px;
-      color: var(--color-muted);
-    }
-    .dropdown-divider {
-      height: 1px;
-      background-color: var(--color-border-light);
-      margin: 4px 0;
-    }
-    .dropdown-popover-item.all-link {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--color-pink-dark);
-      justify-content: center;
-      text-align: center;
-    }
-    .mobile-shop-group {
-      margin: 8px 0 12px;
-      padding-left: 8px;
-    }
-    .mobile-nav-section-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--color-muted);
-      margin: 14px 0 6px 0;
-    }
-    .mobile-sub-link {
-      padding: 8px 12px !important;
-      font-size: 14px !important;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .mobile-sub-link.secondary {
-      font-size: 13px !important;
-      color: var(--color-muted) !important;
     }
     .drawer-brand-info {
       display: flex;
@@ -582,6 +464,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       padding: 10px;
       border-radius: var(--radius-sm);
       font-weight: 600;
+      text-decoration: none;
     }
   `]
 })
@@ -589,7 +472,6 @@ export class NavbarComponent implements OnInit {
   isScrolled = false;
   isMobileMenuOpen = false;
   isSearchOpen = false;
-  isShopDropdownOpen = false;
   searchQuery = '';
 
   cartSummary$: Observable<CartSummary>;
@@ -635,7 +517,7 @@ export class NavbarComponent implements OnInit {
 
   onSearch() {
     if (this.searchQuery.trim()) {
-      this.router.navigate(['/shop'], { queryParams: { search: this.searchQuery.trim() } });
+      this.router.navigate(['/ethnics'], { queryParams: { search: this.searchQuery.trim() } });
       this.isSearchOpen = false;
     }
   }

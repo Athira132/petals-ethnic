@@ -23,28 +23,33 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
         <div class="container">
           <div class="compact-category-header">
             <h3 class="category-nav-title">Explore Categories</h3>
-            <a routerLink="/shop" class="explore-more-link">
+            <a routerLink="/categories" class="explore-more-link">
               Explore All Categories &rarr;
             </a>
           </div>
 
           <div class="category-slider-wrapper">
             <div class="category-track-scroll">
-              <!-- All Categories Pill -->
-              <a routerLink="/shop" class="cat-pill active">
+              <!-- All Ethnics Pill -->
+              <a routerLink="/ethnics" class="cat-pill active">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <rect x="3" y="3" width="7" height="7"></rect>
                   <rect x="14" y="3" width="7" height="7"></rect>
                   <rect x="14" y="14" width="7" height="7"></rect>
                   <rect x="3" y="14" width="7" height="7"></rect>
                 </svg>
-                All Items
+                Ethnics
+              </a>
+
+              <!-- All Jewellery Pill -->
+              <a routerLink="/jewellery" class="cat-pill">
+                ✨ Jewellery
               </a>
 
               <!-- Dynamic Category Pills -->
               <a 
                 *ngFor="let cat of categories; trackBy: trackByCategoryId" 
-                [routerLink]="['/shop']" 
+                [routerLink]="[(cat.department || 'ethnic') === 'jewellery' ? '/jewellery' : '/ethnics']" 
                 [queryParams]="{category: cat.slug}"
                 class="cat-pill"
               >
@@ -52,7 +57,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
               </a>
 
               <!-- Explore More Button Pill -->
-              <a routerLink="/shop" class="cat-pill explore-pill">
+              <a routerLink="/categories" class="cat-pill explore-pill">
                 Explore More &rarr;
               </a>
             </div>
@@ -68,7 +73,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
               <span class="section-subtitle">JUST DROPPED</span>
               <h2 class="section-title">New Arrivals</h2>
             </div>
-            <a routerLink="/shop" [queryParams]="{filter: 'new'}" class="btn-outline">View All New Arrivals &rarr;</a>
+            <a routerLink="/ethnics" [queryParams]="{filter: 'new'}" class="btn-outline">View All New Arrivals &rarr;</a>
           </div>
 
           <div *ngIf="!isHomeLoading; else loadingState">

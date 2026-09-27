@@ -1,68 +1,110 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
-import { ShopComponent } from './pages/shop/shop.component';
-import { ProductDetailComponent } from './pages/product-detail/product-detail.component';
-import { CartComponent } from './pages/cart/cart.component';
-import { WishlistComponent } from './pages/wishlist/wishlist.component';
-import { CheckoutComponent } from './pages/checkout/checkout.component';
-import { LoginComponent } from './pages/auth/login.component';
-import { RegisterComponent } from './pages/auth/register.component';
-import { ForgotPasswordComponent } from './pages/auth/forgot-password.component';
-import { ResetPasswordComponent } from './pages/auth/reset-password.component';
-import { AccountComponent } from './pages/account/account.component';
-import { AboutComponent } from './pages/about/about.component';
-import { ContactComponent } from './pages/contact/contact.component';
-
-import { AdminLayoutComponent } from './admin/admin-layout/admin-layout.component';
-import { DashboardComponent } from './admin/dashboard/dashboard.component';
-import { ProductListComponent } from './admin/products/product-list.component';
-import { CategoryListComponent } from './admin/categories/category-list.component';
-import { InventoryComponent } from './admin/inventory/inventory.component';
-import { OrderListComponent } from './admin/orders/order-list.component';
-
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 
-import { CategoryDiscoveryComponent } from './pages/categories/category-discovery.component';
-
 export const routes: Routes = [
-  // Customer Routes - Default Root Opening Page is Home Page
+  // Customer Routes - Default Root Opening Page is Home Page (Eager for 0ms First Render)
   { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
-  { path: 'ethnics', component: ShopComponent, data: { department: 'ethnic' } },
-  { path: 'jewellery', component: ShopComponent, data: { department: 'jewellery' } },
+
+  // Major Pages - Lazy Loaded on Demand
+  { 
+    path: 'ethnics', 
+    loadComponent: () => import('./pages/shop/shop.component').then(m => m.ShopComponent),
+    data: { department: 'ethnic' } 
+  },
+  { 
+    path: 'jewellery', 
+    loadComponent: () => import('./pages/shop/shop.component').then(m => m.ShopComponent),
+    data: { department: 'jewellery' } 
+  },
   { path: 'shop/ethnics', redirectTo: 'ethnics', pathMatch: 'full' },
   { path: 'shop/jewellery', redirectTo: 'jewellery', pathMatch: 'full' },
   { path: 'shop', redirectTo: 'ethnics', pathMatch: 'full' },
-  { path: 'categories', component: CategoryDiscoveryComponent },
-  { path: 'product/:slug', component: ProductDetailComponent },
-  { path: 'cart', component: CartComponent },
-  { path: 'wishlist', component: WishlistComponent },
-  { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
   
-  // Auth Routes
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
-  { path: 'account', component: AccountComponent, canActivate: [authGuard] },
+  { 
+    path: 'categories', 
+    loadComponent: () => import('./pages/categories/category-discovery.component').then(m => m.CategoryDiscoveryComponent) 
+  },
+  { 
+    path: 'product/:slug', 
+    loadComponent: () => import('./pages/product-detail/product-detail.component').then(m => m.ProductDetailComponent) 
+  },
+  { 
+    path: 'cart', 
+    loadComponent: () => import('./pages/cart/cart.component').then(m => m.CartComponent) 
+  },
+  { 
+    path: 'wishlist', 
+    loadComponent: () => import('./pages/wishlist/wishlist.component').then(m => m.WishlistComponent) 
+  },
+  { 
+    path: 'checkout', 
+    loadComponent: () => import('./pages/checkout/checkout.component').then(m => m.CheckoutComponent),
+    canActivate: [authGuard] 
+  },
+  
+  // Auth Routes - Lazy Loaded
+  { 
+    path: 'login', 
+    loadComponent: () => import('./pages/auth/login.component').then(m => m.LoginComponent) 
+  },
+  { 
+    path: 'register', 
+    loadComponent: () => import('./pages/auth/register.component').then(m => m.RegisterComponent) 
+  },
+  { 
+    path: 'forgot-password', 
+    loadComponent: () => import('./pages/auth/forgot-password.component').then(m => m.ForgotPasswordComponent) 
+  },
+  { 
+    path: 'reset-password', 
+    loadComponent: () => import('./pages/auth/reset-password.component').then(m => m.ResetPasswordComponent) 
+  },
+  { 
+    path: 'account', 
+    loadComponent: () => import('./pages/account/account.component').then(m => m.AccountComponent),
+    canActivate: [authGuard] 
+  },
 
-  // Info Routes
-  { path: 'about', component: AboutComponent },
-  { path: 'contact', component: ContactComponent },
+  // Info Routes - Lazy Loaded
+  { 
+    path: 'about', 
+    loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent) 
+  },
+  { 
+    path: 'contact', 
+    loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactComponent) 
+  },
 
-  // Admin Routes (Guarded)
+  // Admin Routes (Guarded - Lazy Loaded in completely separate admin chunk)
   {
     path: 'admin',
-    component: AdminLayoutComponent,
+    loadComponent: () => import('./admin/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     canActivate: [adminGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent },
-      { path: 'products', component: ProductListComponent },
-      { path: 'categories', component: CategoryListComponent },
-      { path: 'inventory', component: InventoryComponent },
-      { path: 'orders', component: OrderListComponent }
+      { 
+        path: 'dashboard', 
+        loadComponent: () => import('./admin/dashboard/dashboard.component').then(m => m.DashboardComponent) 
+      },
+      { 
+        path: 'products', 
+        loadComponent: () => import('./admin/products/product-list.component').then(m => m.ProductListComponent) 
+      },
+      { 
+        path: 'categories', 
+        loadComponent: () => import('./admin/categories/category-list.component').then(m => m.CategoryListComponent) 
+      },
+      { 
+        path: 'inventory', 
+        loadComponent: () => import('./admin/inventory/inventory.component').then(m => m.InventoryComponent) 
+      },
+      { 
+        path: 'orders', 
+        loadComponent: () => import('./admin/orders/order-list.component').then(m => m.OrderListComponent) 
+      }
     ]
   },
 

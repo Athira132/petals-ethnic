@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HeroCarouselComponent } from '../../shared/components/hero-carousel/hero-carousel.component';
@@ -13,6 +13,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterModule, HeroCarouselComponent, ProductCardComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="home-page">
       <!-- 1. Hero Fashion Showcase (Edge-to-edge, maximum brightness, horizontal buttons) -->
@@ -46,6 +47,9 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
                     [alt]="cat.name" 
                     class="circle-img"
                     loading="lazy"
+                    decoding="async"
+                    width="72"
+                    height="72"
                     (error)="onImageError($event)"
                   />
                 </div>
@@ -198,11 +202,17 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
         </div>
       </section>
 
-      <!-- Reusable Loading State Template -->
+      <!-- Reusable Loading State Template: Lightweight Skeletons -->
       <ng-template #loadingState>
-        <div class="loading-spinner-box">
-          <div class="spinner"></div>
-          <p>Loading Ethnic Collection...</p>
+        <div class="product-grid skeleton-grid">
+          <div class="skeleton-card" *ngFor="let s of [1,2,3,4]">
+            <div class="skeleton-img"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-line short"></div>
+              <div class="skeleton-line title"></div>
+              <div class="skeleton-line price"></div>
+            </div>
+          </div>
         </div>
       </ng-template>
     </main>
@@ -754,24 +764,38 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       }
     }
 
-    /* Loading Spinner */
-    .loading-spinner-box {
-      padding: 80px 0;
-      text-align: center;
-      color: var(--color-muted);
+    /* Lightweight Skeleton Cards */
+    .skeleton-card {
+      background: #FFFFFF;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--color-border-light);
     }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      margin: 0 auto 16px auto;
-      border: 3px solid var(--color-pink-light);
-      border-top-color: var(--color-pink-dark);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    .skeleton-img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: linear-gradient(90deg, #FAF8F6 0%, #F0ECE8 50%, #FAF8F6 100%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s infinite ease-in-out;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    @keyframes skeleton-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
+    .skeleton-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .skeleton-line {
+      height: 12px;
+      background: #F0ECE8;
+      border-radius: 4px;
+    }
+    .skeleton-line.short { width: 35%; }
+    .skeleton-line.title { width: 85%; height: 16px; }
+    .skeleton-line.price { width: 50%; }
   `]
 })
 export class HomeComponent implements OnInit {
@@ -852,7 +876,8 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private productService: ProductService,
-    private cartService: CartService
+    private cartService: CartService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -866,21 +891,25 @@ export class HomeComponent implements OnInit {
     if (syncProds && syncProds.length > 0) {
       this.setProducts(syncProds);
       this.isHomeLoading = false;
+      this.cdr.markForCheck();
     }
 
     // 2. Fetch categories and products concurrently in parallel without blocking each other
     this.productService.getCategories().then(cats => {
       if (cats && cats.length > 0) {
         this.categories = cats;
+        this.cdr.markForCheck();
       }
     }).catch(e => console.warn('Categories load note:', e));
 
-    this.productService.getProducts().then(prods => {
+    this.productService.getProducts({ activeOnly: true, limit: 12 }).then(prods => {
       this.setProducts(prods);
       this.isHomeLoading = false;
+      this.cdr.markForCheck();
     }).catch(e => {
       console.error('Error loading home products:', e);
       this.isHomeLoading = false;
+      this.cdr.markForCheck();
     });
   }
 

@@ -76,23 +76,69 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const { data, error } = await supabase
+      const { id, slug, category_id, department, featured, new_arrival, limit, active } = req.query || {};
+
+      let query = supabase
         .from('products')
         .select(`
-          *,
-          category:categories(*),
-          images:product_images(*),
-          sizes:product_sizes(*)
-        `)
-        .order('created_at', { ascending: false });
+          id, category_id, name, slug, description, price, sale_price, sku, stock,
+          low_stock_threshold, availability, featured, new_arrival, best_seller,
+          active, department, has_size, show_size_chart, size_chart_url,
+          purchase_mode, video_url, has_colors, color_variants, stock_display,
+          custom_stock_message, return_policy, created_at,
+          category:categories(id, name, slug, department, image_url),
+          images:product_images(id, image_url, display_order, is_primary, created_at),
+          sizes:product_sizes(id, size, stock, status)
+        `);
+
+      if (id) {
+        query = query.eq('id', id);
+        const { data, error } = await query.maybeSingle();
+        if (error) return res.status(500).json({ error: error.message });
+        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+        return res.status(200).json({ success: true, product: data ? extractProductMeta(data) : null });
+      }
+
+      if (slug) {
+        query = query.eq('slug', decodeURIComponent(slug).trim().toLowerCase());
+        const { data, error } = await query.maybeSingle();
+        if (error) return res.status(500).json({ error: error.message });
+        res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+        return res.status(200).json({ success: true, product: data ? extractProductMeta(data) : null });
+      }
+
+      if (active !== 'false') {
+        query = query.eq('active', true);
+      }
+      if (category_id) {
+        query = query.eq('category_id', category_id);
+      }
+      if (department) {
+        query = query.eq('department', department);
+      }
+      if (featured === 'true') {
+        query = query.eq('featured', true);
+      }
+      if (new_arrival === 'true') {
+        query = query.eq('new_arrival', true);
+      }
+
+      query = query.order('created_at', { ascending: false });
+
+      if (limit) {
+        const lim = parseInt(limit, 10);
+        if (lim > 0) query = query.limit(lim);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         return res.status(500).json({ error: error.message });
       }
 
       const formatted = (data || []).map(p => extractProductMeta(p));
-      res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
-      return res.status(200).json({ success: true, products: formatted });
+      res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+      return res.status(200).json({ success: true, products: formatted, count: formatted.length });
     }
 
     if (req.method === 'POST') {

@@ -46,6 +46,8 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                 loading="eager"
                 fetchpriority="high"
                 decoding="async"
+                width="500"
+                height="500"
                 (load)="isMainLoaded = true"
                 (error)="onImageError($event); isMainLoaded = true"
               />
@@ -66,6 +68,8 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                   class="thumb-img" 
                   loading="lazy"
                   decoding="async"
+                  width="64"
+                  height="64"
                   (error)="onImageError($event)" 
                 />
               </button>

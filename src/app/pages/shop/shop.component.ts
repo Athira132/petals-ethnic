@@ -76,6 +76,9 @@ import { handleImageError } from '../../core/utils/image.utils';
                   [alt]="cat.name" 
                   class="mini-card-img" 
                   loading="lazy"
+                  decoding="async"
+                  width="48"
+                  height="48"
                   (error)="onImageError($event)" 
                 />
               </div>

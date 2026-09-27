@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, AfterViewInit, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, AfterViewInit, SimpleChanges, ViewChild, ElementRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product, SizeOption } from '../../../core/models/product.model';
@@ -9,15 +9,16 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
   selector: 'app-product-card',
   standalone: true,
   imports: [CommonModule, RouterModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="product-card" [class.out-of-stock]="product.stock === 0">
-      <!-- Product Image Container with Per-Product Independent Progressive Loading -->
+    <div class="product-card" [class.out-of-stock]="product.stock === 0" (mouseenter)="onCardHover()">
+      <!-- Product Image Container with 3:4 Aspect Ratio -->
       <div class="card-media">
         <a [routerLink]="['/product', product.slug]">
-          <!-- Independent Shimmer Skeleton Placeholder for THIS product card -->
+          <!-- Shimmer Skeleton Placeholder for THIS product card -->
           <div class="image-skeleton" *ngIf="!isFullLoaded"></div>
 
-          <!-- Real Product Image (fades in smoothly as soon as THIS SPECIFIC IMAGE finishes loading) -->
+          <!-- Real Product Image (fades in smoothly when loaded) -->
           <img 
             #fullImg
             [src]="primaryImageUrl" 
@@ -27,18 +28,22 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
             [attr.loading]="priority ? 'eager' : 'lazy'"
             [attr.fetchpriority]="priority ? 'high' : 'auto'"
             decoding="async"
+            width="320"
+            height="426"
             (load)="onFullResLoaded()"
             (error)="onFullResError($event)"
           />
 
-          <!-- Secondary Hover Image -->
+          <!-- Secondary Hover Image (loaded ONLY on desktop mouse hover to save 50% bandwidth) -->
           <img 
-            *ngIf="secondaryImageUrl" 
+            *ngIf="showHoverImage && secondaryImageUrl" 
             [src]="secondaryImageUrl" 
             [alt]="product.name" 
             class="product-img hover-img" 
             loading="lazy"
             decoding="async"
+            width="320"
+            height="426"
             (error)="onImageError($event)"
           />
         </a>
@@ -131,7 +136,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     .card-media {
       position: relative;
       width: 100%;
-      padding-top: 133%; /* 3:4 aspect ratio reserved space */
+      aspect-ratio: 3 / 4;
       overflow: hidden;
       background-color: var(--color-bg-alt, #FAF8F6);
     }
@@ -170,7 +175,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     .full-res-img {
       z-index: 2;
       opacity: 0;
-      transition: opacity 400ms ease-in-out, transform 0.3s ease;
+      transition: opacity 300ms ease-in-out, transform 0.3s ease;
     }
     .full-res-img.loaded {
       opacity: 1;
@@ -239,75 +244,19 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       border: 1px solid var(--color-border);
       border-radius: var(--radius-sm);
       background: #FFFFFF;
-      color: var(--color-text-heading);
+      color: var(--color-text);
+      cursor: pointer;
       transition: var(--transition);
     }
     .size-chip:hover:not(.disabled) {
-      background-color: var(--color-pink-dark);
       border-color: var(--color-pink-dark);
-      color: #FFFFFF;
+      background: var(--color-pink-light);
+      color: var(--color-pink-dark);
     }
     .size-chip.disabled {
-      opacity: 0.3;
+      opacity: 0.4;
       cursor: not-allowed;
       text-decoration: line-through;
-    }
-
-    .card-content {
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-    .product-cat {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--color-gold);
-      margin-bottom: 4px;
-    }
-    .product-title {
-      font-family: var(--font-body);
-      font-size: 15px;
-      font-weight: 500;
-      line-height: 1.4;
-      margin-bottom: 8px;
-      color: var(--color-text-heading);
-    }
-    .product-title a:hover {
-      color: #C05676;
-    }
-    .product-price {
-      margin-top: auto;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .sale-price {
-      color: #C05676;
-    }
-    .original-price {
-      font-size: 13px;
-      color: var(--color-light-muted);
-      text-decoration: line-through;
-      font-weight: 400;
-    }
-    .regular-price {
-      color: var(--color-text-heading);
-    }
-    .badge-few-left {
-      background: #D97706;
-      color: #FFFFFF;
-      font-weight: 700;
-      font-size: 10px;
-      padding: 4px 8px;
-      border-radius: var(--radius-sm);
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
     }
     .quick-single-add-btn {
       width: 100%;
@@ -315,9 +264,9 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       color: #FFFFFF;
       border: none;
       padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      font-weight: 600;
       font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
       cursor: pointer;
       transition: var(--transition);
     }
@@ -330,20 +279,97 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       color: #FFFFFF;
       text-decoration: none;
       padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      font-weight: 600;
       font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
       text-align: center;
+      transition: var(--transition);
       display: block;
-      transition: background 0.2s ease;
     }
     .quick-enquiry-btn:hover {
-      background: #1EBE5D;
+      background: #1EBE5B;
     }
 
-    @media (max-width: 480px) {
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .badge-pink {
+      background: #E5A9BD;
+      color: #FFFFFF;
+    }
+    .badge-gold {
+      background: #C5A059;
+      color: #FFFFFF;
+    }
+    .badge-dark {
+      background: #222222;
+      color: #FFFFFF;
+    }
+    .badge-few-left {
+      background: #E65100;
+      color: #FFFFFF;
+    }
+
+    .card-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .product-cat {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-gold);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .product-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text-heading);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 42px;
+    }
+    .product-title a:hover {
+      color: var(--color-pink-dark);
+    }
+    .product-price {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: auto;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .sale-price {
+      color: #D81B60;
+    }
+    .original-price {
+      font-size: 13px;
+      color: var(--color-muted);
+      text-decoration: line-through;
+      font-weight: 400;
+    }
+    .regular-price {
+      color: var(--color-text-heading);
+    }
+
+    @media (max-width: 768px) {
       .card-content {
-        padding: 10px 10px 12px 10px;
+        padding: 12px;
       }
       .product-cat {
         font-size: 10px;
@@ -384,11 +410,15 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   @ViewChild('fullImg') fullImgRef?: ElementRef<HTMLImageElement>;
 
   isFullLoaded = false;
+  showHoverImage = false;
 
   primaryImageUrl: string = DEFAULT_FALLBACK_IMAGE;
   secondaryImageUrl: string | null = null;
 
-  constructor(private imageLoader: ImageLoaderService) {}
+  constructor(
+    private imageLoader: ImageLoaderService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.updateImages();
@@ -405,6 +435,13 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
+  onCardHover() {
+    if (!this.showHoverImage && this.secondaryImageUrl) {
+      this.showHoverImage = true;
+      this.cdr.markForCheck();
+    }
+  }
+
   private updateImages() {
     const images = extractProductImages(this.product);
     const primary = images.length > 0 ? images[0].image_url : DEFAULT_FALLBACK_IMAGE;
@@ -413,12 +450,12 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     this.primaryImageUrl = primary;
     this.secondaryImageUrl = secondary;
 
-    // Check if ALREADY LOADED in application-level persistent cache
     if (this.imageLoader.isLoaded(primary)) {
       this.isFullLoaded = true;
     } else {
       this.isFullLoaded = false;
     }
+    this.cdr.markForCheck();
   }
 
   private checkNativeImageStatus() {
@@ -448,7 +485,7 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   get whatsAppEnquiryUrl(): string {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://petalethnics.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://petalsethnic.com';
     const text = encodeURIComponent(
       `Hello Petal Ethnics & Jewellers! I would like to enquire about: *${this.product.name}* (Price: ₹${this.product.sale_price || this.product.price}).\nProduct Link: ${origin}/product/${this.product.slug}`
     );
@@ -466,12 +503,14 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   onFullResLoaded() {
     this.isFullLoaded = true;
     this.imageLoader.markLoaded(this.primaryImageUrl);
+    this.cdr.markForCheck();
   }
 
   onFullResError(event: Event) {
     handleImageError(event);
     this.isFullLoaded = true;
     this.imageLoader.markLoaded(this.primaryImageUrl);
+    this.cdr.markForCheck();
   }
 
   onImageError(event: Event) {

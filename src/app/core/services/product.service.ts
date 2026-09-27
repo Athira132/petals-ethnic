@@ -15,6 +15,8 @@ export interface ProductFilterOptions {
   newArrivalOnly?: boolean;
   bestSellerOnly?: boolean;
   activeOnly?: boolean;
+  limit?: number;
+  department?: 'ethnic' | 'jewellery';
 }
 
 import { INITIAL_CATEGORIES, INITIAL_PRODUCTS } from '../data/initial-catalog.data';
@@ -564,6 +566,14 @@ export class ProductService {
       products.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
 
+    if (options.department) {
+      products = products.filter(p => p.department === options.department);
+    }
+
+    if (options.limit && options.limit > 0) {
+      products = products.slice(0, options.limit);
+    }
+
     return products;
   }
 
@@ -626,16 +636,35 @@ export class ProductService {
       if (found) return this.parseProductMeta(found);
     }
 
-    // 2. Direct single-row database query
+    // 2. Direct single product API endpoint fetch (edge-cached, fast 20ms)
+    try {
+      const res = await fetch(`/api/admin-product?slug=${encodeURIComponent(cleanKey)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.product) {
+          const parsed = this.parseProductMeta(json.product);
+          this.addProductToCache(parsed);
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('API product slug query notice:', e);
+    }
+
+    // 3. Direct single-row database query
     try {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugKey);
       let query = this.supabaseService.supabase
         .from('products')
         .select(`
-          *,
-          category:categories(*),
-          images:product_images(*),
-          sizes:product_sizes(*)
+          id, category_id, name, slug, description, price, sale_price, sku, stock,
+          low_stock_threshold, availability, featured, new_arrival, best_seller,
+          active, department, has_size, show_size_chart, size_chart_url,
+          purchase_mode, video_url, has_colors, color_variants, stock_display,
+          custom_stock_message, return_policy, created_at,
+          category:categories(id, name, slug, department, image_url),
+          images:product_images(id, image_url, display_order, is_primary, created_at),
+          sizes:product_sizes(id, size, stock, status)
         `);
 
       if (isUuid) {
@@ -647,19 +676,15 @@ export class ProductService {
       const { data, error } = await query.maybeSingle();
 
       if (!error && data) {
-        return this.parseProductMeta(data as Product);
+        const parsed = this.parseProductMeta(data);
+        this.addProductToCache(parsed);
+        return parsed;
       }
     } catch (e) {
       console.warn('Direct product slug query notice:', e);
     }
 
-    // 3. Fallback to full list search
-    const products = await this.getProducts({ activeOnly: false });
-    const match = products.find(p => 
-      (p.slug && p.slug.toLowerCase() === cleanKey) || 
-      p.id === slugKey
-    ) || null;
-    return match ? this.parseProductMeta(match) : null;
+    return null;
   }
 
   async getProductById(id: string): Promise<Product | null> {
@@ -671,30 +696,48 @@ export class ProductService {
       if (found) return this.parseProductMeta(found);
     }
 
-    // 2. Direct single-row database query
+    // 2. Direct single product API endpoint fetch (edge-cached)
+    try {
+      const res = await fetch(`/api/admin-product?id=${encodeURIComponent(id)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.product) {
+          const parsed = this.parseProductMeta(json.product);
+          this.addProductToCache(parsed);
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('API product id query notice:', e);
+    }
+
+    // 3. Direct single-row database query
     try {
       const { data, error } = await this.supabaseService.supabase
         .from('products')
         .select(`
-          *,
-          category:categories(*),
-          images:product_images(*),
-          sizes:product_sizes(*)
+          id, category_id, name, slug, description, price, sale_price, sku, stock,
+          low_stock_threshold, availability, featured, new_arrival, best_seller,
+          active, department, has_size, show_size_chart, size_chart_url,
+          purchase_mode, video_url, has_colors, color_variants, stock_display,
+          custom_stock_message, return_policy, created_at,
+          category:categories(id, name, slug, department, image_url),
+          images:product_images(id, image_url, display_order, is_primary, created_at),
+          sizes:product_sizes(id, size, stock, status)
         `)
         .eq('id', id)
         .maybeSingle();
 
       if (!error && data) {
-        return this.parseProductMeta(data as Product);
+        const parsed = this.parseProductMeta(data);
+        this.addProductToCache(parsed);
+        return parsed;
       }
     } catch (e) {
       console.warn('Direct product ID query notice:', e);
     }
 
-    // 3. Fallback to full list search
-    const products = await this.getProducts({ activeOnly: false });
-    const match = products.find(p => p.id === id) || null;
-    return match ? this.parseProductMeta(match) : null;
+    return null;
   }
 
   addProductToCache(product: Product) {

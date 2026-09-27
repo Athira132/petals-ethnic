@@ -28,10 +28,31 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   
-  <!-- Preload the first critical above-the-fold Hero Image -->
-  <link rel="preload" as="image" href="/images/hero1.png" fetchpriority="high">
+  <!-- Preload Critical Above-The-Fold Assets -->
+  <link rel="preload" as="image" href="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" fetchpriority="high">
+  <link rel="preload" as="image" href="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" media="(min-width: 769px)" fetchpriority="high">
+  <link rel="preload" as="image" href="https://i.ibb.co/gMLZk8Dj/Untitled-design-13-1.png" media="(max-width: 768px)" fetchpriority="high">
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <!-- Instant Zero-JS Pre-Bootstrap Loading Screen -->
+    <div id="initial-preboot-loader" style="position: fixed; inset: 0; background: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="max-width: 260px; width: 75%; text-align: center; margin-bottom: 24px;">
+        <img src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" alt="Petals Ethnics & Jewellers" style="width: 100%; height: auto; max-height: 72px; object-fit: contain;" />
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div style="width: 130px; height: 3px; background: #F2EFEB; border-radius: 3px; overflow: hidden; position: relative;">
+          <div style="position: absolute; top: 0; left: 0; height: 100%; width: 40%; background: #C2185B; border-radius: 3px; animation: preboot-progress 0.9s infinite ease-in-out;"></div>
+        </div>
+      </div>
+      <style>
+        @keyframes preboot-progress {
+          0% { left: 0%; width: 25%; }
+          50% { left: 35%; width: 55%; }
+          100% { left: 100%; width: 20%; }
+        }
+      </style>
+    </div>
+  </app-root>
 </body>
 </html>

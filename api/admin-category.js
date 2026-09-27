@@ -59,6 +59,7 @@ export default async function handler(req, res) {
         description: cleanDescription(cat.description)
       }));
 
+      res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
       return res.status(200).json({ success: true, categories: formatted });
     }
 

@@ -91,6 +91,7 @@ export default async function handler(req, res) {
       }
 
       const formatted = (data || []).map(p => extractProductMeta(p));
+      res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
       return res.status(200).json({ success: true, products: formatted });
     }
 

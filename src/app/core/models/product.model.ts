@@ -30,6 +30,7 @@ export interface ProductImage {
   thumbnail_url?: string | null;
   display_order?: number;
   is_primary?: boolean;
+  created_at?: string;
 }
 
 export interface Product {

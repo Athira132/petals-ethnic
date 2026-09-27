@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { handleImageError } from '../../../core/utils/image.utils';
@@ -8,19 +8,64 @@ import { handleImageError } from '../../../core/utils/image.utils';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <section class="hero-static-section">
-      <!-- Maximum Brightness Edge-to-Edge Hero Banner (Zoomed out, properly centered, no dark overlay) -->
-      <img 
-        src="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" 
-        alt="Petal Ethnics & Jewellers Collection" 
-        class="hero-static-img"
-        fetchpriority="high"
-        loading="eager"
-        decoding="async"
-        (error)="onImageError($event)"
-      />
+    <section class="hero-slider-section" (mouseenter)="pauseSlider()" (mouseleave)="resumeSlider()">
+      <!-- Desktop Hero Slider (Screen > 768px) -->
+      <div class="hero-slider-track desktop-hero-track">
+        <!-- Desktop Slide 1 (Current Master Hero - Eager Loaded) -->
+        <div class="hero-slide" [class.active]="currentSlide === 0">
+          <img 
+            src="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" 
+            alt="Petal Ethnics & Jewellers Couture Collection" 
+            class="hero-img desktop-hero-img"
+            fetchpriority="high"
+            loading="eager"
+            decoding="async"
+            (error)="onImageError($event)"
+          />
+        </div>
 
-      <!-- Hero Exploration Buttons in a Clean Horizontal Row Beside Each Other -->
+        <!-- Desktop Slide 2 (New Luxury Slide - Lazy Loaded) -->
+        <div class="hero-slide" [class.active]="currentSlide === 1">
+          <img 
+            src="https://i.ibb.co/Z1McJ1Nz/Gemini-Generated-Image-vabke2vabke2vabk-2.png" 
+            alt="Petal Ethnics & Jewellers Festive Season" 
+            class="hero-img desktop-hero-img"
+            loading="lazy"
+            decoding="async"
+            (error)="onImageError($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Mobile Hero Slider (Screen <= 768px ONLY) -->
+      <div class="hero-slider-track mobile-hero-track">
+        <!-- Mobile Slide 1 (Image 1 - Eager Loaded) -->
+        <div class="hero-slide" [class.active]="currentSlide === 0">
+          <img 
+            src="https://i.ibb.co/gMLZk8Dj/Untitled-design-13-1.png" 
+            alt="Petal Ethnics & Jewellers Mobile Collection 1" 
+            class="hero-img mobile-hero-img"
+            fetchpriority="high"
+            loading="eager"
+            decoding="async"
+            (error)="onImageError($event)"
+          />
+        </div>
+
+        <!-- Mobile Slide 2 (Image 2 - Lazy Loaded) -->
+        <div class="hero-slide" [class.active]="currentSlide === 1">
+          <img 
+            src="https://i.ibb.co/HTkFZ2d8/Untitled-design-11.png" 
+            alt="Petal Ethnics & Jewellers Mobile Collection 2" 
+            class="hero-img mobile-hero-img"
+            loading="lazy"
+            decoding="async"
+            (error)="onImageError($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Hero Exploration Buttons in Clean Horizontal Row Beside Each Other -->
       <div class="hero-cta-container">
         <div class="hero-buttons-row">
           <a routerLink="/ethnics" class="btn-hero-cta btn-ethnics">
@@ -34,28 +79,68 @@ import { handleImageError } from '../../../core/utils/image.utils';
     </section>
   `,
   styles: [`
-    .hero-static-section {
+    .hero-slider-section {
       position: relative;
       width: 100%;
-      height: clamp(380px, 46vw, 620px);
+      height: clamp(380px, 44vw, 620px);
       overflow: hidden;
       background-color: #FAFAFA;
       display: flex;
       align-items: flex-end;
       justify-content: center;
+      user-select: none;
     }
 
-    /* Edge-to-edge, zoomed out, centered without excessive cropping or dark overlays */
-    .hero-static-img {
+    .hero-slider-track {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
+    }
+
+    /* Desktop vs Mobile Track Visibility */
+    .desktop-hero-track {
+      display: block;
+    }
+    .mobile-hero-track {
+      display: none;
+    }
+
+    /* Cross-fade slide system */
+    .hero-slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+      will-change: opacity;
+      pointer-events: none;
+    }
+    .hero-slide.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: none;
+    }
+
+    .desktop-hero-img {
       object-fit: cover;
       object-position: center 25%;
-      opacity: 1;
-      filter: none;
-      display: block;
+    }
+
+    .mobile-hero-img {
+      object-fit: cover;
+      object-position: center top;
     }
 
     /* Centered bottom container for horizontal buttons */
@@ -68,6 +153,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       display: flex;
       justify-content: center;
       padding: 0 20px;
+      pointer-events: none;
     }
 
     /* Horizontal row beside each other */
@@ -78,6 +164,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       justify-content: center;
       gap: 18px;
       flex-wrap: nowrap;
+      pointer-events: auto;
     }
 
     /* Transparent buttons with black outline/border */
@@ -113,7 +200,6 @@ import { handleImageError } from '../../../core/utils/image.utils';
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
     }
 
-    /* Keep button classes transparent with black border & subtle hover */
     .btn-ethnics, .btn-jewellery {
       background: transparent;
       border: 2px solid #000000;
@@ -128,11 +214,18 @@ import { handleImageError } from '../../../core/utils/image.utils';
 
     /* Tablet Responsiveness */
     @media (max-width: 768px) {
-      .hero-static-section {
-        height: clamp(280px, 50vw, 400px);
+      .desktop-hero-track {
+        display: none;
+      }
+      .mobile-hero-track {
+        display: block;
+      }
+
+      .hero-slider-section {
+        height: clamp(380px, 95vw, 540px);
       }
       .hero-cta-container {
-        bottom: 22px;
+        bottom: 20px;
         padding: 0 16px;
       }
       .hero-buttons-row {
@@ -147,13 +240,13 @@ import { handleImageError } from '../../../core/utils/image.utils';
       }
     }
 
-    /* Mobile Phone Responsiveness - strictly beside each other in a row */
+    /* Mobile Phone Responsiveness - portrait framing and strictly in one row */
     @media (max-width: 480px) {
-      .hero-static-section {
-        height: clamp(240px, 58vw, 320px);
+      .hero-slider-section {
+        height: clamp(350px, 105vw, 500px);
       }
-      .hero-static-img {
-        object-position: center 20%;
+      .mobile-hero-img {
+        object-position: center 10%;
       }
       .hero-cta-container {
         bottom: 14px;
@@ -168,8 +261,8 @@ import { handleImageError } from '../../../core/utils/image.utils';
       .btn-hero-cta {
         flex: 1;
         min-width: 0;
-        padding: 9px 8px;
-        font-size: 10px;
+        padding: 10px 8px;
+        font-size: 10.5px;
         letter-spacing: 0.5px;
         white-space: nowrap;
         text-align: center;
@@ -178,7 +271,49 @@ import { handleImageError } from '../../../core/utils/image.utils';
     }
   `]
 })
-export class HeroCarouselComponent {
+export class HeroCarouselComponent implements OnInit, OnDestroy {
+  currentSlide = 0;
+  private slideInterval: any = null;
+
+  ngOnInit() {
+    this.startSlider();
+    // Warm slide 2 images in background after first paint
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const dImg = new Image();
+        dImg.src = 'https://i.ibb.co/Z1McJ1Nz/Gemini-Generated-Image-vabke2vabke2vabk-2.png';
+        const mImg = new Image();
+        mImg.src = 'https://i.ibb.co/HTkFZ2d8/Untitled-design-11.png';
+      }, 1200);
+    }
+  }
+
+  ngOnDestroy() {
+    this.stopSlider();
+  }
+
+  startSlider() {
+    this.stopSlider();
+    this.slideInterval = setInterval(() => {
+      this.currentSlide = (this.currentSlide + 1) % 2;
+    }, 4200);
+  }
+
+  stopSlider() {
+    if (this.slideInterval) {
+      clearInterval(this.slideInterval);
+      this.slideInterval = null;
+    }
+  }
+
+  pauseSlider() {
+    this.stopSlider();
+  }
+
+  resumeSlider() {
+    this.startSlider();
+  }
+
   onImageError(event: Event) {
     handleImageError(event);
   }

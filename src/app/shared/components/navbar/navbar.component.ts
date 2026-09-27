@@ -7,10 +7,11 @@ import { map } from 'rxjs/operators';
 import { CartService } from '../../../core/services/cart.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ProductService } from '../../../core/services/product.service';
 import { CartSummary } from '../../../core/models/cart.model';
 import { User } from '@supabase/supabase-js';
 import { UserProfile } from '../../../core/models/user.model';
-import { handleImageError } from '../../../core/utils/image.utils';
+import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/image.utils';
 
 @Component({
   selector: 'app-navbar',
@@ -55,8 +56,8 @@ import { handleImageError } from '../../../core/utils/image.utils';
 
           <!-- Navbar Actions: Search | Account/Admin | Wishlist | Cart -->
           <div class="nav-actions">
-            <!-- Search Bar Trigger -->
-            <div class="search-box" [class.active]="isSearchOpen">
+            <!-- Desktop Expandable Search Input -->
+            <div class="search-box desktop-only" [class.active]="isSearchOpen">
               <input 
                 type="text" 
                 placeholder="Search ethnics, jewellery..." 
@@ -71,6 +72,14 @@ import { handleImageError } from '../../../core/utils/image.utils';
                 </svg>
               </button>
             </div>
+
+            <!-- Mobile Search Trigger Button (Only on Mobile screens <= 768px) -->
+            <button (click)="toggleMobileSearch()" class="action-btn mobile-search-trigger" title="Search" aria-label="Search">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
 
             <!-- Account Link / Dropdown -->
             <ng-container *ngIf="user$ | async as user; else guestAuth">
@@ -93,15 +102,15 @@ import { handleImageError } from '../../../core/utils/image.utils';
               </a>
             </ng-template>
 
-            <!-- Wishlist Button (Beside Cart) -->
-            <a routerLink="/wishlist" routerLinkActive="active" class="action-btn wishlist-btn" title="My Wishlist">
+            <!-- Wishlist Button (Beside Cart - DESKTOP ONLY, Hidden on Mobile View) -->
+            <a routerLink="/wishlist" routerLinkActive="active" class="action-btn wishlist-btn desktop-only" title="My Wishlist">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
               <span *ngIf="(wishlistCount$ | async) as wCount" class="nav-badge">{{ wCount }}</span>
             </a>
 
-            <!-- Cart Button -->
+            <!-- Cart Button (Visible on Both Desktop & Mobile) -->
             <a routerLink="/cart" routerLinkActive="active" class="action-btn cart-btn" title="Shopping Cart">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -113,7 +122,48 @@ import { handleImageError } from '../../../core/utils/image.utils';
           </div>
         </div>
       </div>
+
+      <!-- Mobile Search Dropdown Overlay (Floats directly below navbar, zero layout shift) -->
+      <div *ngIf="isMobileSearchOpen" class="mobile-search-dropdown-wrap">
+        <div class="mobile-search-bar">
+          <svg class="search-field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            placeholder="Search ethnics, sarees, jewellery..." 
+            [(ngModel)]="mobileSearchQuery"
+            (ngModelChange)="onMobileSearchChange()"
+            (keyup.enter)="submitMobileSearch()"
+            class="mobile-search-dropdown-input"
+            autofocus
+          />
+          <button *ngIf="mobileSearchQuery" (click)="clearMobileSearch()" class="mobile-search-clear-btn" aria-label="Clear Search">&times;</button>
+          <button (click)="closeMobileSearch()" class="mobile-search-cancel-btn">Cancel</button>
+        </div>
+
+        <!-- Live matching search suggestions inside dropdown -->
+        <div *ngIf="searchSuggestions.length > 0" class="mobile-search-suggestions">
+          <a 
+            *ngFor="let item of searchSuggestions" 
+            [routerLink]="['/product', item.slug]" 
+            (click)="selectSuggestion()"
+            class="search-suggestion-row"
+          >
+            <img [src]="item.image || defaultFallback" [alt]="item.name" class="suggestion-thumb" (error)="onImageError($event)" />
+            <div class="suggestion-info">
+              <span class="suggestion-name">{{ item.name }}</span>
+              <span class="suggestion-price">₹{{ item.price | number:'1.0-0' }}</span>
+            </div>
+            <span class="suggestion-action">&rarr;</span>
+          </a>
+        </div>
+      </div>
     </header>
+
+    <!-- Mobile Search Backdrop Click-Outside -->
+    <div *ngIf="isMobileSearchOpen" class="mobile-search-backdrop" (click)="closeMobileSearch()"></div>
 
     <!-- Mobile Slide Drawer -->
     <div class="mobile-drawer-overlay" *ngIf="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
@@ -160,17 +210,14 @@ import { handleImageError } from '../../../core/utils/image.utils';
           <button (click)="logout()" class="mobile-link logout-btn">Logout</button>
         </ng-container>
         <ng-template #mobileGuest>
-          <a routerLink="/login" (click)="toggleMobileMenu()" class="mobile-link highlight">Login / Register</a>
+          <a routerLink="/login" (click)="toggleMobileMenu()" class="mobile-link">Login / Register</a>
         </ng-template>
       </nav>
 
       <div class="mobile-drawer-footer">
-        <p class="drawer-contact-label">WhatsApp Helpline:</p>
-        <a href="https://wa.me/918113899319?text=Hello%20Petal%20Ethnics%20%26%20Jewellers,%20I%20would%20like%20to%20know%20more%20about%20your%20collection." target="_blank" class="mobile-wa-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.333 5.001l-1.416 5.174 5.299-1.389c1.464.798 3.114 1.218 4.774 1.218h.004c5.506 0 9.989-4.478 9.99-9.984 0-2.669-1.038-5.176-2.925-7.062-1.887-1.886-4.394-2.924-7.064-2.924zm5.82 14.281c-.244.687-1.42 1.312-1.957 1.393-.49.074-1.127.106-1.815-.115-.418-.134-.956-.31-1.657-.615-2.955-1.282-4.887-4.281-5.035-4.479-.148-.198-1.205-1.604-1.205-3.059 0-1.455.762-2.172 1.033-2.464.271-.292.593-.365.791-.365.198 0 .396.002.568.01.185.009.432-.07.676.516.244.587.834 2.036.907 2.184.073.148.122.321.024.516-.098.196-.148.318-.293.49-.148.171-.31.382-.443.513-.148.148-.303.31-.131.606.171.296.76 1.256 1.632 2.033 1.123.999 2.07 1.309 2.366 1.457.296.148.469.124.642-.074.173-.198.742-.865.94-1.162.198-.296.396-.247.668-.148.271.098 1.727.815 2.023.963.296.148.494.222.568.346.074.123.074.715-.17 1.402z"/>
-          </svg>
-          <span>Chat on WhatsApp</span>
+        <p class="drawer-contact-label">Need styling help?</p>
+        <a href="https://wa.me/918113899319" target="_blank" rel="noopener" class="mobile-wa-btn">
+          Chat with Stylist on WhatsApp
         </a>
       </div>
     </aside>
@@ -334,7 +381,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       margin-left: 2px;
     }
 
-    /* Expandable Search Input */
+    /* Expandable Search Input (Desktop) */
     .search-box {
       display: flex;
       align-items: center;
@@ -357,6 +404,143 @@ import { handleImageError } from '../../../core/utils/image.utils';
       border: 1px solid var(--color-border, #EAE6E1);
     }
 
+    /* Mobile Search Trigger Button */
+    .mobile-search-trigger {
+      display: none;
+    }
+
+    /* Mobile Search Backdrop */
+    .mobile-search-backdrop {
+      position: fixed;
+      inset: 0;
+      top: 72px;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 99;
+      backdrop-filter: blur(2px);
+    }
+
+    /* Mobile Search Dropdown Overlay: Positioned absolute directly below navbar, zero push */
+    .mobile-search-dropdown-wrap {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--color-border-light, #EAE6E1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      z-index: 101;
+      padding: 12px 16px;
+      animation: dropdownSlideDown 0.2s ease-out;
+    }
+    @keyframes dropdownSlideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .mobile-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #F8F6F3;
+      border: 1.5px solid #E5E0D8;
+      border-radius: 8px;
+      padding: 6px 12px;
+    }
+    .mobile-search-bar:focus-within {
+      border-color: var(--color-pink-dark, #C2185B);
+      background: #FFFFFF;
+    }
+    .search-field-icon {
+      color: var(--color-muted, #777777);
+      flex-shrink: 0;
+    }
+    .mobile-search-dropdown-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      color: #1A1A1A;
+      padding: 4px 0;
+    }
+    .mobile-search-clear-btn {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      color: #888888;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .mobile-search-cancel-btn {
+      background: transparent;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-pink-dark, #C2185B);
+      cursor: pointer;
+      padding: 0 2px;
+      flex-shrink: 0;
+    }
+
+    /* Suggestions List inside Dropdown */
+    .mobile-search-suggestions {
+      margin-top: 10px;
+      max-height: 260px;
+      overflow-y: auto;
+      border-top: 1px solid #EAE6E1;
+      padding-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .search-suggestion-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 6px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #1A1A1A;
+      transition: background 0.15s ease;
+    }
+    .search-suggestion-row:active, .search-suggestion-row:hover {
+      background: #FAF8F6;
+    }
+    .suggestion-thumb {
+      width: 38px;
+      height: 38px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #F0EDE8;
+    }
+    .suggestion-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .suggestion-name {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #111111;
+    }
+    .suggestion-price {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-pink-dark, #C2185B);
+    }
+    .suggestion-action {
+      color: #999999;
+      font-size: 14px;
+    }
+
     .mobile-toggle {
       display: none;
       color: var(--color-text-heading, #0D0D0D);
@@ -375,10 +559,13 @@ import { handleImageError } from '../../../core/utils/image.utils';
         display: none;
       }
       .desktop-only {
-        display: none;
+        display: none !important;
       }
       .mobile-toggle {
         display: block;
+      }
+      .mobile-search-trigger {
+        display: flex;
       }
       .navbar-container {
         height: 80px;
@@ -407,15 +594,11 @@ import { handleImageError } from '../../../core/utils/image.utils';
         gap: 8px;
       }
       .nav-actions {
-        gap: 2px;
+        gap: 4px;
       }
       .action-btn {
         width: 36px;
         height: 36px;
-      }
-      .search-box.active .search-input {
-        width: 125px;
-        font-size: 12px;
       }
     }
 
@@ -562,7 +745,11 @@ export class NavbarComponent implements OnInit {
   isScrolled = false;
   isMobileMenuOpen = false;
   isSearchOpen = false;
+  isMobileSearchOpen = false;
   searchQuery = '';
+  mobileSearchQuery = '';
+  searchSuggestions: Array<{ name: string; slug: string; price: number; image: string | null }> = [];
+  defaultFallback = DEFAULT_FALLBACK_IMAGE;
 
   cartSummary$: Observable<CartSummary>;
   wishlistCount$: Observable<number>;
@@ -573,6 +760,7 @@ export class NavbarComponent implements OnInit {
     private cartService: CartService,
     private wishlistService: WishlistService,
     private authService: AuthService,
+    private productService: ProductService,
     private router: Router
   ) {
     this.cartSummary$ = this.cartService.cartSummary$;
@@ -597,6 +785,9 @@ export class NavbarComponent implements OnInit {
 
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    if (this.isMobileMenuOpen) {
+      this.isMobileSearchOpen = false;
+    }
   }
 
   toggleSearch() {
@@ -604,6 +795,58 @@ export class NavbarComponent implements OnInit {
     if (this.isSearchOpen && this.searchQuery) {
       this.onSearch();
     }
+  }
+
+  toggleMobileSearch() {
+    this.isMobileSearchOpen = !this.isMobileSearchOpen;
+    if (this.isMobileSearchOpen) {
+      this.isMobileMenuOpen = false;
+      this.mobileSearchQuery = '';
+      this.searchSuggestions = [];
+    }
+  }
+
+  closeMobileSearch() {
+    this.isMobileSearchOpen = false;
+    this.mobileSearchQuery = '';
+    this.searchSuggestions = [];
+  }
+
+  clearMobileSearch() {
+    this.mobileSearchQuery = '';
+    this.searchSuggestions = [];
+  }
+
+  onMobileSearchChange() {
+    const q = (this.mobileSearchQuery || '').trim().toLowerCase();
+    if (q.length < 2) {
+      this.searchSuggestions = [];
+      return;
+    }
+    const products = this.productService.getProductsSync() || [];
+    this.searchSuggestions = products
+      .filter(p => p.name.toLowerCase().includes(q) || (p.category?.name && p.category.name.toLowerCase().includes(q)))
+      .slice(0, 5)
+      .map(p => {
+        const img = p.images && p.images.length > 0 ? p.images[0].image_url : null;
+        return {
+          name: p.name,
+          slug: p.slug,
+          price: p.sale_price || p.price,
+          image: img
+        };
+      });
+  }
+
+  submitMobileSearch() {
+    if (this.mobileSearchQuery.trim()) {
+      this.router.navigate(['/ethnics'], { queryParams: { search: this.mobileSearchQuery.trim() } });
+      this.closeMobileSearch();
+    }
+  }
+
+  selectSuggestion() {
+    this.closeMobileSearch();
   }
 
   onSearch() {

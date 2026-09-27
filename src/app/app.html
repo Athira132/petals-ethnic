@@ -1,3 +1,20 @@
+<!-- Lightweight Introductory Loading Screen -->
+<div class="app-intro-overlay" *ngIf="showIntro && !isAdminRoute" [class.fade-out]="introFading">
+  <div class="intro-dialog">
+    <div class="intro-logo-wrap">
+      <img 
+        src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
+        alt="Petals Ethnics & Jewellers" 
+        class="intro-logo-img" 
+      />
+    </div>
+    <div class="intro-loader-pill">
+      <span class="intro-spinner"></span>
+      <span class="intro-loader-text">Loading Collection</span>
+    </div>
+  </div>
+</div>
+
 <app-navbar *ngIf="!isAdminRoute"></app-navbar>
 
 <router-outlet></router-outlet>

@@ -17,11 +17,13 @@ export interface ProductFilterOptions {
   activeOnly?: boolean;
 }
 
+import { INITIAL_CATEGORIES, INITIAL_PRODUCTS } from '../data/initial-catalog.data';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  private categoriesSubject = new BehaviorSubject<Category[]>([]);
+  private categoriesSubject = new BehaviorSubject<Category[]>(INITIAL_CATEGORIES);
   categories$: Observable<Category[]> = this.categoriesSubject.asObservable();
 
   private cachedProducts: Product[] | null = null;
@@ -30,20 +32,21 @@ export class ProductService {
   private categoriesInFlight: Promise<Category[]> | null = null;
 
   constructor(private supabaseService: SupabaseService) {
-    this.restoreCacheFromSession();
+    this.restoreCache();
   }
 
-  private restoreCacheFromSession() {
+  private restoreCache() {
     try {
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        const rawProds = window.sessionStorage.getItem('petals_products_cache');
+      if (typeof window !== 'undefined') {
+        const storage = window.localStorage || window.sessionStorage;
+        const rawProds = storage.getItem('petals_products_cache');
         if (rawProds) {
           const parsed = JSON.parse(rawProds);
           if (Array.isArray(parsed) && parsed.length > 0) {
             this.cachedProducts = parsed.map(p => this.parseProductMeta(p));
           }
         }
-        const rawCats = window.sessionStorage.getItem('petals_categories_cache');
+        const rawCats = storage.getItem('petals_categories_cache');
         if (rawCats) {
           const parsed = JSON.parse(rawCats);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -53,27 +56,44 @@ export class ProductService {
         }
       }
     } catch (e) {
-      console.warn('Session cache restore note:', e);
+      console.warn('Storage cache restore note:', e);
+    }
+
+    // Instant zero-delay fallback so the catalog is NEVER empty or waiting
+    if (!this.cachedProducts || this.cachedProducts.length === 0) {
+      this.cachedProducts = INITIAL_PRODUCTS.map(p => this.parseProductMeta(p));
+    }
+    if (!this.cachedCategories || this.cachedCategories.length === 0) {
+      this.cachedCategories = INITIAL_CATEGORIES.map(c => this.parseCategoryMeta(c));
+      this.categoriesSubject.next(this.cachedCategories);
     }
   }
 
-  private saveCacheToSession(key: string, data: any) {
+  private saveCache(key: string, data: any) {
     try {
-      if (typeof window !== 'undefined' && window.sessionStorage && data) {
-        window.sessionStorage.setItem(key, JSON.stringify(data));
+      if (typeof window !== 'undefined' && data) {
+        const str = JSON.stringify(data);
+        if (window.localStorage) window.localStorage.setItem(key, str);
+        if (window.sessionStorage) window.sessionStorage.setItem(key, str);
       }
     } catch (e) {
-      console.warn('Session cache save note:', e);
+      console.warn('Cache save note:', e);
     }
   }
 
   clearCache() {
-    this.cachedProducts = null;
-    this.cachedCategories = null;
+    this.cachedProducts = INITIAL_PRODUCTS.map(p => this.parseProductMeta(p));
+    this.cachedCategories = INITIAL_CATEGORIES.map(c => this.parseCategoryMeta(c));
     try {
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        window.sessionStorage.removeItem('petals_products_cache');
-        window.sessionStorage.removeItem('petals_categories_cache');
+      if (typeof window !== 'undefined') {
+        if (window.localStorage) {
+          window.localStorage.removeItem('petals_products_cache');
+          window.localStorage.removeItem('petals_categories_cache');
+        }
+        if (window.sessionStorage) {
+          window.sessionStorage.removeItem('petals_products_cache');
+          window.sessionStorage.removeItem('petals_categories_cache');
+        }
       }
     } catch (e) {}
   }
@@ -252,7 +272,7 @@ export class ProductService {
           let cats = (resData.categories as any[]).map(c => this.parseCategoryMeta(c));
           this.cachedCategories = cats;
           this.categoriesSubject.next(cats);
-          this.saveCacheToSession('petals_categories_cache', cats);
+          this.saveCache('petals_categories_cache', cats);
           return cats;
         }
       }
@@ -271,7 +291,7 @@ export class ProductService {
         const parsed = data.map(c => this.parseCategoryMeta(c));
         this.cachedCategories = parsed;
         this.categoriesSubject.next(parsed);
-        this.saveCacheToSession('petals_categories_cache', parsed);
+        this.saveCache('petals_categories_cache', parsed);
         return parsed;
       }
     } catch (e) {
@@ -559,7 +579,7 @@ export class ProductService {
         if (resData.success && resData.products && Array.isArray(resData.products) && resData.products.length > 0) {
           fetched = (resData.products as any[]).map(p => this.parseProductMeta(p));
           this.cachedProducts = fetched;
-          this.saveCacheToSession('petals_products_cache', fetched);
+          this.saveCache('petals_products_cache', fetched);
           return fetched;
         }
       }
@@ -582,7 +602,7 @@ export class ProductService {
       if (!error && data && data.length > 0) {
         fetched = data.map(p => this.parseProductMeta(p));
         this.cachedProducts = fetched;
-        this.saveCacheToSession('petals_products_cache', fetched);
+        this.saveCache('petals_products_cache', fetched);
         return fetched;
       }
     } catch (e) {

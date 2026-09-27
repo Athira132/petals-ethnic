@@ -657,14 +657,10 @@ export class ProductService {
       let query = this.supabaseService.supabase
         .from('products')
         .select(`
-          id, category_id, name, slug, description, price, sale_price, sku, stock,
-          low_stock_threshold, availability, featured, new_arrival, best_seller,
-          active, department, has_size, show_size_chart, size_chart_url,
-          purchase_mode, video_url, has_colors, color_variants, stock_display,
-          custom_stock_message, return_policy, created_at,
-          category:categories(id, name, slug, department, image_url),
-          images:product_images(id, image_url, display_order, is_primary, created_at),
-          sizes:product_sizes(id, size, stock, status)
+          *,
+          category:categories(*),
+          images:product_images(*),
+          sizes:product_sizes(*)
         `);
 
       if (isUuid) {
@@ -716,14 +712,10 @@ export class ProductService {
       const { data, error } = await this.supabaseService.supabase
         .from('products')
         .select(`
-          id, category_id, name, slug, description, price, sale_price, sku, stock,
-          low_stock_threshold, availability, featured, new_arrival, best_seller,
-          active, department, has_size, show_size_chart, size_chart_url,
-          purchase_mode, video_url, has_colors, color_variants, stock_display,
-          custom_stock_message, return_policy, created_at,
-          category:categories(id, name, slug, department, image_url),
-          images:product_images(id, image_url, display_order, is_primary, created_at),
-          sizes:product_sizes(id, size, stock, status)
+          *,
+          category:categories(*),
+          images:product_images(*),
+          sizes:product_sizes(*)
         `)
         .eq('id', id)
         .maybeSingle();

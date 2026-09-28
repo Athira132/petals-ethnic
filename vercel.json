@@ -20,7 +20,24 @@
       ]
     },
     {
-      "source": "/api/(.*)",
+      "source": "/api/(cart|wishlist|auth-register|razorpay-create|razorpay-verify|admin-order|admin-setup|admin-fix-rls)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "source": "/api/(admin-product|admin-category|sitemap)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -5,6 +5,7 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { WhatsappButtonComponent } from './shared/components/whatsapp-button/whatsapp-button.component';
 import { filter } from 'rxjs/operators';
+import { purgeLegacyStorage } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +20,8 @@ export class App {
   introFading = false;
 
   constructor(private router: Router) {
+    purgeLegacyStorage();
+
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {

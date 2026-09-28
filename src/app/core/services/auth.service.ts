@@ -4,6 +4,26 @@ import { SupabaseService } from './supabase.service';
 import { UserProfile } from '../models/user.model';
 import { User, Session } from '@supabase/supabase-js';
 
+const LEGACY_STORAGE_KEYS = [
+  'petals_ethnic_cart_v1',
+  'petal_wishlist_items',
+  'cart',
+  'wishlist',
+  'cartItems',
+  'wishlistItems',
+  'petals_cart',
+  'petals_wishlist'
+];
+
+export function purgeLegacyStorage(): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  for (const k of LEGACY_STORAGE_KEYS) {
+    try {
+      window.localStorage.removeItem(k);
+    } catch (_) {}
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -18,18 +38,23 @@ export class AuthService {
   public isLoading$ = this.isLoadingSubject.asObservable();
 
   constructor(private supabaseService: SupabaseService) {
+    purgeLegacyStorage();
     this.initAuth();
   }
 
   private async initAuth(): Promise<void> {
     try {
+      purgeLegacyStorage();
       const { data: { session } } = await this.supabaseService.supabase.auth.getSession();
       if (session?.user) {
         this.currentUserSubject.next(session.user);
         await this.loadUserProfile(session.user.id);
+      } else {
+        this.currentUserSubject.next(null);
       }
     } catch (err) {
       console.error('Auth initialization error:', err);
+      this.currentUserSubject.next(null);
     } finally {
       this.isLoadingSubject.next(false);
     }
@@ -195,7 +220,24 @@ export class AuthService {
     return await this.login(cleanEmail, cleanPassword);
   }
 
+  async getAccessToken(): Promise<string | null> {
+    try {
+      const { data: { session } } = await this.supabaseService.supabase.auth.getSession();
+      return session?.access_token || null;
+    } catch {
+      return null;
+    }
+  }
+
   async logout() {
+    const userId = this.currentUserSubject.value?.id;
+    if (userId && typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.removeItem(`cart_${userId}`);
+        localStorage.removeItem(`wishlist_${userId}`);
+      } catch (_) {}
+    }
+
     try {
       await this.supabaseService.supabase.auth.signOut();
     } catch (e) {

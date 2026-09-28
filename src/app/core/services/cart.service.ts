@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { CartItem, CartSummary } from '../models/cart.model';
 import { Product, SizeOption } from '../models/product.model';
+import { AuthService, purgeLegacyStorage } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
-const CART_STORAGE_KEY = 'petals_ethnic_cart_v1';
 const FREE_SHIPPING_THRESHOLD = 1499;
 const STANDARD_SHIPPING_FEE = 99;
 
@@ -17,49 +18,142 @@ export class CartService {
   private cartSummarySubject = new BehaviorSubject<CartSummary>({
     items: [],
     subtotal: 0,
-    shipping: STANDARD_SHIPPING_FEE,
+    shipping: 0,
     discount: 0,
-    grandTotal: STANDARD_SHIPPING_FEE,
+    grandTotal: 0,
     totalQuantity: 0
   });
   public cartSummary$: Observable<CartSummary> = this.cartSummarySubject.asObservable();
 
-  constructor() {
-    this.loadCartFromStorage();
+  private currentUserId: string | null = null;
+  private isSyncingBackend = false;
+
+  constructor(
+    private authService: AuthService,
+    private supabaseService: SupabaseService
+  ) {
+    // Purge any stale legacy global storage keys from previous implementations
+    purgeLegacyStorage();
+
+    // Subscribe to authentication state to enforce strict user isolation
+    this.authService.currentUser$.subscribe(async (user) => {
+      if (user) {
+        const newUserId = user.id;
+        if (this.currentUserId !== newUserId) {
+          this.currentUserId = newUserId;
+          await this.loadCartForUser(newUserId);
+        }
+      } else {
+        // User is logged out / guest
+        const prevUserId = this.currentUserId;
+        this.currentUserId = null;
+        if (prevUserId && typeof window !== 'undefined' && window.localStorage) {
+          try {
+            localStorage.removeItem(`cart_${prevUserId}`);
+          } catch (_) {}
+        }
+        // Cart must start completely empty for unauthenticated users
+        this.cartItemsSubject.next([]);
+        this.calculateSummary([]);
+      }
+    });
   }
 
-  private loadCartFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
-      if (stored) {
-        const items: CartItem[] = JSON.parse(stored);
-        this.cartItemsSubject.next(items);
-        this.calculateSummary(items);
+  private getUserStorageKey(userId: string): string {
+    return `cart_${userId}`;
+  }
+
+  private async loadCartForUser(userId: string): Promise<void> {
+    // 1. First, check user-specific storage for fast initial display
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const stored = localStorage.getItem(this.getUserStorageKey(userId));
+        if (stored) {
+          const items: CartItem[] = JSON.parse(stored);
+          if (Array.isArray(items)) {
+            this.cartItemsSubject.next(items);
+            this.calculateSummary(items);
+          }
+        }
+      } catch (e) {
+        console.warn('Error reading user-specific cart storage:', e);
       }
-    } catch (e) {
-      console.error('Error loading cart from storage:', e);
-      this.cartItemsSubject.next([]);
+    }
+
+    // 2. Fetch authoritative database cart from backend
+    try {
+      const token = await this.authService.getAccessToken();
+      if (!token) return;
+
+      const res = await fetch(`/api/cart?userId=${encodeURIComponent(userId)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.items)) {
+          // If remote database has items, or if local was empty, use backend state
+          this.cartItemsSubject.next(data.items);
+          this.calculateSummary(data.items);
+          this.saveCartToUserStorage(userId, data.items);
+        }
+      }
+    } catch (err) {
+      console.warn('Error fetching user cart from backend:', err);
     }
   }
 
-  private saveCartToStorage(items: CartItem[]): void {
+  private saveCartToUserStorage(userId: string, items: CartItem[]): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem(this.getUserStorageKey(userId), JSON.stringify(items));
+      } catch (e) {
+        console.warn('Error saving user cart to storage:', e);
+      }
+    }
+  }
+
+  private async persistCartToBackend(userId: string, items: CartItem[]): Promise<void> {
+    if (!userId || this.isSyncingBackend) return;
+    this.isSyncingBackend = true;
+
     try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+      const token = await this.authService.getAccessToken();
+      if (!token) return;
+
+      // 1. Sync through secure API with server-side authentication check
+      await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId, items })
+      });
+
+      // 2. Also sync to Supabase Auth metadata for instant client-side persistence
+      await this.supabaseService.supabase.auth.updateUser({
+        data: { cart: items }
+      });
     } catch (e) {
-      console.error('Error saving cart to storage:', e);
+      console.warn('Backend cart persistence note:', e);
+    } finally {
+      this.isSyncingBackend = false;
     }
   }
 
   private calculateSummary(items: CartItem[]): void {
     const subtotal = items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
     const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
-    
+
     let shipping = 0;
     if (items.length > 0) {
       shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
     }
     const discount = 0;
-    const grandTotal = subtotal + shipping - discount;
+    const grandTotal = items.length > 0 ? (subtotal + shipping - discount) : 0;
 
     const summary: CartSummary = {
       items,
@@ -125,8 +219,12 @@ export class CartService {
     }
 
     this.cartItemsSubject.next(items);
-    this.saveCartToStorage(items);
     this.calculateSummary(items);
+
+    if (this.currentUserId) {
+      this.saveCartToUserStorage(this.currentUserId, items);
+      this.persistCartToBackend(this.currentUserId, items);
+    }
   }
 
   public updateQuantity(itemId: string, newQuantity: number): void {
@@ -147,20 +245,47 @@ export class CartService {
     target.totalPrice = target.unitPrice * target.quantity;
 
     this.cartItemsSubject.next(items);
-    this.saveCartToStorage(items);
     this.calculateSummary(items);
+
+    if (this.currentUserId) {
+      this.saveCartToUserStorage(this.currentUserId, items);
+      this.persistCartToBackend(this.currentUserId, items);
+    }
   }
 
   public removeFromCart(itemId: string): void {
     const items = this.currentItems.filter(i => i.id !== itemId);
     this.cartItemsSubject.next(items);
-    this.saveCartToStorage(items);
     this.calculateSummary(items);
+
+    if (this.currentUserId) {
+      this.saveCartToUserStorage(this.currentUserId, items);
+      this.persistCartToBackend(this.currentUserId, items);
+    }
   }
 
   public clearCart(): void {
     this.cartItemsSubject.next([]);
-    localStorage.removeItem(CART_STORAGE_KEY);
+    this.calculateSummary([]);
+
+    if (this.currentUserId) {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.removeItem(this.getUserStorageKey(this.currentUserId));
+        } catch (_) {}
+      }
+      this.persistCartToBackend(this.currentUserId, []);
+    }
+  }
+
+  public clearStateOnLogout(): void {
+    if (this.currentUserId && typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.removeItem(this.getUserStorageKey(this.currentUserId));
+      } catch (_) {}
+    }
+    this.currentUserId = null;
+    this.cartItemsSubject.next([]);
     this.calculateSummary([]);
   }
 }

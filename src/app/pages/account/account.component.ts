@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { OrderService } from '../../core/services/order.service';
+import { SeoService } from '../../core/services/seo.service';
 import { UserProfile } from '../../core/models/user.model';
 import { Order } from '../../core/models/order.model';
 import { handleImageError } from '../../core/utils/image.utils';
@@ -125,7 +126,7 @@ import { handleImageError } from '../../core/utils/image.utils';
     <ng-template #noOrders>
       <div class="no-orders-box">
         <h3>No Orders Placed Yet</h3>
-        <p>You haven't placed any orders with Petal Ethnics & Jewellers yet.</p>
+        <p>You haven't placed any orders with Petals Ethnics and Jewellers yet.</p>
         <a routerLink="/shop" class="btn-primary">Explore Shop</a>
       </div>
     </ng-template>
@@ -364,10 +365,12 @@ export class AccountComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private orderService: OrderService,
+    private seoService: SeoService,
     private router: Router
   ) {}
 
   async ngOnInit() {
+    this.seoService.setNoIndex('My Account | Petals Ethnics and Jewellers');
     const user = this.authService.currentUser;
     if (!user) {
       this.router.navigate(['/login']);

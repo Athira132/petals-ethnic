@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Category, DepartmentType } from '../../core/models/category.model';
 import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
@@ -14,7 +15,7 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image
       <!-- Hero Banner -->
       <div class="discovery-hero">
         <div class="container hero-container">
-          <span class="hero-subtitle">PETAL ETHNICS & JEWELLERS</span>
+          <span class="hero-subtitle">PETALS ETHNICS AND JEWELLERS</span>
           <h1 class="hero-title">Explore Collections</h1>
           <p class="hero-desc">Discover our curated collections of artisanal ethnic couture and timeless handcrafted jewellery.</p>
         </div>
@@ -449,9 +450,17 @@ export class CategoryDiscoveryComponent implements OnInit {
   readonly defaultEthnicImage = 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png';
   readonly defaultJewelleryImage = 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png';
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private seoService: SeoService
+  ) {}
 
   async ngOnInit() {
+    this.seoService.setPageSeo(
+      'Explore Collections | Petals Ethnics and Jewellers',
+      'Explore collections of handcrafted Indian ethnic wear and curated traditional jewellery at Petals Ethnics and Jewellers. Kurtis, Sarees, Anarkalis, Necklaces, and Bangles.',
+      '/categories'
+    );
     await this.loadCategories();
   }
 

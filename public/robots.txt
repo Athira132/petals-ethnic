@@ -1,0 +1,28 @@
+# Robots.txt for Petals Ethnics and Jewellers
+# https://www.petalsethnic.com
+
+User-agent: *
+Allow: /
+Allow: /ethnics
+Allow: /jewellery
+Allow: /categories
+Allow: /product/
+Allow: /about
+Allow: /contact
+Allow: /images/
+
+# Disallow private user flows, checkout, auth, and admin dashboards
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /checkout
+Disallow: /account
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://www.petalsethnic.com/sitemap.xml

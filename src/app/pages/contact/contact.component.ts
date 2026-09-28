@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-contact',
@@ -26,7 +27,7 @@ import { FormsModule } from '@angular/forms';
             </div>
             <h3>WhatsApp Helpline</h3>
             <p>Connect with our fashion stylists directly on WhatsApp.</p>
-            <a href="https://wa.me/918113899319?text=Hello%20Petal%20Ethnics%20%26%20Jewellers,%20I%20have%20an%20inquiry." target="_blank" class="contact-link">+91 81138 99319</a>
+            <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnics%20and%20Jewellers,%20I%20have%20an%20inquiry." target="_blank" class="contact-link">+91 81138 99319</a>
           </div>
 
           <div class="contact-card">
@@ -145,12 +146,22 @@ import { FormsModule } from '@angular/forms';
     }
   `]
 })
-export class ContactComponent {
+export class ContactComponent implements OnInit {
   name = '';
   email = '';
   phone = '';
   message = '';
   isSubmitting = false;
+
+  constructor(private seoService: SeoService) {}
+
+  ngOnInit() {
+    this.seoService.setPageSeo(
+      'Contact Us | Petals Ethnics and Jewellers',
+      'Contact Petals Ethnics and Jewellers in Kerala, India for product sizing, bridal orders, jewellery enquiries, and customer support. WhatsApp: +91 8113899319, Email: petalsethnic@gmail.com.',
+      '/contact'
+    );
+  }
 
   sendMessage() {
     if (!this.name || !this.email || !this.message) {

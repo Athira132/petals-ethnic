@@ -15,7 +15,17 @@ export const routes: Routes = [
     data: { department: 'ethnic' } 
   },
   { 
+    path: 'ethnics/:category', 
+    loadComponent: () => import('./pages/shop/shop.component').then(m => m.ShopComponent),
+    data: { department: 'ethnic' } 
+  },
+  { 
     path: 'jewellery', 
+    loadComponent: () => import('./pages/shop/shop.component').then(m => m.ShopComponent),
+    data: { department: 'jewellery' } 
+  },
+  { 
+    path: 'jewellery/:category', 
     loadComponent: () => import('./pages/shop/shop.component').then(m => m.ShopComponent),
     data: { department: 'jewellery' } 
   },

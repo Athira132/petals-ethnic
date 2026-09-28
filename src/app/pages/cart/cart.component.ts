@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
+import { SeoService } from '../../core/services/seo.service';
 import { CartItem, CartSummary } from '../../core/models/cart.model';
 import { Observable } from 'rxjs';
 import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
@@ -386,14 +387,19 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
     }
   `]
 })
-export class CartComponent {
+export class CartComponent implements OnInit {
   cartSummary$: Observable<CartSummary>;
 
   constructor(
     private cartService: CartService,
+    private seoService: SeoService,
     private router: Router
   ) {
     this.cartSummary$ = this.cartService.cartSummary$;
+  }
+
+  ngOnInit() {
+    this.seoService.setNoIndex('Shopping Bag | Petals Ethnics and Jewellers');
   }
 
   getItemImage(item: CartItem): string {

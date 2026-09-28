@@ -13,10 +13,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
         <!-- Brand Column -->
         <div class="footer-col brand-col">
           <div class="footer-brand">
-            <a routerLink="/" class="footer-logo-link" title="Petal Ethnics & Jewellers">
+            <a routerLink="/" class="footer-logo-link" title="Petals Ethnics and Jewellers">
               <img 
                 src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
-                alt="Petal Ethnics & Jewellers" 
+                alt="Petals Ethnics and Jewellers" 
                 class="footer-logo-img" 
                 (error)="onImageError($event)" 
               />
@@ -82,7 +82,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       <!-- Bottom Bar -->
       <div class="footer-bottom">
         <div class="container footer-bottom-content">
-          <p>© 2026 Petal Ethnics & Jewellers. All Rights Reserved.</p>
+          <p>© 2026 Petals Ethnics and Jewellers. All Rights Reserved.</p>
         </div>
       </div>
     </footer>

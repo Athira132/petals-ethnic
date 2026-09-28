@@ -9,13 +9,16 @@ import { handleImageError } from '../../../core/utils/image.utils';
   imports: [CommonModule, RouterModule],
   template: `
     <section class="hero-slider-section" (mouseenter)="pauseDesktopSlider()" (mouseleave)="resumeDesktopSlider()">
+      <!-- Primary Semantic H1 for Homepage SEO (Accessible and visually non-obtrusive) -->
+      <h1 class="hero-sr-heading">Petals Ethnics and Jewellers | Ethnic Wear &amp; Jewellery</h1>
+
       <!-- Desktop Hero Slider (Screen > 768px ONLY - Unchanged) -->
       <div class="hero-slider-track desktop-hero-track">
         <!-- Desktop Slide 1 (Current Master Hero - Eager Loaded) -->
         <div class="hero-slide desktop-hero-slide" [class.active]="currentDesktopSlide === 0">
           <img 
             src="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" 
-            alt="Petal Ethnics & Jewellers Couture Collection" 
+            alt="Petals Ethnics and Jewellers | Handcrafted Ethnic Wear & Jewellery" 
             class="hero-img desktop-hero-img"
             fetchpriority="high"
             loading="eager"
@@ -28,7 +31,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
         <div class="hero-slide desktop-hero-slide" [class.active]="currentDesktopSlide === 1">
           <img 
             src="https://i.ibb.co/Z1McJ1Nz/Gemini-Generated-Image-vabke2vabke2vabk-2.png" 
-            alt="Petal Ethnics & Jewellers Festive Season" 
+            alt="Petals Ethnics and Jewellers Festive Indian Wear & Jewellery" 
             class="hero-img desktop-hero-img"
             loading="lazy"
             decoding="async"
@@ -50,10 +53,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
       </div>
 
       <!-- Mobile Hero Banner (Screen <= 768px ONLY - Controlled center-top framing showing complete products) -->
-      <div class="mobile-hero-container" role="banner" aria-label="Petals Ethnics & Jewellers Mobile Collection">
+      <div class="mobile-hero-container" role="banner" aria-label="Petals Ethnics and Jewellers Mobile Collection">
         <img 
           src="https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png" 
-          alt="Petals Ethnics & Jewellers" 
+          alt="Petals Ethnics and Jewellers | Ethnic Wear & Jewellery Collection" 
           class="mobile-hero-img"
           fetchpriority="high"
           loading="eager"
@@ -76,6 +79,18 @@ import { handleImageError } from '../../../core/utils/image.utils';
     </section>
   `,
   styles: [`
+    .hero-sr-heading {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     .hero-slider-section {
       position: relative;
       width: 100%;

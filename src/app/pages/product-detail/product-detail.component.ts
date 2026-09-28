@@ -7,6 +7,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { WishlistService } from '../../core/services/wishlist.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Product, ProductImage, SizeOption, ColorVariant } from '../../core/models/product.model';
 import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageItem, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
@@ -40,7 +41,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               <img 
                 *ngIf="activeImageUrl"
                 [src]="activeImageUrl" 
-                [alt]="product.name" 
+                [alt]="product.name + ' - ' + (product.category?.name || 'Ethnic Wear') + ' | Petals Ethnics and Jewellers'" 
                 class="pd-main-img full-res-img"
                 [class.loaded]="isMainLoaded"
                 loading="eager"
@@ -64,7 +65,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               >
                 <img 
                   [src]="img.image_url" 
-                  [alt]="product.name" 
+                  [alt]="product.name + ' - View ' + img.display_order + ' | Petals Ethnics and Jewellers'" 
                   class="thumb-img" 
                   loading="lazy"
                   decoding="async"
@@ -1136,6 +1137,7 @@ export class ProductDetailComponent implements OnInit {
     private productService: ProductService,
     private cartService: CartService,
     private wishlistService: WishlistService,
+    private seoService: SeoService,
     private cdr: ChangeDetectorRef,
     private sanitizer: DomSanitizer
   ) {}
@@ -1167,6 +1169,7 @@ export class ProductDetailComponent implements OnInit {
     }
 
     this.product = targetProduct;
+    this.seoService.setProductSeo(this.product);
     this.activeVideoUrl = this.product.video_url || null;
 
     // Load Colors
@@ -1318,11 +1321,11 @@ export class ProductDetailComponent implements OnInit {
 
   get whatsAppEnquiryUrl(): string {
     if (!this.product) return 'https://wa.me/918113899319';
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://petalethnics.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.petalsethnic.com';
     const colorText = this.selectedColor ? ` | Color: ${this.selectedColor}` : '';
     const sizeText = (this.product.has_size !== false && this.selectedSize) ? ` | Size: ${this.selectedSize}` : '';
     const text = encodeURIComponent(
-      `Hello Petal Ethnics & Jewellers! I am interested in enquiry for:\n*${this.product.name}* (Price: ₹${this.product.sale_price || this.product.price}${colorText}${sizeText})\nProduct Link: ${origin}/product/${this.product.slug}`
+      `Hello Petals Ethnics and Jewellers! I am interested in enquiry for:\n*${this.product.name}* (Price: ₹${this.product.sale_price || this.product.price}${colorText}${sizeText})\nProduct Link: ${origin}/product/${this.product.slug}`
     );
     return `https://wa.me/918113899319?text=${text}`;
   }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-register',
@@ -13,10 +14,10 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="auth-card">
         <div class="auth-header">
           <div class="auth-logo-wrapper">
-            <img src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
+            <img src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" alt="Petals Ethnics and Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Create Account</h1>
-          <p class="auth-subtitle">Join Petal Ethnics & Jewellers to enjoy fast checkouts, track orders, and receive exclusive offers.</p>
+          <p class="auth-subtitle">Join Petals Ethnics and Jewellers to enjoy fast checkouts, track orders, and receive exclusive offers.</p>
         </div>
 
         <div *ngIf="successMessage" class="auth-alert success">
@@ -173,10 +174,12 @@ export class RegisterComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private seoService: SeoService
   ) {}
 
   ngOnInit() {
+    this.seoService.setNoIndex('Create Account | Petals Ethnics and Jewellers');
     this.redirectUrl = this.route.snapshot.queryParams['redirect'] || '/account';
   }
 

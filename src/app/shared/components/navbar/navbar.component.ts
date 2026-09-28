@@ -25,10 +25,10 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
         <!-- Left Side: Logo Only -->
         <div class="nav-left">
           <!-- Provided Logo on the LEFT (Clean, visible, aspect ratio preserved) -->
-          <a routerLink="/" class="navbar-logo-link" title="Petals Ethnics & Jewellers">
+          <a routerLink="/" class="navbar-logo-link" title="Petals Ethnics and Jewellers">
             <img 
               src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
-              alt="Petals Ethnics & Jewellers" 
+              alt="Petals Ethnics and Jewellers" 
               class="navbar-logo-img"
               (error)="onImageError($event)"
             />
@@ -172,7 +172,7 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
         <a routerLink="/" (click)="toggleMobileMenu()" class="drawer-logo-wrap">
           <img 
             src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
-            alt="Petals Ethnics & Jewellers" 
+            alt="Petals Ethnics and Jewellers" 
             class="drawer-logo-img"
             (error)="onImageError($event)"
           />

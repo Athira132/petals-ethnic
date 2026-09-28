@@ -5,6 +5,7 @@ import { HeroCarouselComponent } from '../../shared/components/hero-carousel/her
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Product, SizeOption } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
 import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.utils';
@@ -44,7 +45,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
                 <div class="category-circle-avatar">
                   <img 
                     [src]="getCategoryCover(cat)" 
-                    [alt]="cat.name" 
+                    [alt]="cat.name + ' - Petals Ethnics and Jewellers'" 
                     class="circle-img"
                     loading="lazy"
                     decoding="async"
@@ -121,7 +122,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
               <div class="story-image-frame">
                 <img 
                   [src]="getOptimizedUrl('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg', 600)" 
-                  alt="Petal Ethnics & Jewellers Craftsmanship" 
+                  alt="Petals Ethnics and Jewellers Craftsmanship" 
                   class="story-img" 
                   loading="lazy"
                   (error)="onImageError($event)"
@@ -137,7 +138,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
               <span class="section-subtitle">OUR HERITAGE</span>
               <h2 class="story-title">Crafting Timeless Ethnic Elegance & Exquisite Jewellery</h2>
               <p class="story-paragraph">
-                At Petal Ethnics & Jewellers, every creation is a homage to rich Indian textiles, intricate craftsmanship, and curated jewellery designs. Based in Kerala, we hand-curate premium silk sarees, festive Anarkalis, floral kurtis, co-ord sets, and statement jewellery designed to make every occasion memorable.
+                At Petals Ethnics and Jewellers, every creation is a homage to rich Indian textiles, intricate craftsmanship, and curated jewellery designs. Based in Kerala, we hand-curate premium silk sarees, festive Anarkalis, floral kurtis, co-ord sets, and statement jewellery designed to make every occasion memorable.
               </p>
               <p class="story-paragraph">
                 We believe ethnic wear and jewellery should feel effortless, luxurious, and deeply authentic. Experience fabrics that breathe and jewels that shine.
@@ -161,25 +162,25 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
           
           <div class="instagram-grid">
             <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg', 300)" alt="Petal Ethnics & Jewellers Instagram" loading="lazy" (error)="onImageError($event)" />
+              <img [src]="getOptimizedUrl('https://i.ibb.co/7tQbhHpZ/Whats-App-Image-2026-08-13-at-12-31-11-PM-2.jpg', 300)" alt="Petals Ethnics and Jewellers Instagram" loading="lazy" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
               </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg', 300)" alt="Petals Ethnic Instagram" loading="lazy" (error)="onImageError($event)" />
+              <img [src]="getOptimizedUrl('https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg', 300)" alt="Petals Ethnics and Jewellers Instagram" loading="lazy" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
               </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg', 300)" alt="Petals Ethnic Instagram" loading="lazy" (error)="onImageError($event)" />
+              <img [src]="getOptimizedUrl('https://i.ibb.co/7d3T6dxp/Whats-App-Image-2026-08-13-at-12-31-11-PM-1.jpg', 300)" alt="Petals Ethnics and Jewellers Instagram" loading="lazy" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
               </div>
             </a>
             <a href="https://www.instagram.com/petalsethnic" target="_blank" class="insta-item">
-              <img [src]="getOptimizedUrl('https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png', 300)" alt="Petals Ethnic Instagram" loading="lazy" (error)="onImageError($event)" />
+              <img [src]="getOptimizedUrl('https://i.ibb.co/G4bg5wKQ/379a42c6-1c91-404e-8fb6-d04a4689c4a2.png', 300)" alt="Petals Ethnics and Jewellers Instagram" loading="lazy" (error)="onImageError($event)" />
               <div class="insta-overlay">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
               </div>
@@ -877,10 +878,14 @@ export class HomeComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private cartService: CartService,
+    private seoService: SeoService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    // 0. Set Home SEO Metadata (Title, OpenGraph, Schema, Canonical)
+    this.seoService.setHomeSeo();
+
     // 1. Instant paint from sync/session cache if already available (0ms!)
     const syncCats = this.productService.getCachedCategoriesSync();
     if (syncCats && syncCats.length > 0) {

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { handleImageError } from '../../core/utils/image.utils';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-about',
@@ -13,7 +14,7 @@ import { handleImageError } from '../../core/utils/image.utils';
       <div class="about-header-banner">
         <div class="container">
           <span class="about-tag">AUTHENTIC BOUTIQUE HERITAGE</span>
-          <h1 class="about-header-title">About Petal Ethnics & Jewellers</h1>
+          <h1 class="about-header-title">About Petals Ethnics and Jewellers</h1>
           <p class="about-header-subtitle">Celebrating Indian craftsmanship, soft watercolor florals, and timeless ethnic drapes.</p>
         </div>
       </div>
@@ -26,12 +27,12 @@ import { handleImageError } from '../../core/utils/image.utils';
             <div class="about-photo-frame">
               <img 
                 src="https://i.ibb.co/7N2bJC2X/Whats-App-Image-2026-08-13-at-12-31-10-PM-1.jpg" 
-                alt="Petal Ethnics & Jewellers Heritage" 
+                alt="Petals Ethnics and Jewellers Heritage" 
                 class="about-photo-img" 
-                (error)="onImageError($event)"
+                (error)="onImageError($event)" 
               />
               <div class="photo-badge">
-                <span>PETAL ETHNICS & JEWELLERS</span>
+                <span>PETALS ETHNICS AND JEWELLERS</span>
               </div>
             </div>
 
@@ -41,7 +42,7 @@ import { handleImageError } from '../../core/utils/image.utils';
               <h2 class="about-heading">Crafting Timeless Ethnic Elegance & Exquisite Jewellery</h2>
               
               <p class="about-lead">
-                Welcome to Petal Ethnics & Jewellers! Step up your style with our latest collection of handcrafted Kurtis, Anarkalis, Sarees, Co-ord Sets, Midi Dresses, and curated designer jewellery tailored for perfection.
+                Welcome to Petals Ethnics and Jewellers! Step up your style with our latest collection of handcrafted Kurtis, Anarkalis, Sarees, Co-ord Sets, Midi Dresses, and curated designer jewellery tailored for perfection.
               </p>
 
               <p class="about-body-text">
@@ -54,7 +55,7 @@ import { handleImageError } from '../../core/utils/image.utils';
 
               <div class="about-cta-group">
                 <a routerLink="/ethnics" class="btn-primary">Explore Our Collection &rarr;</a>
-                <a href="https://wa.me/918113899319?text=Hello%20Petal%20Ethnics%20%26%20Jewellers,%20I%20would%20like%20to%20know%20more%20about%20your%20collection." target="_blank" rel="noopener" class="btn-outline">Styling Advice on WhatsApp</a>
+                <a href="https://wa.me/918113899319?text=Hello%20Petals%20Ethnics%20and%20Jewellers,%20I%20would%20like%20to%20know%20more%20about%20your%20collection." target="_blank" rel="noopener" class="btn-outline">Styling Advice on WhatsApp</a>
               </div>
             </div>
           </div>
@@ -66,7 +67,7 @@ import { handleImageError } from '../../core/utils/image.utils';
         <div class="container">
           <div class="section-header text-center">
             <span class="section-subtitle">WHY CHOOSE US</span>
-            <h2 class="section-title">The Petals Ethnic Promise</h2>
+            <h2 class="section-title">The Petals Ethnics and Jewellers Promise</h2>
             <p class="section-desc">Our commitment to quality, authenticity, and personalized boutique care.</p>
           </div>
 
@@ -276,7 +277,17 @@ import { handleImageError } from '../../core/utils/image.utils';
     }
   `]
 })
-export class AboutComponent {
+export class AboutComponent implements OnInit {
+  constructor(private seoService: SeoService) {}
+
+  ngOnInit() {
+    this.seoService.setPageSeo(
+      'About Us | Petals Ethnics and Jewellers',
+      'Discover the story behind Petals Ethnics and Jewellers. Handcrafted ethnic wear, silk sarees, designer kurtis, and timeless Indian jewellery based in Kerala, India.',
+      '/about'
+    );
+  }
+
   onImageError(event: Event) {
     handleImageError(event);
   }

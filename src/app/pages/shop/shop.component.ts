@@ -6,6 +6,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { ProductService, ProductFilterOptions } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Product, SizeOption } from '../../core/models/product.model';
 import { Category, DepartmentType } from '../../core/models/category.model';
 import { handleImageError } from '../../core/utils/image.utils';
@@ -73,7 +74,7 @@ import { handleImageError } from '../../core/utils/image.utils';
               <div class="mini-card-img-wrap">
                 <img 
                   [src]="cat.image_url || defaultCardImage" 
-                  [alt]="cat.name" 
+                  [alt]="cat.name + ' - Petals Ethnics and Jewellers'" 
                   class="mini-card-img" 
                   loading="lazy"
                   decoding="async"
@@ -691,6 +692,7 @@ export class ShopComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private cartService: CartService,
+    private seoService: SeoService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -708,16 +710,28 @@ export class ShopComponent implements OnInit, OnDestroy {
           this.currentDepartment = 'ethnic';
         }
       }
+      this.updateSeo();
     });
 
-    // 2. React to query parameters
+    // 2. React to path parameters (e.g. /ethnics/:category)
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      if (params['category']) {
+        this.selectedCategorySlug = params['category'];
+        this.updateSeo();
+      }
+    });
+
+    // 3. React to query parameters
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(async params => {
-      this.selectedCategorySlug = params['category'] || '';
+      if (params['category'] !== undefined) {
+        this.selectedCategorySlug = params['category'] || '';
+      }
       this.searchQuery = params['search'] || '';
       this.selectedSize = (params['size'] as SizeOption) || '';
       
       this.trySyncCachedProducts();
       await this.loadInitialData();
+      this.updateSeo();
     });
   }
 
@@ -732,8 +746,8 @@ export class ShopComponent implements OnInit, OnDestroy {
 
   get heroTagline(): string {
     return this.currentDepartment === 'jewellery' 
-      ? 'PETAL JEWELLERS • EXQUISITE DESIGNS' 
-      : 'PETAL ETHNICS • ARTISANAL BOUTIQUE';
+      ? 'PETALS ETHNICS AND JEWELLERS • EXQUISITE DESIGNS' 
+      : 'PETALS ETHNICS AND JEWELLERS • ARTISANAL BOUTIQUE';
   }
 
   get activeCategoryName(): string {
@@ -773,7 +787,19 @@ export class ShopComponent implements OnInit, OnDestroy {
       queryParams: { category: slug || null },
       queryParamsHandling: 'merge'
     });
+    this.updateSeo();
     this.onFilterChange();
+  }
+
+  private updateSeo() {
+    if (this.selectedCategorySlug && this.displayedCategories.length > 0) {
+      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
+      if (found) {
+        this.seoService.setCategorySeo(found, this.currentDepartment);
+        return;
+      }
+    }
+    this.seoService.setDepartmentSeo(this.currentDepartment);
   }
 
   private trySyncCachedProducts() {

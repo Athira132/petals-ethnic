@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -13,7 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="auth-card">
         <div class="auth-header">
           <div class="logo-circle-wrapper">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
+            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnics and Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Reset Password</h1>
           <p class="auth-subtitle">Enter your registered email address to receive password reset instructions.</p>
@@ -132,13 +133,20 @@ import { AuthService } from '../../core/services/auth.service';
     }
   `]
 })
-export class ForgotPasswordComponent {
+export class ForgotPasswordComponent implements OnInit {
   email = '';
   isLoading = false;
   successMessage = '';
   errorMessage = '';
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private seoService: SeoService
+  ) {}
+
+  ngOnInit() {
+    this.seoService.setNoIndex('Reset Password | Petals Ethnics and Jewellers');
+  }
 
   async onSubmit() {
     if (!this.email) {

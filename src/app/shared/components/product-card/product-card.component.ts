@@ -22,7 +22,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
           <img 
             #fullImg
             [src]="primaryImageUrl" 
-            [alt]="product.name" 
+            [alt]="product.name + ' - ' + (product.category?.name || 'Ethnic Wear') + ' | Petals Ethnics and Jewellers'" 
             class="product-img full-res-img"
             [class.loaded]="isFullLoaded"
             [attr.loading]="priority ? 'eager' : 'lazy'"
@@ -38,7 +38,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
           <img 
             *ngIf="showHoverImage && secondaryImageUrl" 
             [src]="secondaryImageUrl" 
-            [alt]="product.name" 
+            [alt]="product.name + ' - Alternate View | Petals Ethnics and Jewellers'" 
             class="product-img hover-img" 
             loading="lazy"
             decoding="async"
@@ -485,9 +485,9 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   get whatsAppEnquiryUrl(): string {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://petalsethnic.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.petalsethnic.com';
     const text = encodeURIComponent(
-      `Hello Petal Ethnics & Jewellers! I would like to enquire about: *${this.product.name}* (Price: ₹${this.product.sale_price || this.product.price}).\nProduct Link: ${origin}/product/${this.product.slug}`
+      `Hello Petals Ethnics and Jewellers! I would like to enquire about: *${this.product.name}* (Price: ₹${this.product.sale_price || this.product.price}).\nProduct Link: ${origin}/product/${this.product.slug}`
     );
     return `https://wa.me/918113899319?text=${text}`;
   }

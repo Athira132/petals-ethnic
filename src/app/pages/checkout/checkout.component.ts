@@ -6,6 +6,7 @@ import { CartService } from '../../core/services/cart.service';
 import { AuthService } from '../../core/services/auth.service';
 import { OrderService } from '../../core/services/order.service';
 import { PaymentService } from '../../core/services/payment.service';
+import { SeoService } from '../../core/services/seo.service';
 import { CartSummary } from '../../core/models/cart.model';
 import { UserProfile } from '../../core/models/user.model';
 import { Order } from '../../core/models/order.model';
@@ -209,7 +210,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
               </button>
 
               <p class="terms-text">
-                By placing an order, you agree to Petal Ethnics & Jewellers terms and shipping policies.
+                By placing an order, you agree to Petals Ethnics and Jewellers terms and shipping policies.
               </p>
             </div>
           </div>
@@ -229,7 +230,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
         <h2>Order Confirmed!</h2>
         <p class="order-no">Order Reference: <strong>{{ completedOrder.order_number }}</strong></p>
         <p class="success-desc">
-          Thank you for shopping with Petal Ethnics & Jewellers! We have received your order and payment.
+          Thank you for shopping with Petals Ethnics and Jewellers! We have received your order and payment.
         </p>
 
         <div class="order-details-mini">
@@ -613,10 +614,12 @@ export class CheckoutComponent implements OnInit {
     private authService: AuthService,
     private orderService: OrderService,
     private paymentService: PaymentService,
+    private seoService: SeoService,
     private router: Router
   ) {}
 
   ngOnInit() {
+    this.seoService.setNoIndex('Checkout | Petals Ethnics and Jewellers');
     this.summary = this.cartService.currentSummary;
     this.userProfile = this.authService.userProfile;
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-login',
@@ -13,10 +14,10 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="auth-card">
         <div class="auth-header">
           <div class="auth-logo-wrapper">
-            <img src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" alt="Petal Ethnics & Jewellers Logo" class="auth-logo" />
+            <img src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" alt="Petals Ethnics and Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Welcome Back</h1>
-          <p class="auth-subtitle">Log in to your Petal Ethnics & Jewellers account to manage orders, catalog, and profile.</p>
+          <p class="auth-subtitle">Log in to your Petals Ethnics and Jewellers account to manage orders, catalog, and profile.</p>
         </div>
 
         <div *ngIf="errorMessage" class="auth-alert error" role="alert">
@@ -176,10 +177,12 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
+    private seoService: SeoService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    this.seoService.setNoIndex('Log In | Petals Ethnics and Jewellers');
     this.redirectUrl = this.route.snapshot.queryParams['redirect'] || '';
   }
 

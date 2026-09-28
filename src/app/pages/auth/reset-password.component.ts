@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-reset-password',
@@ -14,10 +15,10 @@ import { SupabaseService } from '../../core/services/supabase.service';
       <div class="auth-card">
         <div class="auth-header">
           <div class="logo-circle-wrapper">
-            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnic Logo" class="auth-logo" />
+            <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Petals Ethnics and Jewellers Logo" class="auth-logo" />
           </div>
           <h1 class="auth-title">Update Password</h1>
-          <p class="auth-subtitle">Enter your new password to update your Petals Ethnic account.</p>
+          <p class="auth-subtitle">Enter your new password to update your Petals Ethnics and Jewellers account.</p>
         </div>
 
         <div *ngIf="successMessage" class="auth-alert success">
@@ -156,10 +157,12 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private supabaseService: SupabaseService,
+    private seoService: SeoService,
     private router: Router
   ) {}
 
   async ngOnInit() {
+    this.seoService.setNoIndex('Update Password | Petals Ethnics and Jewellers');
     // Check current auth session
     const { data: { session } } = await this.supabaseService.supabase.auth.getSession();
 

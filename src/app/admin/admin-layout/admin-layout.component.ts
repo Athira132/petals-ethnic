@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -17,7 +18,7 @@ import { AuthService } from '../../core/services/auth.service';
               <img src="https://i.ibb.co/KjcmQcmy/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg" alt="Logo" />
             </div>
             <div class="logo-text">
-              <strong>PETAL ETHNICS & JEWELLERS</strong>
+              <strong>PETALS ETHNICS AND JEWELLERS</strong>
               <span>SUPER ADMIN</span>
             </div>
           </a>
@@ -127,10 +128,18 @@ import { AuthService } from '../../core/services/auth.service';
     }
   `]
 })
-export class AdminLayoutComponent {
+export class AdminLayoutComponent implements OnInit {
   isMobileSidebarOpen = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private seoService: SeoService,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    this.seoService.setNoIndex('Admin Portal | Petals Ethnics and Jewellers');
+  }
 
   toggleMobileSidebar() {
     this.isMobileSidebarOpen = !this.isMobileSidebarOpen;

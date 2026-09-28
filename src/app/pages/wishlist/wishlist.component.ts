@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { WishlistService } from '../../core/services/wishlist.service';
 import { CartService } from '../../core/services/cart.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Product } from '../../core/models/product.model';
 import { Observable } from 'rxjs';
 import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
@@ -388,10 +389,12 @@ export class WishlistComponent implements OnInit {
   constructor(
     private wishlistService: WishlistService,
     private cartService: CartService,
+    private seoService: SeoService,
     private router: Router
   ) {}
 
   ngOnInit() {
+    this.seoService.setNoIndex('My Wishlist | Petals Ethnics and Jewellers');
     this.wishlist$ = this.wishlistService.wishlist$;
   }
 

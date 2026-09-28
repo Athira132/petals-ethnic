@@ -26,12 +26,20 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
         <div class="nav-left">
           <!-- Provided Logo on the LEFT (Clean, visible, aspect ratio preserved) -->
           <a routerLink="/" class="navbar-logo-link" title="Petals Ethnics and Jewellers">
-            <img 
-              src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
-              alt="Petals Ethnics and Jewellers" 
-              class="navbar-logo-img"
-              (error)="onImageError($event)"
-            />
+            <picture>
+              <source type="image/webp" srcset="/images/logo.webp">
+              <img 
+                src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
+                alt="Petals Ethnics and Jewellers" 
+                class="navbar-logo-img"
+                width="200"
+                height="74"
+                fetchpriority="high"
+                loading="eager"
+                decoding="async"
+                (error)="onImageError($event)"
+              />
+            </picture>
           </a>
         </div>
 
@@ -254,6 +262,9 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
       align-items: center;
       text-decoration: none;
       flex-shrink: 0;
+    }
+    .navbar-logo-link picture {
+      display: contents;
     }
     .navbar-logo-img {
       height: 74px;

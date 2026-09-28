@@ -16,8 +16,6 @@ import { purgeLegacyStorage } from './core/services/auth.service';
 })
 export class App {
   isAdminRoute = false;
-  showIntro = true;
-  introFading = false;
 
   constructor(private router: Router) {
     purgeLegacyStorage();
@@ -30,26 +28,5 @@ export class App {
         window.scrollTo(0, 0);
       }
     });
-
-    // Dismiss intro screen as soon as essential resources initialize
-    if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        this.dismissIntro();
-      }, 400);
-
-      // Safety fallback: maximum 800ms
-      setTimeout(() => {
-        this.showIntro = false;
-      }, 800);
-    }
-  }
-
-  dismissIntro() {
-    if (!this.introFading) {
-      this.introFading = true;
-      setTimeout(() => {
-        this.showIntro = false;
-      }, 250);
-    }
   }
 }

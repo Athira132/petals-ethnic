@@ -16,15 +16,20 @@ import { handleImageError } from '../../../core/utils/image.utils';
       <div class="hero-slider-track desktop-hero-track">
         <!-- Desktop Slide 1 (Current Master Hero - Eager Loaded) -->
         <div class="hero-slide desktop-hero-slide" [class.active]="currentDesktopSlide === 0">
-          <img 
-            src="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" 
-            alt="Petals Ethnics and Jewellers | Handcrafted Ethnic Wear & Jewellery" 
-            class="hero-img desktop-hero-img"
-            fetchpriority="high"
-            loading="eager"
-            decoding="async"
-            (error)="onImageError($event)"
-          />
+          <picture>
+            <source type="image/webp" srcset="/images/hero/desktop_hero_1440.webp">
+            <img 
+              src="https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png" 
+              alt="Petals Ethnics and Jewellers | Handcrafted Ethnic Wear & Jewellery" 
+              class="hero-img desktop-hero-img"
+              fetchpriority="high"
+              loading="eager"
+              decoding="async"
+              width="1440"
+              height="620"
+              (error)="onImageError($event)"
+            />
+          </picture>
         </div>
 
         <!-- Desktop Slide 2 (New Luxury Slide - Lazy Loaded) -->
@@ -35,6 +40,8 @@ import { handleImageError } from '../../../core/utils/image.utils';
             class="hero-img desktop-hero-img"
             loading="lazy"
             decoding="async"
+            width="1440"
+            height="620"
             (error)="onImageError($event)"
           />
         </div>
@@ -54,15 +61,20 @@ import { handleImageError } from '../../../core/utils/image.utils';
 
       <!-- Mobile Hero Banner (Screen <= 768px ONLY - Controlled center-top framing showing complete products) -->
       <div class="mobile-hero-container" role="banner" aria-label="Petals Ethnics and Jewellers Mobile Collection">
-        <img 
-          src="https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png" 
-          alt="Petals Ethnics and Jewellers | Ethnic Wear & Jewellery Collection" 
-          class="mobile-hero-img"
-          fetchpriority="high"
-          loading="eager"
-          decoding="async"
-          (error)="onMobileImageError($event)"
-        />
+        <picture>
+          <source type="image/webp" srcset="/images/hero/mobile_hero_480.webp 480w, /images/hero/mobile_hero_768.webp 768w" sizes="(max-width: 480px) 480px, 768px">
+          <img 
+            src="/images/hero/mobile_hero_768.webp" 
+            alt="Petals Ethnics and Jewellers | Ethnic Wear & Jewellery Collection" 
+            class="mobile-hero-img"
+            fetchpriority="high"
+            loading="eager"
+            decoding="async"
+            width="768"
+            height="840"
+            (error)="onMobileImageError($event)"
+          />
+        </picture>
 
         <!-- Mobile Hero Exploration Buttons in Clean Horizontal Row -->
         <div class="hero-cta-container mobile-hero-cta">
@@ -131,6 +143,11 @@ import { handleImageError } from '../../../core/utils/image.utils';
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
+    }
+
+    .hero-slide picture,
+    .mobile-hero-container picture {
+      display: contents;
     }
 
     .hero-img {
@@ -250,10 +267,6 @@ import { handleImageError } from '../../../core/utils/image.utils';
         max-height: clamp(350px, 58vh, 460px);
         overflow: hidden;
         background-color: #F8F6F4;
-        background-image: url('https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png');
-        background-size: 100% auto;
-        background-position: center top;
-        background-repeat: no-repeat;
       }
       .mobile-hero-img {
         position: absolute;
@@ -358,15 +371,17 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (typeof window !== 'undefined') {
-      // Synchronously pre-cache hero images into browser memory
-      const m = new Image();
-      m.src = 'https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png';
-      const d1 = new Image();
-      d1.src = 'https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png';
-      const d2 = new Image();
-      d2.src = 'https://i.ibb.co/Z1McJ1Nz/Gemini-Generated-Image-vabke2vabke2vabk-2.png';
-
-      this.startDesktopSlider();
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        const m = new Image();
+        m.src = '/images/hero/mobile_hero_768.webp';
+      } else {
+        const d1 = new Image();
+        d1.src = '/images/hero/desktop_hero_1440.webp';
+        const d2 = new Image();
+        d2.src = 'https://i.ibb.co/Z1McJ1Nz/Gemini-Generated-Image-vabke2vabke2vabk-2.png';
+        this.startDesktopSlider();
+      }
     }
   }
 
@@ -401,8 +416,8 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
 
   onMobileImageError(event: Event) {
     const target = event.target as HTMLImageElement;
-    if (target && !target.src.includes('mobile-hero.webp')) {
-      target.src = '/images/mobile-hero.webp';
+    if (target && !target.src.includes('Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png')) {
+      target.src = 'https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png';
     } else {
       handleImageError(event);
     }

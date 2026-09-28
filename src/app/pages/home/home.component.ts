@@ -75,9 +75,8 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
           <div *ngIf="!isHomeLoading; else loadingState">
             <div class="product-grid" *ngIf="newArrivals.length > 0; else emptyArrivals">
               <app-product-card 
-                *ngFor="let prod of newArrivals; let i = index; trackBy: trackByProductId" 
+                *ngFor="let prod of newArrivals; trackBy: trackByProductId" 
                 [product]="prod"
-                [priority]="i < 4"
                 (quickAdd)="onQuickAdd($event)"
               ></app-product-card>
             </div>
@@ -100,9 +99,8 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
           <div *ngIf="!isHomeLoading; else loadingState">
             <div class="product-grid" *ngIf="featuredProducts.length > 0; else emptyFeatured">
               <app-product-card 
-                *ngFor="let prod of featuredProducts; let i = index; trackBy: trackByProductId" 
+                *ngFor="let prod of featuredProducts; trackBy: trackByProductId" 
                 [product]="prod"
-                [priority]="i < 4"
                 (quickAdd)="onQuickAdd($event)"
               ></app-product-card>
             </div>
@@ -800,7 +798,7 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
   `]
 })
 export class HomeComponent implements OnInit {
-  isHomeLoading: boolean = true;
+  isHomeLoading: boolean = false;
   categories: Category[] = [];
   newArrivals: Product[] = [];
   featuredProducts: Product[] = [];
@@ -880,7 +878,18 @@ export class HomeComponent implements OnInit {
     private cartService: CartService,
     private seoService: SeoService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    const syncCats = this.productService.getCachedCategoriesSync();
+    if (syncCats && syncCats.length > 0) {
+      this.categories = syncCats;
+    }
+
+    const syncProds = this.productService.getProductsSync();
+    if (syncProds && syncProds.length > 0) {
+      this.setProducts(syncProds);
+      this.isHomeLoading = false;
+    }
+  }
 
   ngOnInit() {
     // 0. Set Home SEO Metadata (Title, OpenGraph, Schema, Canonical)

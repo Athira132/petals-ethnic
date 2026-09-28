@@ -14,12 +14,19 @@ import { handleImageError } from '../../../core/utils/image.utils';
         <div class="footer-col brand-col">
           <div class="footer-brand">
             <a routerLink="/" class="footer-logo-link" title="Petals Ethnics and Jewellers">
-              <img 
-                src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
-                alt="Petals Ethnics and Jewellers" 
-                class="footer-logo-img" 
-                (error)="onImageError($event)" 
-              />
+              <picture>
+                <source type="image/webp" srcset="/images/logo.webp">
+                <img 
+                  src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
+                  alt="Petals Ethnics and Jewellers" 
+                  class="footer-logo-img" 
+                  width="180"
+                  height="52"
+                  loading="lazy"
+                  decoding="async"
+                  (error)="onImageError($event)" 
+                />
+              </picture>
             </a>
           </div>
           <p class="footer-brand-quote">
@@ -116,6 +123,9 @@ import { handleImageError } from '../../../core/utils/image.utils';
     .footer-logo-link {
       display: inline-block;
       text-decoration: none;
+    }
+    .footer-logo-link picture {
+      display: contents;
     }
     .footer-logo-img {
       height: 52px;

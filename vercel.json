@@ -20,7 +20,7 @@
       ]
     },
     {
-      "source": "/api/(cart|wishlist|auth-register|razorpay-create|razorpay-verify|admin-order|admin-setup|admin-fix-rls)",
+      "source": "/api/(cart|wishlist|auth-register|razorpay-create|razorpay-verify|admin-order)",
       "headers": [
         {
           "key": "Cache-Control",

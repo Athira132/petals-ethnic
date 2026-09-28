@@ -400,7 +400,12 @@ import { handleImageError } from '../../core/utils/image.utils';
       font-size: 13px;
       font-weight: 600;
       color: var(--color-text-heading);
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: normal;
+      line-height: 1.25;
+      max-width: 140px;
+      text-align: left;
     }
 
     /* Main Container Layout */

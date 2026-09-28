@@ -363,6 +363,9 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image
       color: var(--color-text-heading);
       margin-bottom: 6px;
       line-height: 1.3;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: normal;
     }
     .card-desc {
       font-size: 13px;

@@ -208,10 +208,10 @@ import { handleImageError } from '../../../core/utils/image.utils';
 
     /* Mobile / Tablet Responsiveness (Screen <= 768px):
        - Exact provided image (https://ibb.co/gFHDsb4r / 1024x1536)
-       - Controlled aspect-ratio 1024 / 1440 showing 94% of image height
-       - Keeps model, clothing, jewellery, stacked fabrics & jewellery box visible immediately in first viewport
-       - Crops ONLY from bottom table shadow if needed
+       - Noticeably shorter height: cropped MORE from the bottom
+       - Top portion (model, face, hair ornaments, jewellery, saree drape, title) 100% UNCHANGED
        - Zero cropping from left, right, or top
+       - Compact framing that fits comfortably within the first mobile viewport alongside header
        - Transparent buttons with black outline in single horizontal row
     */
     @media (max-width: 768px) {
@@ -231,8 +231,8 @@ import { handleImageError } from '../../../core/utils/image.utils';
         display: block;
         position: relative;
         width: 100%;
-        aspect-ratio: 1024 / 1440;
-        max-height: calc(100svh - 60px);
+        aspect-ratio: 1024 / 1120;
+        max-height: clamp(350px, 58vh, 460px);
         overflow: hidden;
         background-color: #F8F6F4;
         background-image: url('https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png');
@@ -252,7 +252,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       }
       .mobile-hero-cta {
         position: absolute;
-        bottom: 12px;
+        bottom: 10px;
         left: 0;
         right: 0;
         z-index: 10;
@@ -300,11 +300,11 @@ import { handleImageError } from '../../../core/utils/image.utils';
 
     @media (max-width: 480px) {
       .mobile-hero-container {
-        aspect-ratio: 1024 / 1440;
-        max-height: calc(100svh - 60px);
+        aspect-ratio: 1024 / 1120;
+        max-height: clamp(330px, 56vh, 430px);
       }
       .mobile-hero-cta {
-        bottom: 10px;
+        bottom: 9px;
         padding: 0 10px;
       }
       .mobile-hero-cta .hero-buttons-row {
@@ -320,11 +320,11 @@ import { handleImageError } from '../../../core/utils/image.utils';
 
     @media (max-width: 360px) {
       .mobile-hero-container {
-        aspect-ratio: 1024 / 1440;
-        max-height: calc(100svh - 56px);
+        aspect-ratio: 1024 / 1120;
+        max-height: 350px;
       }
       .mobile-hero-cta {
-        bottom: 8px;
+        bottom: 7px;
         padding: 0 8px;
       }
       .mobile-hero-cta .hero-buttons-row {

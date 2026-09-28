@@ -22,17 +22,9 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
     <header class="navbar-header" [class.scrolled]="isScrolled">
       <div class="container navbar-container">
         
-        <!-- Left Side: Mobile Toggle + Logo Only (No text) -->
+        <!-- Left Side: Logo Only -->
         <div class="nav-left">
-          <!-- Mobile Menu Toggle Button (Left on Mobile) -->
-          <button class="mobile-toggle" (click)="toggleMobileMenu()" aria-label="Toggle Navigation">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path *ngIf="!isMobileMenuOpen" d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round" stroke-linejoin="round"/>
-              <path *ngIf="isMobileMenuOpen" d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-
-          <!-- Provided Logo on the LEFT (Clean, large, aspect ratio preserved) -->
+          <!-- Provided Logo on the LEFT (Clean, visible, aspect ratio preserved) -->
           <a routerLink="/" class="navbar-logo-link" title="Petals Ethnics & Jewellers">
             <img 
               src="https://i.ibb.co/KxVNd9hN/Untitled-design-7-removebg-preview-removebg-preview.png" 
@@ -43,7 +35,7 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
           </a>
         </div>
 
-        <!-- Right Side: All Navigation Links & Actions Clustered on the Right -->
+        <!-- Right Side: Navigation Links & Actions Clustered on the Right -->
         <div class="nav-right-cluster">
           <!-- Desktop Navigation Links: Home | Ethnics | Jewellery | About Us | Contact -->
           <nav class="desktop-nav">
@@ -54,7 +46,7 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
             <a routerLink="/contact" routerLinkActive="active" class="nav-link">Contact</a>
           </nav>
 
-          <!-- Navbar Actions: Search | Account/Admin | Wishlist | Cart -->
+          <!-- Navbar Actions: Search | Wishlist | Cart | Menu (Mobile: [Search] [Wishlist] [Cart] [Menu]) -->
           <div class="nav-actions">
             <!-- Desktop Expandable Search Input -->
             <div class="search-box desktop-only" [class.active]="isSearchOpen">
@@ -73,7 +65,7 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
               </button>
             </div>
 
-            <!-- Mobile Search Trigger Button (Only on Mobile screens <= 768px) -->
+            <!-- Mobile Search Trigger Button (Always visible on mobile header) -->
             <button (click)="toggleMobileSearch()" class="action-btn mobile-search-trigger" title="Search" aria-label="Search">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"></circle>
@@ -81,19 +73,19 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
               </svg>
             </button>
 
-            <!-- Account Link / Dropdown -->
+            <!-- Desktop-Only Account Link & Admin Badge (NOT shown in visible mobile header) -->
             <ng-container *ngIf="user$ | async as user; else guestAuth">
-              <a routerLink="/account" class="action-btn user-btn" title="My Account">
+              <a routerLink="/account" class="action-btn user-btn desktop-only" title="My Account">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
                 <span class="nav-label desktop-only">{{ (userProfile$ | async)?.name || 'Account' }}</span>
               </a>
-              <a *ngIf="isAdmin" routerLink="/admin" class="admin-badge" title="Admin Dashboard">Admin</a>
+              <a *ngIf="isAdmin" routerLink="/admin" class="admin-badge desktop-only" title="Admin Dashboard">Admin</a>
             </ng-container>
             <ng-template #guestAuth>
-              <a routerLink="/login" class="action-btn" title="Login / Register">
+              <a routerLink="/login" class="action-btn desktop-only" title="Login / Register">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
@@ -102,23 +94,31 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
               </a>
             </ng-template>
 
-            <!-- Wishlist Button (Beside Cart - DESKTOP ONLY, Hidden on Mobile View) -->
-            <a routerLink="/wishlist" routerLinkActive="active" class="action-btn wishlist-btn desktop-only" title="My Wishlist">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- Wishlist Button (Always visible on both Desktop & Mobile Header) -->
+            <a routerLink="/wishlist" routerLinkActive="active" class="action-btn wishlist-btn" title="My Wishlist" aria-label="Wishlist">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
               <span *ngIf="(wishlistCount$ | async) as wCount" class="nav-badge">{{ wCount }}</span>
             </a>
 
-            <!-- Cart Button (Visible on Both Desktop & Mobile) -->
-            <a routerLink="/cart" routerLinkActive="active" class="action-btn cart-btn" title="Shopping Cart">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- Cart Button (Always visible on both Desktop & Mobile Header) -->
+            <a routerLink="/cart" routerLinkActive="active" class="action-btn cart-btn" title="Shopping Cart" aria-label="Cart">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                 <line x1="3" y1="6" x2="21" y2="6"></line>
                 <path d="M16 10a4 4 0 0 1-8 0"></path>
               </svg>
               <span *ngIf="(cartSummary$ | async)?.totalQuantity as count" class="nav-badge">{{ count }}</span>
             </a>
+
+            <!-- Hamburger Menu Toggle Button (Rightmost on Mobile Header; Hidden on Desktop) -->
+            <button class="action-btn mobile-menu-toggle" (click)="toggleMobileMenu()" aria-label="Toggle Navigation" title="Menu">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path *ngIf="!isMobileMenuOpen" d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round" stroke-linejoin="round"/>
+                <path *ngIf="isMobileMenuOpen" d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -206,11 +206,12 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
         
         <ng-container *ngIf="user$ | async; else mobileGuest">
           <a routerLink="/account" (click)="toggleMobileMenu()" class="mobile-link highlight">My Profile & Orders</a>
-          <a *ngIf="isAdmin" routerLink="/admin" (click)="toggleMobileMenu()" class="mobile-link admin-link">Admin Dashboard</a>
+          <a routerLink="/admin" (click)="toggleMobileMenu()" class="mobile-link admin-link">Admin Dashboard</a>
           <button (click)="logout()" class="mobile-link logout-btn">Logout</button>
         </ng-container>
         <ng-template #mobileGuest>
           <a routerLink="/login" (click)="toggleMobileMenu()" class="mobile-link">Login / Register</a>
+          <a routerLink="/admin" (click)="toggleMobileMenu()" class="mobile-link admin-link">Admin</a>
         </ng-template>
       </nav>
 
@@ -541,13 +542,17 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
       font-size: 14px;
     }
 
-    .mobile-toggle {
+    .mobile-menu-toggle {
       display: none;
       color: var(--color-text-heading, #0D0D0D);
       background: transparent;
       border: none;
       cursor: pointer;
-      padding: 4px;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
     }
     .desktop-only {
       display: inline-block;
@@ -561,44 +566,92 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
       .desktop-only {
         display: none !important;
       }
-      .mobile-toggle {
-        display: block;
+      .mobile-menu-toggle {
+        display: flex;
       }
       .mobile-search-trigger {
         display: flex;
       }
       .navbar-container {
-        height: 80px;
+        height: 72px;
+        padding: 0 16px;
       }
       .nav-right-cluster {
         gap: 0;
       }
       .navbar-logo-img {
-        height: 64px;
-        max-height: 64px;
-        max-width: 240px;
+        height: 56px;
+        max-height: 56px;
+        max-width: 220px;
+      }
+      .nav-actions {
+        gap: 4px;
       }
     }
 
     @media (max-width: 480px) {
       .navbar-container {
-        height: 72px;
+        height: 60px;
         padding: 0 12px;
       }
       .navbar-logo-img {
-        height: 52px;
-        max-height: 52px;
-        max-width: 195px;
+        height: 44px;
+        max-height: 46px;
+        max-width: 145px;
       }
       .nav-left {
-        gap: 8px;
+        gap: 0;
       }
       .nav-actions {
-        gap: 4px;
+        gap: 3px;
       }
       .action-btn {
         width: 36px;
         height: 36px;
+      }
+      .nav-badge {
+        top: 1px;
+        right: 1px;
+        min-width: 15px;
+        height: 15px;
+        font-size: 9px;
+        padding: 0 2px;
+      }
+      .mobile-search-backdrop {
+        top: 60px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .navbar-container {
+        height: 56px;
+        padding: 0 8px;
+      }
+      .navbar-logo-img {
+        height: 38px;
+        max-height: 40px;
+        max-width: 125px;
+      }
+      .nav-actions {
+        gap: 2px;
+      }
+      .action-btn {
+        width: 33px;
+        height: 33px;
+      }
+      .action-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .nav-badge {
+        min-width: 14px;
+        height: 14px;
+        font-size: 8.5px;
+        top: 0;
+        right: 0;
+      }
+      .mobile-search-backdrop {
+        top: 56px;
       }
     }
 

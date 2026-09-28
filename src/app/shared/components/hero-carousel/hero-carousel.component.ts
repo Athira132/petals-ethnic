@@ -37,54 +37,40 @@ import { handleImageError } from '../../../core/utils/image.utils';
         </div>
       </div>
 
-      <!-- Mobile Hero Slider (Screen <= 768px ONLY - Fast Tap-to-Slide Track) -->
-      <div 
-        class="hero-slider-track mobile-hero-track"
-        [class.slide-0]="currentMobileSlide === 0"
-        [class.slide-1]="currentMobileSlide === 1"
-        (click)="onMobileHeroTap($event)"
-        (touchstart)="onTouchStart($event)"
-        (touchend)="onTouchEnd($event)"
-        role="button"
-        tabindex="0"
-        aria-label="Tap to view next hero image"
-      >
-        <!-- Mobile Slide 1 (Image 1 - Eager Loaded) -->
-        <div class="hero-slide mobile-hero-slide">
-          <img 
-            src="https://i.ibb.co/gMLZk8Dj/Untitled-design-13-1.png" 
-            alt="Petal Ethnics & Jewellers Mobile Collection 1" 
-            class="hero-img mobile-hero-img"
-            fetchpriority="high"
-            loading="eager"
-            decoding="async"
-            (error)="onImageError($event)"
-          />
-        </div>
-
-        <!-- Mobile Slide 2 (Image 2 - Preloaded & Eager Loaded for Instant Tap Transition) -->
-        <div class="hero-slide mobile-hero-slide">
-          <img 
-            src="https://i.ibb.co/HTkFZ2d8/Untitled-design-11.png" 
-            alt="Petal Ethnics & Jewellers Mobile Collection 2" 
-            class="hero-img mobile-hero-img"
-            fetchpriority="high"
-            loading="eager"
-            decoding="async"
-            (error)="onImageError($event)"
-          />
+      <!-- Desktop Hero Exploration Buttons in Clean Horizontal Row (Screen > 768px) -->
+      <div class="hero-cta-container desktop-hero-cta">
+        <div class="hero-buttons-row">
+          <a routerLink="/ethnics" class="btn-hero-cta btn-ethnics">
+            EXPLORE ETHNICS
+          </a>
+          <a routerLink="/jewellery" class="btn-hero-cta btn-jewellery">
+            EXPLORE JEWELLERY
+          </a>
         </div>
       </div>
 
-      <!-- Hero Exploration Buttons in Clean Horizontal Row Beside Each Other -->
-      <div class="hero-cta-container">
-        <div class="hero-buttons-row">
-          <a routerLink="/ethnics" class="btn-hero-cta btn-ethnics" (click)="$event.stopPropagation()" (touchend)="$event.stopPropagation()">
-            EXPLORE ETHNICS
-          </a>
-          <a routerLink="/jewellery" class="btn-hero-cta btn-jewellery" (click)="$event.stopPropagation()" (touchend)="$event.stopPropagation()">
-            EXPLORE JEWELLERY
-          </a>
+      <!-- Mobile Hero Banner (Screen <= 768px ONLY - Controlled center-top framing showing complete products) -->
+      <div class="mobile-hero-container" role="banner" aria-label="Petals Ethnics & Jewellers Mobile Collection">
+        <img 
+          src="https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png" 
+          alt="Petals Ethnics & Jewellers" 
+          class="mobile-hero-img"
+          fetchpriority="high"
+          loading="eager"
+          decoding="async"
+          (error)="onMobileImageError($event)"
+        />
+
+        <!-- Mobile Hero Exploration Buttons in Clean Horizontal Row -->
+        <div class="hero-cta-container mobile-hero-cta">
+          <div class="hero-buttons-row">
+            <a routerLink="/ethnics" class="btn-hero-cta btn-ethnics">
+              EXPLORE ETHNICS
+            </a>
+            <a routerLink="/jewellery" class="btn-hero-cta btn-jewellery">
+              EXPLORE JEWELLERY
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -112,9 +98,6 @@ import { handleImageError } from '../../../core/utils/image.utils';
     /* Desktop Track Visibility */
     .desktop-hero-track {
       display: block;
-    }
-    .mobile-hero-track {
-      display: none;
     }
 
     /* Desktop Cross-fade slide system */
@@ -149,7 +132,7 @@ import { handleImageError } from '../../../core/utils/image.utils';
       object-position: center 25%;
     }
 
-    /* Centered bottom container for horizontal buttons */
+    /* Desktop Centered bottom container for horizontal buttons */
     .hero-cta-container {
       position: absolute;
       bottom: 34px;
@@ -218,167 +201,151 @@ import { handleImageError } from '../../../core/utils/image.utils';
       color: #000000;
     }
 
-    /* Tablet Responsiveness */
-    @media (min-width: 481px) and (max-width: 768px) {
-      .desktop-hero-track {
-        display: none !important;
-      }
-      .mobile-hero-track {
-        display: flex !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 200%;
-        height: 100%;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: pan-y;
-        transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1);
-        will-change: transform;
-      }
-      .mobile-hero-track.slide-0 {
-        transform: translate3d(0, 0, 0);
-      }
-      .mobile-hero-track.slide-1 {
-        transform: translate3d(-50%, 0, 0);
-      }
-      .mobile-hero-slide {
-        position: relative;
-        width: 50%;
-        height: 100%;
-        flex-shrink: 0;
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto;
-      }
-      .mobile-hero-img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center 65%;
-      }
-
-      .hero-slider-section {
-        height: clamp(500px, 85vw, 650px);
-      }
-      .hero-cta-container {
-        bottom: 20px;
-        padding: 0 16px;
-      }
-      .hero-buttons-row {
-        gap: 12px;
-        flex-wrap: nowrap;
-      }
-      .btn-hero-cta {
-        min-width: 150px;
-        padding: 11px 18px;
-        font-size: 11px;
-        letter-spacing: 1px;
-      }
+    /* Mobile Hero Banner - Hidden on Desktop (> 768px) */
+    .mobile-hero-container {
+      display: none;
     }
 
-    /* Mobile Phone Responsiveness (< 481px):
-       - Exact 848/1264 portrait proportion to show the COMPLETE image (no aggressive cropping)
-       - Lower portion (bench/necklace) completely visible
-       - Fast 320ms slide on tap / touch
+    /* Mobile / Tablet Responsiveness (Screen <= 768px):
+       - Exact provided image (https://ibb.co/gFHDsb4r / 1024x1536)
+       - Controlled aspect-ratio 1024 / 1440 showing 94% of image height
+       - Keeps model, clothing, jewellery, stacked fabrics & jewellery box visible immediately in first viewport
+       - Crops ONLY from bottom table shadow if needed
+       - Zero cropping from left, right, or top
        - Transparent buttons with black outline in single horizontal row
     */
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
       .desktop-hero-track {
         display: none !important;
       }
-      .hero-slider-section {
-        height: auto;
-        aspect-ratio: 848 / 1264;
-        max-height: 84vh;
-        min-height: 480px;
-        background-color: #FAFAFA;
+      .desktop-hero-cta {
+        display: none !important;
       }
-
-      .mobile-hero-track {
-        display: flex !important;
+      .hero-slider-section {
+        height: auto !important;
+        min-height: 0 !important;
+        display: block !important;
+        background-color: #F8F6F4;
+      }
+      .mobile-hero-container {
+        display: block;
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1024 / 1440;
+        max-height: calc(100svh - 60px);
+        overflow: hidden;
+        background-color: #F8F6F4;
+        background-image: url('https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png');
+        background-size: 100% auto;
+        background-position: center top;
+        background-repeat: no-repeat;
+      }
+      .mobile-hero-img {
         position: absolute;
         top: 0;
         left: 0;
-        width: 200%;
-        height: 100%;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: pan-y;
-        transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1);
-        will-change: transform;
-      }
-
-      .mobile-hero-track.slide-0 {
-        transform: translate3d(0, 0, 0);
-      }
-
-      .mobile-hero-track.slide-1 {
-        transform: translate3d(-50%, 0, 0);
-      }
-
-      .mobile-hero-slide {
-        position: relative;
-        width: 50%;
-        height: 100%;
-        flex-shrink: 0;
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto;
-      }
-
-      .mobile-hero-img {
-        position: absolute;
-        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center bottom;
+        object-position: center top;
+        display: block;
       }
-
-      .hero-cta-container {
+      .mobile-hero-cta {
+        position: absolute;
         bottom: 12px;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
         padding: 0 12px;
+        pointer-events: none;
       }
-      .hero-buttons-row {
+      .mobile-hero-cta .hero-buttons-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
         gap: 8px;
         flex-wrap: nowrap;
         width: 100%;
-        max-width: 380px;
+        max-width: 360px;
+        pointer-events: auto;
       }
-      .btn-hero-cta {
+      .mobile-hero-cta .btn-hero-cta {
         flex: 1;
         min-width: 0;
-        padding: 10px 8px;
+        padding: 9px 8px;
         font-size: 10.5px;
+        font-weight: 700;
         letter-spacing: 0.5px;
         white-space: nowrap;
         text-align: center;
-        border-width: 1.5px;
+        background: transparent;
+        border: 1.5px solid #000000;
+        color: #000000;
+        border-radius: 4px;
+        text-decoration: none;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+      .mobile-hero-cta .btn-hero-cta:hover,
+      .mobile-hero-cta .btn-hero-cta:active {
+        background: rgba(0, 0, 0, 0.08);
+        border-color: #000000;
+        color: #000000;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .mobile-hero-container {
+        aspect-ratio: 1024 / 1440;
+        max-height: calc(100svh - 60px);
+      }
+      .mobile-hero-cta {
+        bottom: 10px;
+        padding: 0 10px;
+      }
+      .mobile-hero-cta .hero-buttons-row {
+        gap: 6px;
+        max-width: 340px;
+      }
+      .mobile-hero-cta .btn-hero-cta {
+        padding: 8px 6px;
+        font-size: 10px;
+        letter-spacing: 0.3px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .mobile-hero-container {
+        aspect-ratio: 1024 / 1440;
+        max-height: calc(100svh - 56px);
+      }
+      .mobile-hero-cta {
+        bottom: 8px;
+        padding: 0 8px;
+      }
+      .mobile-hero-cta .hero-buttons-row {
+        gap: 4px;
+      }
+      .mobile-hero-cta .btn-hero-cta {
+        padding: 7px 4px;
+        font-size: 9.5px;
       }
     }
   `]
 })
 export class HeroCarouselComponent implements OnInit, OnDestroy {
   currentDesktopSlide = 0;
-  currentMobileSlide = 0;
   private desktopSlideInterval: any = null;
-  private lastMobileTapTime = 0;
-
-  // Touch tracking for mobile swipe/tap
-  private touchStartX = 0;
-  private touchStartY = 0;
-  private touchStartTime = 0;
 
   ngOnInit() {
     if (typeof window !== 'undefined') {
-      // Synchronously pre-cache all hero images into browser memory for zero tap delay
-      const m1 = new Image();
-      m1.src = 'https://i.ibb.co/gMLZk8Dj/Untitled-design-13-1.png';
-      const m2 = new Image();
-      m2.src = 'https://i.ibb.co/HTkFZ2d8/Untitled-design-11.png';
+      // Synchronously pre-cache hero images into browser memory
+      const m = new Image();
+      m.src = 'https://i.ibb.co/6JV46cXy/Chat-GPT-Image-Sep-28-2026-10-35-37-AM.png';
       const d1 = new Image();
       d1.src = 'https://i.ibb.co/nMB7zjDr/815c69bb-715a-42d0-9148-fbc5edfa1cf6-1.png';
       const d2 = new Image();
@@ -417,34 +384,13 @@ export class HeroCarouselComponent implements OnInit, OnDestroy {
     this.startDesktopSlider();
   }
 
-  /* Mobile Slider: Instant hardware-accelerated slide on tap / click */
-  onMobileHeroTap(event?: Event) {
-    const now = Date.now();
-    if (now - this.lastMobileTapTime < 280) {
-      return; // Debounce rapid multiple taps
+  onMobileImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target && !target.src.includes('mobile-hero.webp')) {
+      target.src = '/images/mobile-hero.webp';
+    } else {
+      handleImageError(event);
     }
-    this.lastMobileTapTime = now;
-    this.currentMobileSlide = (this.currentMobileSlide + 1) % 2;
-  }
-
-  onTouchStart(e: TouchEvent) {
-    if (e.touches && e.touches.length === 1) {
-      this.touchStartX = e.touches[0].clientX;
-      this.touchStartY = e.touches[0].clientY;
-      this.touchStartTime = Date.now();
-    }
-  }
-
-  onTouchEnd(e: TouchEvent) {
-    if (!e.changedTouches || e.changedTouches.length === 0) return;
-    const deltaX = e.changedTouches[0].clientX - this.touchStartX;
-    const deltaY = e.changedTouches[0].clientY - this.touchStartY;
-
-    // If swipe horizontally (> 35px), trigger slide
-    if (Math.abs(deltaX) > 35 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
-      this.onMobileHeroTap();
-    }
-    // Clean taps are handled by onMobileHeroTap with click & debounce
   }
 
   onImageError(event: Event) {

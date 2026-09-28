@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { SupabaseService } from './supabase.service';
-import { Product, ProductImage, ProductSize } from '../models/product.model';
+import { Product, ProductImage, ProductSize, SizeOption } from '../models/product.model';
 import { Category } from '../models/category.model';
 
 export interface ProductFilterOptions {
@@ -231,8 +231,17 @@ export class ProductService {
     if (p.has_colors === undefined || p.has_colors === null) {
       p.has_colors = Boolean(p.color_variants && p.color_variants.length > 0);
     }
-    if (!p.color_variants) {
+    if (!p.color_variants || !Array.isArray(p.color_variants)) {
       p.color_variants = [];
+    } else {
+      p.color_variants = p.color_variants.map((cv: any) => ({
+        ...cv,
+        stock: cv.stock !== undefined ? Number(cv.stock) : undefined,
+        sizes: Array.isArray(cv.sizes) ? cv.sizes.map((s: any) => ({
+          size: s.size === 'XXL' ? '2XL' : s.size,
+          stock: Number(s.stock) || 0
+        })) : []
+      }));
     }
     if (!p.stock_display) {
       p.stock_display = 'normal';
@@ -746,7 +755,7 @@ export class ProductService {
   async createProduct(
     productData: Partial<Product>, 
     images: string[] = [], 
-    sizes: { size: ProductSize; stock: number }[] = []
+    sizes: { size: SizeOption; stock: number }[] = []
   ): Promise<Product> {
     const rawName = (productData.name || '').trim();
     if (!rawName) throw new Error('Product Name is required.');
@@ -758,9 +767,24 @@ export class ProductService {
 
     const dept = productData.department || 'ethnic';
     const hasSize = productData.has_size !== undefined ? Boolean(productData.has_size) : (dept !== 'jewellery');
-    const totalStock = hasSize
-      ? sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0)
-      : (productData.stock !== undefined ? Number(productData.stock) : 10);
+    const hasColors = Boolean(productData.has_colors);
+
+    let totalStock = productData.stock !== undefined ? Number(productData.stock) : 10;
+    if (hasColors && productData.color_variants && productData.color_variants.length > 0) {
+      if (hasSize) {
+        totalStock = productData.color_variants.reduce((acc, cv) => {
+          const cvStock = (cv.sizes || []).reduce((sAcc, s) => sAcc + (Number(s.stock) || 0), 0);
+          return acc + cvStock;
+        }, 0);
+      } else {
+        const hasColorStock = productData.color_variants.some(cv => cv.stock !== undefined && cv.stock !== null);
+        if (hasColorStock) {
+          totalStock = productData.color_variants.reduce((acc, cv) => acc + (Number(cv.stock) || 0), 0);
+        }
+      }
+    } else if (hasSize && sizes) {
+      totalStock = sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0);
+    }
 
     const productPayload: any = {
       name: rawName,
@@ -876,12 +900,27 @@ export class ProductService {
     id: string, 
     productData: Partial<Product>, 
     images?: string[], 
-    sizes?: { size: ProductSize; stock: number }[]
+    sizes?: { size: SizeOption; stock: number }[]
   ): Promise<Product> {
     const hasSize = productData.has_size !== undefined ? Boolean(productData.has_size) : undefined;
-    const totalStock = (sizes && sizes.length > 0)
-      ? sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0) 
-      : (productData.stock !== undefined ? Number(productData.stock) : undefined);
+    const hasColors = productData.has_colors !== undefined ? Boolean(productData.has_colors) : undefined;
+    let totalStock = productData.stock !== undefined ? Number(productData.stock) : undefined;
+
+    if (hasColors && productData.color_variants && productData.color_variants.length > 0) {
+      if (hasSize !== false) {
+        totalStock = productData.color_variants.reduce((acc, cv) => {
+          const cvStock = (cv.sizes || []).reduce((sAcc, s) => sAcc + (Number(s.stock) || 0), 0);
+          return acc + cvStock;
+        }, 0);
+      } else {
+        const hasColorStock = productData.color_variants.some(cv => cv.stock !== undefined && cv.stock !== null);
+        if (hasColorStock) {
+          totalStock = productData.color_variants.reduce((acc, cv) => acc + (Number(cv.stock) || 0), 0);
+        }
+      }
+    } else if (sizes && sizes.length > 0) {
+      totalStock = sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0);
+    }
 
     const productPayload: any = {
       updated_at: new Date().toISOString()

@@ -184,12 +184,28 @@ export class CartService {
 
     const price = product.sale_price && product.sale_price > 0 ? product.sale_price : product.price;
 
-    // Check stock
+    // Check stock for specific color + size combination
     let maxAvailable = product.stock;
     if (product.has_size !== false && size) {
-      const sizeConfig = product.sizes?.find(s => s.size === size);
-      if (sizeConfig) {
-        maxAvailable = sizeConfig.stock;
+      if (color && product.color_variants && product.color_variants.length > 0) {
+        const cv = product.color_variants.find(c => c.name.toLowerCase() === color.toLowerCase());
+        if (cv && cv.sizes && cv.sizes.length > 0) {
+          const colorSize = cv.sizes.find(s => s.size === size || (size === '2XL' && s.size === 'XXL') || (size === 'XXL' && s.size === '2XL'));
+          if (colorSize) {
+            maxAvailable = colorSize.stock;
+          }
+        }
+      }
+      if (maxAvailable === product.stock) {
+        const sizeConfig = product.sizes?.find(s => s.size === size || (size === '2XL' && s.size === 'XXL') || (size === 'XXL' && s.size === '2XL'));
+        if (sizeConfig) {
+          maxAvailable = sizeConfig.stock;
+        }
+      }
+    } else if (color && product.color_variants && product.color_variants.length > 0) {
+      const cv = product.color_variants.find(c => c.name.toLowerCase() === color.toLowerCase());
+      if (cv && typeof cv.stock === 'number') {
+        maxAvailable = cv.stock;
       }
     }
 
@@ -204,7 +220,9 @@ export class CartService {
     } else {
       const initialQty = Math.min(quantity, maxAvailable);
       if (initialQty <= 0) {
-        throw new Error(`${product.name}${size ? ' (' + size + ')' : ''} is currently out of stock.`);
+        const colorLabel = color ? ` (Color: ${color})` : '';
+        const sizeLabel = size ? ` (Size: ${size})` : '';
+        throw new Error(`${product.name}${colorLabel}${sizeLabel} is currently out of stock.`);
       }
       items.push({
         id: itemId,
@@ -237,9 +255,30 @@ export class CartService {
       return;
     }
 
-    // Check max stock
-    const sizeConfig = target.product.sizes?.find(s => s.size === target.selectedSize);
-    const maxAvailable = sizeConfig ? sizeConfig.stock : target.product.stock;
+    // Check max stock for item variant
+    let maxAvailable = target.product.stock;
+    if (target.product.has_size !== false && target.selectedSize) {
+      if (target.selectedColor && target.product.color_variants && target.product.color_variants.length > 0) {
+        const cv = target.product.color_variants.find(c => c.name.toLowerCase() === target.selectedColor?.toLowerCase());
+        if (cv && cv.sizes && cv.sizes.length > 0) {
+          const colorSize = cv.sizes.find(s => s.size === target.selectedSize || (target.selectedSize === '2XL' && s.size === 'XXL') || (target.selectedSize === 'XXL' && s.size === '2XL'));
+          if (colorSize) {
+            maxAvailable = colorSize.stock;
+          }
+        }
+      }
+      if (maxAvailable === target.product.stock) {
+        const sizeConfig = target.product.sizes?.find(s => s.size === target.selectedSize || (target.selectedSize === '2XL' && s.size === 'XXL') || (target.selectedSize === 'XXL' && s.size === '2XL'));
+        if (sizeConfig) {
+          maxAvailable = sizeConfig.stock;
+        }
+      }
+    } else if (target.selectedColor && target.product.color_variants && target.product.color_variants.length > 0) {
+      const cv = target.product.color_variants.find(c => c.name.toLowerCase() === target.selectedColor?.toLowerCase());
+      if (cv && typeof cv.stock === 'number') {
+        maxAvailable = cv.stock;
+      }
+    }
 
     target.quantity = Math.min(newQuantity, maxAvailable);
     target.totalPrice = target.unitPrice * target.quantity;

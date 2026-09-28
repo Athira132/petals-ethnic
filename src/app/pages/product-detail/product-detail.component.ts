@@ -183,7 +183,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                   [disabled]="!isAvailable"
                   (click)="addToCart()"
                 >
-                  {{ isAvailable ? 'Add to Cart' : 'Out of Stock' }}
+                  {{ addToCartButtonText }}
                 </button>
 
                 <!-- Buy Now -->
@@ -1199,23 +1199,7 @@ export class ProductDetailComponent implements OnInit {
     }
 
     // Build Sizes (if product has sizes)
-    if (this.product.has_size !== false) {
-      const availableSizesList: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
-      if (this.product.sizes && this.product.sizes.length > 0) {
-        this.sizeList = this.product.sizes.map(s => ({ size: s.size, stock: s.stock }));
-      } else {
-        this.sizeList = availableSizesList.map(size => ({ size, stock: this.product!.stock > 0 ? 5 : 0 }));
-      }
-
-      const inStock = this.sizeList.find(s => s.stock > 0);
-      if (inStock) {
-        this.selectedSize = inStock.size;
-      } else if (this.sizeList.length > 0) {
-        this.selectedSize = this.sizeList[0].size;
-      }
-    } else {
-      this.selectedSize = 'One Size';
-    }
+    this.updateSizesForSelectedColor(true);
 
     this.cdr.markForCheck();
 
@@ -1227,6 +1211,59 @@ export class ProductDetailComponent implements OnInit {
         this.relatedProducts = allCategoryProducts.filter(p => p.id !== currentId).slice(0, 4);
         this.cdr.markForCheck();
       }).catch(err => console.warn('Related products load notice:', err));
+    }
+  }
+
+  updateSizesForSelectedColor(isInitial = false) {
+    if (!this.product || this.product.has_size === false) {
+      this.sizeList = [];
+      this.selectedSize = 'One Size';
+      return;
+    }
+
+    // 1. Find active color variant if colors are enabled
+    let activeVariant: ColorVariant | undefined;
+    if (this.product.has_colors && this.colorVariants.length > 0) {
+      activeVariant = this.colorVariants.find(
+        cv => (cv.name || '').trim().toLowerCase() === (this.selectedColor || '').trim().toLowerCase()
+      );
+    }
+
+    // 2. Determine sizeList for this color
+    if (activeVariant && activeVariant.sizes && activeVariant.sizes.length > 0) {
+      this.sizeList = activeVariant.sizes.map(s => ({
+        size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
+        stock: Number(s.stock) || 0
+      }));
+    } else if (this.product.sizes && this.product.sizes.length > 0) {
+      // Fallback to base product sizes
+      this.sizeList = this.product.sizes.map(s => ({
+        size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
+        stock: Number(s.stock) || 0
+      }));
+    } else {
+      const defaultSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+      this.sizeList = defaultSizes.map(size => ({ size, stock: this.product!.stock > 0 ? 5 : 0 }));
+    }
+
+    // 3. Selection behavior:
+    if (isInitial) {
+      const inStock = this.sizeList.find(s => s.stock > 0);
+      if (inStock) {
+        this.selectedSize = inStock.size;
+      } else if (this.sizeList.length > 0) {
+        this.selectedSize = this.sizeList[0].size;
+      } else {
+        this.selectedSize = '';
+      }
+    } else {
+      // Color changed:
+      // If current selectedSize exists in the new color's sizeList, keep it;
+      // otherwise, clear it!
+      const matchingSize = this.sizeList.find(s => s.size === this.selectedSize);
+      if (!matchingSize) {
+        this.selectedSize = '';
+      }
     }
   }
 
@@ -1257,6 +1294,9 @@ export class ProductDetailComponent implements OnInit {
       this.activeVideoUrl = this.product?.video_url || null;
     }
 
+    // Dynamically update sizes for selected color
+    this.updateSizesForSelectedColor(false);
+
     this.cdr.markForCheck();
   }
 
@@ -1274,10 +1314,30 @@ export class ProductDetailComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
 
+  get addToCartButtonText(): string {
+    if (!this.product) return 'Add to Cart';
+    if (this.product.has_size !== false && !this.selectedSize) {
+      return 'Select a Size';
+    }
+    if (!this.isAvailable) {
+      return 'Out of Stock';
+    }
+    return 'Add to Cart';
+  }
+
   get isAvailable(): boolean {
     if (!this.product) return false;
     if (this.product.has_size !== false) {
+      if (!this.selectedSize) return false;
       return !!(this.selectedSizeConfig && this.selectedSizeConfig.stock > 0);
+    }
+    if (this.product.has_colors && this.colorVariants.length > 0) {
+      const activeVariant = this.colorVariants.find(
+        cv => (cv.name || '').trim().toLowerCase() === (this.selectedColor || '').trim().toLowerCase()
+      );
+      if (activeVariant && activeVariant.stock !== undefined) {
+        return activeVariant.stock > 0;
+      }
     }
     return this.product.stock > 0 && this.product.availability !== 'sold_out';
   }
@@ -1289,6 +1349,14 @@ export class ProductDetailComponent implements OnInit {
 
     if (this.product.has_size !== false) {
       return !!(this.selectedSizeConfig && this.selectedSizeConfig.stock > 0 && this.selectedSizeConfig.stock <= 5);
+    }
+    if (this.product.has_colors && this.colorVariants.length > 0) {
+      const activeVariant = this.colorVariants.find(
+        cv => (cv.name || '').trim().toLowerCase() === (this.selectedColor || '').trim().toLowerCase()
+      );
+      if (activeVariant && activeVariant.stock !== undefined) {
+        return activeVariant.stock > 0 && activeVariant.stock <= 5;
+      }
     }
     return (this.product.stock > 0 && this.product.stock <= 5) || this.product.availability === 'few_left';
   }
@@ -1308,6 +1376,14 @@ export class ProductDetailComponent implements OnInit {
   get maxQuantity(): number {
     if (this.product?.has_size !== false) {
       return this.selectedSizeConfig ? this.selectedSizeConfig.stock : 1;
+    }
+    if (this.product?.has_colors && this.colorVariants.length > 0) {
+      const activeVariant = this.colorVariants.find(
+        cv => (cv.name || '').trim().toLowerCase() === (this.selectedColor || '').trim().toLowerCase()
+      );
+      if (activeVariant && activeVariant.stock !== undefined) {
+        return Math.max(1, activeVariant.stock);
+      }
     }
     return this.product?.stock || 5;
   }

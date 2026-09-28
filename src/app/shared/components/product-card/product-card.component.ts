@@ -493,9 +493,25 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   get availableSizes(): { size: SizeOption; stock: number }[] {
-    const allSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
+    const allSizes: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
     if (this.product.sizes && this.product.sizes.length > 0) {
-      return this.product.sizes.map(s => ({ size: s.size, stock: s.stock }));
+      return this.product.sizes.map(s => ({ size: s.size === 'XXL' ? '2XL' : s.size, stock: s.stock }));
+    }
+    if (this.product.color_variants && this.product.color_variants.length > 0) {
+      const sizeMap = new Map<string, number>();
+      for (const cv of this.product.color_variants) {
+        if (cv.sizes && cv.sizes.length > 0) {
+          for (const s of cv.sizes) {
+            const szName = s.size === 'XXL' ? '2XL' : s.size;
+            sizeMap.set(szName, (sizeMap.get(szName) || 0) + s.stock);
+          }
+        }
+      }
+      if (sizeMap.size > 0) {
+        return allSizes
+          .filter(sz => sizeMap.has(sz))
+          .map(sz => ({ size: sz, stock: sizeMap.get(sz) || 0 }));
+      }
     }
     return allSizes.map(size => ({ size, stock: this.product.stock > 0 ? 5 : 0 }));
   }

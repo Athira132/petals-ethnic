@@ -4,6 +4,11 @@ export type SizeOption = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | '3XL' | string;
 export type PurchaseMode = 'online' | 'enquiry';
 export type StockDisplayMode = 'normal' | 'few_left' | 'custom' | 'hide';
 
+export interface ColorSizeOption {
+  size: SizeOption;
+  stock: number;
+}
+
 export interface ColorVariant {
   name: string;
   color_code?: string;
@@ -13,6 +18,7 @@ export interface ColorVariant {
   stock?: number;
   sku?: string | null;
   is_available?: boolean;
+  sizes?: ColorSizeOption[];
 }
 
 export interface ProductSize {

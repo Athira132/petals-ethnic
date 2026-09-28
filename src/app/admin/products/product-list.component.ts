@@ -280,13 +280,21 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                 </label>
               </div>
 
-              <!-- When has_size is TRUE: Show XS-XXL stock grid -->
+              <!-- When has_size is TRUE: Show size config -->
               <div class="size-config-box" *ngIf="formProduct.has_size">
-                <label class="form-label">Size Inventory (Stock per size)</label>
-                <div class="size-inputs-grid">
-                  <div *ngFor="let sz of formSizes" class="size-input-box">
-                    <span class="sz-name">{{ sz.size }}</span>
-                    <input type="number" [(ngModel)]="sz.stock" [name]="'size_' + sz.size" min="0" class="form-control sz-input" />
+                <!-- If has_colors is TRUE: Inform admin that sizes are managed per color -->
+                <div class="color-size-callout" *ngIf="formProduct.has_colors">
+                  <span>ℹ️ <strong>Color variations enabled:</strong> You can select available clothing sizes (XS to 3XL) and track inventory separately for each color in <strong>Section 4 (Color Variations)</strong> below.</span>
+                </div>
+
+                <!-- When has_colors is FALSE: Show standard XS-3XL stock grid -->
+                <div *ngIf="!formProduct.has_colors">
+                  <label class="form-label">Size Inventory (Stock per size)</label>
+                  <div class="size-inputs-grid">
+                    <div *ngFor="let sz of formSizes" class="size-input-box">
+                      <span class="sz-name">{{ sz.size }}</span>
+                      <input type="number" [(ngModel)]="sz.stock" [name]="'size_' + sz.size" min="0" class="form-control sz-input" />
+                    </div>
                   </div>
                 </div>
 
@@ -313,7 +321,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                 <div class="form-group">
                   <label class="form-label">Total Stock Quantity *</label>
                   <input type="number" [(ngModel)]="formProduct.stock" name="stock" min="0" class="form-control inline-number-input" placeholder="10" />
-                  <small class="help-text">Product will be sold as a direct quantity item (no size selection required by customer).</small>
+                  <small class="help-text">Product will be sold as a direct quantity item (no size selection required by customer, e.g. Jewellery, Sarees).</small>
                 </div>
               </div>
             </div>
@@ -329,7 +337,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
               </div>
 
               <div *ngIf="formProduct.has_colors" class="color-variants-container">
-                <p class="section-subtitle">Add available color variations and upload their matching photos. Selecting a color on the product page instantly switches the product photo without reloading!</p>
+                <p class="section-subtitle">Add available color variations, photos, and independent size availability with inventory per color.</p>
 
                 <div class="color-variant-card" *ngFor="let cv of formColorVariants; let i = index">
                   <div class="cv-header">
@@ -378,6 +386,69 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                         <img [src]="cimg" alt="Color photo preview" class="color-thumb-img" (error)="onImageError($event)" />
                         <button type="button" (click)="removeColorImage(i, ci)" class="btn-color-thumb-del" title="Remove this photo">&times;</button>
                       </div>
+                    </div>
+                  </div>
+
+                  <!-- COLOR-SPECIFIC SIZES & INVENTORY (When has_size is TRUE) -->
+                  <div class="cv-sizes-inventory-card" *ngIf="formProduct.has_size">
+                    <div class="cv-sizes-header">
+                      <label class="form-label mb-1">Available Sizes for {{ cv.name || 'Color #' + (i + 1) }} *</label>
+                      <small class="help-text">Click sizes to enable/disable them for this color:</small>
+                    </div>
+
+                    <div class="cv-size-toggle-row">
+                      <button 
+                        type="button" 
+                        *ngFor="let sName of availableSizeOptions" 
+                        class="cv-size-pill-btn"
+                        [class.active]="isColorSizeSelected(cv, sName)"
+                        (click)="toggleColorSize(cv, sName)"
+                        [title]="isColorSizeSelected(cv, sName) ? 'Disable size ' + sName : 'Enable size ' + sName"
+                      >
+                        <span class="pill-check">{{ isColorSizeSelected(cv, sName) ? '✓' : '+' }}</span>
+                        <span class="pill-text">{{ sName }}</span>
+                      </button>
+                    </div>
+
+                    <!-- Size Inventory Quantity Inputs (only shown for enabled sizes) -->
+                    <div class="cv-inventory-box" *ngIf="cv.sizes && cv.sizes.length > 0">
+                      <div class="cv-inv-header">
+                        <span class="inv-title">Inventory per Size</span>
+                        <span class="inv-total">Total {{ cv.name || 'Color' }} Stock: <strong>{{ getColorTotalStock(cv) }} units</strong></span>
+                      </div>
+                      <div class="cv-sizes-grid">
+                        <div *ngFor="let sz of cv.sizes" class="cv-size-input-unit">
+                          <span class="cv-sz-badge">{{ sz.size }}</span>
+                          <input 
+                            type="number" 
+                            [(ngModel)]="sz.stock" 
+                            [name]="'cv_stock_' + i + '_' + sz.size" 
+                            min="0" 
+                            class="form-control cv-sz-input" 
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="!cv.sizes || cv.sizes.length === 0" class="cv-no-sizes-hint">
+                      ⚠️ Please select at least one size for this color above.
+                    </div>
+                  </div>
+
+                  <!-- COLOR DIRECT QUANTITY (When has_size is FALSE - e.g. Jewellery / No-Size) -->
+                  <div class="form-group cv-direct-stock-group" *ngIf="!formProduct.has_size">
+                    <label class="form-label">Stock Quantity for {{ cv.name || 'Color #' + (i + 1) }}</label>
+                    <div class="direct-stock-row">
+                      <input 
+                        type="number" 
+                        [(ngModel)]="cv.stock" 
+                        [name]="'cv_direct_stock_' + i" 
+                        min="0" 
+                        class="form-control inline-number-input" 
+                        placeholder="10" 
+                      />
+                      <small class="help-text">Direct stock quantity for this color (No clothing sizes).</small>
                     </div>
                   </div>
                 </div>
@@ -613,13 +684,143 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
 
     /* Color variations */
     .color-variants-container { margin-top: 8px; }
-    .color-variant-card { background: #FFFFFF; border: 1px solid #EAEAEA; border-radius: 6px; padding: 12px; margin-bottom: 10px; }
-    .cv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .cv-num { font-size: 12px; font-weight: 600; color: #666; }
-    .btn-remove-cv { color: #D32F2F; font-size: 12px; background: transparent; border: none; cursor: pointer; }
+    .color-variant-card { background: #FFFFFF; border: 1px solid #EAEAEA; border-radius: 8px; padding: 14px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.03); }
+    .cv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .cv-num { font-size: 13px; font-weight: 700; color: #333; }
+    .btn-remove-cv { color: #D32F2F; font-size: 12px; font-weight: 600; background: transparent; border: none; cursor: pointer; }
+    .btn-remove-cv:hover { text-decoration: underline; }
     .color-picker-box { display: flex; align-items: center; gap: 8px; }
     .color-picker-input { width: 36px; height: 36px; border: 1px solid #E0E0E0; border-radius: 4px; cursor: pointer; padding: 2px; }
     .color-hex-text { font-family: monospace; font-size: 12px; color: #555; }
+
+    .color-size-callout {
+      background: #FFF8E1;
+      border: 1px solid #FFE082;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #B45309;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cv-sizes-inventory-card {
+      background: #FAF8F6;
+      border: 1px solid #EAE6E1;
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+    .cv-sizes-header {
+      margin-bottom: 10px;
+    }
+    .mb-1 { margin-bottom: 4px; }
+    .cv-size-toggle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .cv-size-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #D0C9C0;
+      background: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      color: #555555;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .cv-size-pill-btn:hover {
+      border-color: #C2185B;
+      color: #C2185B;
+      background: #FFF5F8;
+    }
+    .cv-size-pill-btn.active {
+      border-color: #C2185B;
+      background: #C2185B;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(194, 24, 91, 0.25);
+    }
+    .pill-check {
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .cv-inventory-box {
+      background: #FFFFFF;
+      border: 1px solid #EAEAEA;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+    .cv-inv-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+    .inv-title {
+      font-weight: 700;
+      color: #333333;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .inv-total {
+      color: #666666;
+    }
+    .inv-total strong {
+      color: #C2185B;
+    }
+    .cv-sizes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 10px;
+    }
+    .cv-size-input-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: #FAF9F8;
+      border: 1px solid #EAE6E1;
+      border-radius: 6px;
+      padding: 8px 6px;
+    }
+    .cv-sz-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: #C2185B;
+    }
+    .cv-sz-input {
+      text-align: center;
+      padding: 6px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .cv-no-sizes-hint {
+      font-size: 12px;
+      color: #D32F2F;
+      padding: 6px 0;
+      font-weight: 500;
+    }
+    .cv-direct-stock-group {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #EAEAEA;
+    }
+    .direct-stock-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
     /* Direct File Upload & Preview Gallery Styles */
     .hidden-file-input { display: none; }
@@ -848,7 +1049,17 @@ export class ProductListComponent implements OnInit, OnDestroy {
     { size: '3XL', stock: 5 }
   ];
 
-  formColorVariants: { name: string; color_code: string; images: string[]; isUploading?: boolean; uploadStatus?: string }[] = [];
+  availableSizeOptions: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+
+  formColorVariants: {
+    name: string;
+    color_code: string;
+    images: string[];
+    sizes?: { size: SizeOption; stock: number }[];
+    stock?: number;
+    isUploading?: boolean;
+    uploadStatus?: string;
+  }[] = [];
 
   constructor(
     private productService: ProductService,
@@ -949,11 +1160,53 @@ export class ProductListComponent implements OnInit, OnDestroy {
     }
   }
 
+  isColorSizeSelected(cv: any, size: string): boolean {
+    if (!cv.sizes || !Array.isArray(cv.sizes)) return false;
+    const normalizedSize = size === 'XXL' ? '2XL' : size;
+    return cv.sizes.some((s: any) => (s.size === 'XXL' ? '2XL' : s.size) === normalizedSize);
+  }
+
+  toggleColorSize(cv: any, size: string) {
+    if (!cv.sizes) cv.sizes = [];
+    const normalizedSize = (size === 'XXL' ? '2XL' : size) as SizeOption;
+    const existingIndex = cv.sizes.findIndex((s: any) => (s.size === 'XXL' ? '2XL' : s.size) === normalizedSize);
+    if (existingIndex >= 0) {
+      cv.sizes.splice(existingIndex, 1);
+    } else {
+      cv.sizes.push({ size: normalizedSize, stock: 5 });
+      // Keep sizes in canonical order
+      const order = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+      cv.sizes.sort((a: any, b: any) => {
+        const aNorm = a.size === 'XXL' ? '2XL' : a.size;
+        const bNorm = b.size === 'XXL' ? '2XL' : b.size;
+        return order.indexOf(aNorm) - order.indexOf(bNorm);
+      });
+    }
+    this.cdr.markForCheck();
+  }
+
+  getColorTotalStock(cv: any): number {
+    if (this.formProduct.has_size) {
+      if (!cv.sizes || !Array.isArray(cv.sizes)) return 0;
+      return cv.sizes.reduce((sum: number, s: any) => sum + (Number(s.stock) || 0), 0);
+    }
+    return Number(cv.stock) || 0;
+  }
+
   addColorVariant() {
+    const defaultSizes: { size: SizeOption; stock: number }[] = this.formProduct.has_size
+      ? [
+          { size: 'S' as SizeOption, stock: 5 },
+          { size: 'M' as SizeOption, stock: 5 }
+        ]
+      : [];
+
     this.formColorVariants.push({
       name: '',
       color_code: '#C2185B',
-      images: []
+      images: [],
+      sizes: defaultSizes,
+      stock: 10
     });
     this.cdr.markForCheck();
   }
@@ -1141,13 +1394,31 @@ export class ProductListComponent implements OnInit, OnDestroy {
     }
 
     if (prod.color_variants && prod.color_variants.length > 0) {
-      this.formColorVariants = prod.color_variants.map(cv => ({
-        name: cv.name || '',
-        color_code: cv.color_code || '#C2185B',
-        images: Array.isArray(cv.images) && cv.images.length > 0
-          ? [...cv.images]
-          : (Array.isArray(cv.image_urls) ? [...cv.image_urls] : [])
-      }));
+      this.formColorVariants = prod.color_variants.map(cv => {
+        let cvSizes: { size: SizeOption; stock: number }[] = [];
+        if (cv.sizes && Array.isArray(cv.sizes) && cv.sizes.length > 0) {
+          cvSizes = cv.sizes.map(s => ({
+            size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
+            stock: Number(s.stock) || 0
+          }));
+        } else if (prod.has_size && prod.sizes && prod.sizes.length > 0) {
+          // Backward compatibility fallback: populate with base product sizes
+          cvSizes = prod.sizes.map(s => ({
+            size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
+            stock: Number(s.stock) || 0
+          }));
+        }
+
+        return {
+          name: cv.name || '',
+          color_code: cv.color_code || '#C2185B',
+          images: Array.isArray(cv.images) && cv.images.length > 0
+            ? [...cv.images]
+            : (Array.isArray(cv.image_urls) ? [...cv.image_urls] : []),
+          sizes: cvSizes,
+          stock: cv.stock !== undefined ? Number(cv.stock) : (prod.stock || 10)
+        };
+      });
     } else {
       this.formColorVariants = [];
     }
@@ -1254,6 +1525,54 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.isSaving = true;
     this.cdr.markForCheck();
 
+    if (this.formProduct.has_colors) {
+      if (this.formColorVariants.length === 0) {
+        alert('Please add at least one color variation, or disable "Enable Color Variations".');
+        this.isSaving = false;
+        return;
+      }
+
+      const seenNames = new Set<string>();
+      for (let i = 0; i < this.formColorVariants.length; i++) {
+        const cv = this.formColorVariants[i];
+        const trimmedName = (cv.name || '').trim();
+        if (!trimmedName) {
+          alert(`Color variation #${i + 1} must have a name.`);
+          this.isSaving = false;
+          return;
+        }
+
+        const lowerName = trimmedName.toLowerCase();
+        if (seenNames.has(lowerName)) {
+          alert(`Color variation names must be unique. Duplicate found: "${trimmedName}".`);
+          this.isSaving = false;
+          return;
+        }
+        seenNames.add(lowerName);
+
+        if (this.formProduct.has_size) {
+          if (!cv.sizes || cv.sizes.length === 0) {
+            alert(`Please select at least one size for color "${trimmedName}".`);
+            this.isSaving = false;
+            return;
+          }
+          for (const s of cv.sizes) {
+            if (s.stock === undefined || s.stock === null || isNaN(Number(s.stock)) || Number(s.stock) < 0) {
+              alert(`Invalid quantity for size ${s.size} in color "${trimmedName}". Quantity cannot be negative.`);
+              this.isSaving = false;
+              return;
+            }
+          }
+        } else {
+          if (cv.stock !== undefined && (isNaN(Number(cv.stock)) || Number(cv.stock) < 0)) {
+            alert(`Invalid stock quantity for color "${trimmedName}". Quantity cannot be negative.`);
+            this.isSaving = false;
+            return;
+          }
+        }
+      }
+    }
+
     try {
       const imagesList = [...this.productImagesList];
 
@@ -1264,7 +1583,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
               name: cv.name.trim(),
               color_code: cv.color_code || '#C2185B',
               images: [...cv.images],
-              image_urls: [...cv.images]
+              image_urls: [...cv.images],
+              stock: !this.formProduct.has_size ? Math.max(0, Number(cv.stock) || 0) : undefined,
+              sizes: this.formProduct.has_size && cv.sizes ? cv.sizes.map(s => ({
+                size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
+                stock: Math.max(0, Number(s.stock) || 0)
+              })) : []
             }))
             .filter(cv => cv.name)
         : [];
@@ -1273,13 +1597,29 @@ export class ProductListComponent implements OnInit, OnDestroy {
       this.formProduct.purchase_mode = 'online';
 
       // Format sizes list
-      let sizesList = this.formSizes.map(sz => ({
-        size: sz.size as any,
-        stock: Number(sz.stock) || 0
-      }));
-
-      if (!this.formProduct.has_size) {
-        sizesList = [];
+      let sizesList: { size: SizeOption; stock: number }[] = [];
+      if (this.formProduct.has_size) {
+        if (this.formProduct.has_colors && colorVariants.length > 0) {
+          // Aggregate unique sizes and calculate combined stock across colors
+          const sizeStockMap = new Map<SizeOption, number>();
+          for (const cv of colorVariants) {
+            if (cv.sizes) {
+              for (const s of cv.sizes) {
+                const cur = sizeStockMap.get(s.size) || 0;
+                sizeStockMap.set(s.size, cur + (Number(s.stock) || 0));
+              }
+            }
+          }
+          const order: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+          sizesList = order
+            .filter(sz => sizeStockMap.has(sz))
+            .map(sz => ({ size: sz, stock: sizeStockMap.get(sz)! }));
+        } else {
+          sizesList = this.formSizes.map(sz => ({
+            size: (sz.size === 'XXL' ? '2XL' : sz.size) as SizeOption,
+            stock: Math.max(0, Number(sz.stock) || 0)
+          }));
+        }
       }
 
       let savedProduct: Product;

@@ -1,5 +1,6 @@
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
+import { calculateShipping, getDeliveryEstimate, serializeDeliveryData } from './_shipping.js';
 
 // Vercel Serverless Function to create Razorpay Order securely
 export default async function handler(req, res) {
@@ -57,7 +58,7 @@ export default async function handler(req, res) {
 
       const { data: product, error: prodErr } = await supabase
         .from('products')
-        .select('id, name, price, sale_price, availability, stock, active, description, product_images(*)')
+        .select('id, name, price, sale_price, availability, stock, active, description, category_id, categories(name, slug), product_images(*)')
         .eq('id', productId)
         .maybeSingle();
 
@@ -128,6 +129,9 @@ export default async function handler(req, res) {
         product_id: product.id,
         product_name: product.name,
         product_image: itemImg,
+        category_name: product.categories?.name,
+        category_slug: product.categories?.slug,
+        department: productHasSize ? 'ethnic' : undefined,
         size: size,
         color: color,
         quantity: quantity,
@@ -136,35 +140,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. Configurable shipping calculation (defaulting to ₹0 shipping fee)
-    const STORE_SHIPPING_FEE = 0.00;
-    const STORE_FREE_SHIPPING_THRESHOLD = 0.00;
-
-    let deliveryCharge = STORE_SHIPPING_FEE;
-    try {
-      const { data: settings } = await supabase
-        .from('store_settings')
-        .select('*')
-        .limit(1)
-        .maybeSingle();
-
-      if (settings) {
-        if (settings.delivery_charge !== 0 || settings.free_delivery_threshold !== 0) {
-          // Sync store_settings table in Supabase so database reflects ₹0 shipping
-          await supabase
-            .from('store_settings')
-            .update({ delivery_charge: 0, free_delivery_threshold: 0 })
-            .eq('id', settings.id);
-        }
-        const threshold = Number(settings.free_delivery_threshold ?? STORE_FREE_SHIPPING_THRESHOLD);
-        const configuredFee = Number(settings.delivery_charge ?? STORE_SHIPPING_FEE);
-        deliveryCharge = (threshold === 0 || subtotal >= threshold) ? 0.00 : configuredFee;
-      } else {
-        deliveryCharge = STORE_SHIPPING_FEE;
-      }
-    } catch (_) {
-      deliveryCharge = STORE_SHIPPING_FEE;
-    }
+    // 2. Dynamic Shipping & Delivery Calculation (Server-Side Recalculation)
+    const customerState = (order_data.state || 'Kerala').trim();
+    const shippingCalc = calculateShipping(validatedItems, customerState);
+    const deliveryCharge = shippingCalc.shippingCharge;
+    const deliveryEstimate = getDeliveryEstimate(customerState, new Date());
 
     // 3. Verify discount coupon code if provided
     let discount = 0;
@@ -196,6 +176,17 @@ export default async function handler(req, res) {
     const total = Math.max(0, subtotal - discount + deliveryCharge);
     const orderNumber = 'PE-' + Date.now().toString().slice(-6) + '-' + Math.floor(100 + Math.random() * 900);
 
+    const deliveryMetaPayload = {
+      shipping_region: deliveryEstimate.region,
+      delivery_time_range: deliveryEstimate.timeRange,
+      estimated_delivery_start: deliveryEstimate.startDate,
+      estimated_delivery_end: deliveryEstimate.endDate,
+      estimated_delivery_text: deliveryEstimate.dateText,
+      delivery_charge: deliveryCharge,
+      is_mixed_cart: shippingCalc.isMixedCart,
+      razorpay_order_id: null
+    };
+
     // 4. Create pending order row in Supabase
     const orderInsertPayload = {
       order_number: orderNumber,
@@ -205,7 +196,7 @@ export default async function handler(req, res) {
       customer_phone: (order_data.customer_phone || '').trim(),
       address: (order_data.address || '').trim(),
       city: (order_data.city || '').trim(),
-      state: (order_data.state || '').trim(),
+      state: customerState,
       pincode: (order_data.pincode || '').trim(),
       subtotal: subtotal,
       discount: discount,
@@ -214,7 +205,7 @@ export default async function handler(req, res) {
       payment_method: 'razorpay',
       payment_status: 'pending',
       order_status: 'pending',
-      notes: order_data.notes || ''
+      notes: serializeDeliveryData(deliveryMetaPayload)
     };
 
     let orderRecord = null;
@@ -312,10 +303,14 @@ export default async function handler(req, res) {
       rpOrder = await apiRes.json();
     }
 
-    // 7. Update order with Razorpay order reference
+    // 7. Update order with Razorpay order reference and final delivery metadata
+    deliveryMetaPayload.razorpay_order_id = rpOrder.id;
     await supabase
       .from('orders')
-      .update({ payment_reference: rpOrder.id })
+      .update({
+        payment_reference: rpOrder.id,
+        notes: serializeDeliveryData(deliveryMetaPayload)
+      })
       .eq('id', orderId);
 
     return res.status(200).json({
@@ -325,7 +320,9 @@ export default async function handler(req, res) {
       razorpay_order_id: rpOrder.id,
       amount: rpOrder.amount, // in paise
       currency: rpOrder.currency || 'INR',
-      key_id: razorpayKeyId
+      key_id: razorpayKeyId,
+      delivery_charge: deliveryCharge,
+      delivery_estimate: deliveryEstimate
     });
 
   } catch (err) {

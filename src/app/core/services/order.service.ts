@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { ShippingService } from './shipping.service';
 import { Order, OrderItem, OrderStatus, PaymentStatus } from '../models/order.model';
 import { CartItem } from '../models/cart.model';
 
@@ -25,7 +26,34 @@ export interface CreateOrderPayload {
   providedIn: 'root'
 })
 export class OrderService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(
+    private supabaseService: SupabaseService,
+    private shippingService: ShippingService
+  ) {}
+
+  public hydrateOrder(order: any): Order {
+    if (!order) return order;
+    if (order.notes) {
+      const meta = this.shippingService.parseDeliveryDataFromNotes(order.notes);
+      if (meta) {
+        order.shipping_region = meta.region;
+        order.delivery_time_range = meta.timeRange;
+        order.estimated_delivery_start = meta.startDate;
+        order.estimated_delivery_end = meta.endDate;
+        order.estimated_delivery_text = meta.dateText;
+      }
+    }
+    // Fallback for legacy orders: calculate once from original order.created_at
+    if (!order.estimated_delivery_text && order.state) {
+      const estimate = this.shippingService.getDeliveryEstimate(order.state, order.created_at || new Date());
+      order.shipping_region = estimate.region;
+      order.delivery_time_range = estimate.timeRange;
+      order.estimated_delivery_start = estimate.startDate;
+      order.estimated_delivery_end = estimate.endDate;
+      order.estimated_delivery_text = estimate.dateText;
+    }
+    return order as Order;
+  }
 
   async createOrder(payload: CreateOrderPayload, userId?: string): Promise<Order> {
     const supabase = this.supabaseService.supabase;
@@ -98,7 +126,7 @@ export class OrderService {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(o => this.hydrateOrder(o));
   }
 
   async getOrderById(orderId: string): Promise<Order | null> {
@@ -115,7 +143,7 @@ export class OrderService {
       console.error('Error fetching order by ID:', error);
       return null;
     }
-    return data;
+    return data ? this.hydrateOrder(data) : null;
   }
 
   async getAllOrders(): Promise<Order[]> {
@@ -129,7 +157,7 @@ export class OrderService {
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        return data;
+        return data.map(o => this.hydrateOrder(o));
       }
     } catch (e) {
       console.warn('Direct order query notice, using API fallback:', e);
@@ -141,7 +169,7 @@ export class OrderService {
       if (contentType.includes('application/json')) {
         const resData = await res.json();
         if (resData.success && resData.orders) {
-          return resData.orders as Order[];
+          return (resData.orders as any[]).map(o => this.hydrateOrder(o));
         }
       }
     } catch (e) {

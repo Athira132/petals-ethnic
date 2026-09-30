@@ -10,6 +10,7 @@ import { SeoService } from '../../core/services/seo.service';
 import { CartSummary } from '../../core/models/cart.model';
 import { UserProfile } from '../../core/models/user.model';
 import { Order } from '../../core/models/order.model';
+import { ShippingService, INDIAN_STATES, DeliveryEstimate } from '../../core/services/shipping.service';
 import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
 
 @Component({
@@ -104,15 +105,16 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
 
                   <div class="form-group flex-1">
                     <label class="form-label" for="state">State *</label>
-                    <input 
-                      type="text" 
+                    <select 
                       id="state" 
                       [(ngModel)]="shipping.state" 
                       name="state" 
+                      (ngModelChange)="onStateChange($event)" 
                       required 
-                      class="form-control"
-                      placeholder="e.g. Kerala"
-                    />
+                      class="form-control select-dropdown"
+                    >
+                      <option *ngFor="let s of indianStates" [value]="s">{{ s }}</option>
+                    </select>
                   </div>
 
                   <div class="form-group flex-1">
@@ -186,8 +188,24 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
               </div>
 
               <div class="summary-row">
-                <span>Shipping</span>
+                <span>Shipping ({{ deliveryEstimate.region || 'Kerala' }})</span>
                 <span>₹{{ summary.shipping | number:'1.0-0' }}</span>
+              </div>
+
+              <!-- Estimated Delivery Display -->
+              <div class="delivery-estimate-box" *ngIf="deliveryEstimate">
+                <div class="delivery-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#92400E" stroke-width="2">
+                    <rect x="1" y="3" width="15" height="13"></rect>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                  </svg>
+                </div>
+                <div class="delivery-text">
+                  <div class="delivery-title">Estimated Delivery: {{ deliveryEstimate.timeRange }}</div>
+                  <div class="delivery-dates">{{ deliveryEstimate.dateText }}</div>
+                </div>
               </div>
 
               <div class="summary-divider"></div>
@@ -236,6 +254,11 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
         <div class="order-details-mini">
           <p><strong>Customer:</strong> {{ completedOrder.customer_name }} ({{ completedOrder.customer_phone }})</p>
           <p><strong>Delivery Address:</strong> {{ completedOrder.address }}, {{ completedOrder.city }}, {{ completedOrder.state }} - {{ completedOrder.pincode }}</p>
+          <p><strong>Shipping Region:</strong> {{ completedOrder.shipping_region || deliveryEstimate.region || 'Kerala' }}</p>
+          <p><strong>Estimated Delivery:</strong> {{ completedOrder.delivery_time_range || deliveryEstimate.timeRange }}</p>
+          <p><strong>Estimated Delivery Date:</strong> <strong>{{ completedOrder.estimated_delivery_text || deliveryEstimate.dateText }}</strong></p>
+          <p><strong>Subtotal:</strong> ₹{{ (completedOrder.subtotal != null ? completedOrder.subtotal : summary.subtotal) | number:'1.0-0' }}</p>
+          <p><strong>Shipping:</strong> ₹{{ (completedOrder.delivery_charge != null ? completedOrder.delivery_charge : summary.shipping) | number:'1.0-0' }}</p>
           <p><strong>Total Paid:</strong> ₹{{ completedOrder.total | number:'1.0-0' }}</p>
           <p><strong>Payment Status:</strong> PAID (Razorpay)</p>
           <p *ngIf="completedOrder.payment_reference"><strong>Payment ID:</strong> {{ completedOrder.payment_reference }}</p>
@@ -543,6 +566,33 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
       color: var(--color-text);
       font-weight: 600;
     }
+    .delivery-estimate-box {
+      margin: 14px 0;
+      padding: 12px 14px;
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+    .delivery-estimate-box .delivery-title {
+      font-size: 12px;
+      color: #92400E;
+      font-weight: 600;
+    }
+    .delivery-estimate-box .delivery-dates {
+      font-size: 14px;
+      color: #78350F;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .select-dropdown {
+      cursor: pointer;
+      background-color: #FFFFFF;
+      height: 44px;
+    }
     .empty-box {
       text-align: center;
       padding: 80px 24px;
@@ -552,6 +602,8 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
 export class CheckoutComponent implements OnInit {
   summary!: CartSummary;
   userProfile: UserProfile | null = null;
+  indianStates = INDIAN_STATES;
+  deliveryEstimate!: DeliveryEstimate;
 
   shipping = {
     customer_name: '',
@@ -559,7 +611,7 @@ export class CheckoutComponent implements OnInit {
     customer_phone: '',
     address: '',
     city: '',
-    state: '',
+    state: 'Kerala',
     pincode: ''
   };
 
@@ -573,13 +625,20 @@ export class CheckoutComponent implements OnInit {
     private authService: AuthService,
     private orderService: OrderService,
     private paymentService: PaymentService,
+    private shippingService: ShippingService,
     private seoService: SeoService,
     private router: Router
   ) {}
 
   ngOnInit() {
     this.seoService.setNoIndex('Checkout | Petals Ethnics and Jewellers');
-    this.summary = this.cartService.currentSummary;
+    this.shipping.state = 'Kerala';
+    this.updateShippingAndDelivery();
+
+    this.cartService.cartSummary$.subscribe(summary => {
+      this.summary = summary;
+    });
+
     this.userProfile = this.authService.userProfile;
 
     const user = this.authService.currentUser;
@@ -611,6 +670,18 @@ export class CheckoutComponent implements OnInit {
         if (!this.shipping.customer_phone && profile.phone) this.shipping.customer_phone = profile.phone;
       }
     });
+  }
+
+  onStateChange(selectedState: string) {
+    this.shipping.state = selectedState || 'Kerala';
+    this.updateShippingAndDelivery();
+  }
+
+  private updateShippingAndDelivery() {
+    const currentState = this.shipping.state || 'Kerala';
+    this.deliveryEstimate = this.shippingService.getDeliveryEstimate(currentState);
+    this.cartService.setShippingState(currentState);
+    this.summary = this.cartService.currentSummary;
   }
 
   getItemImage(item: any): string {
@@ -698,6 +769,7 @@ export class CheckoutComponent implements OnInit {
             }
 
             // 4. Successful verification: Display confirmed order modal and clear cart
+            const fallbackDelivery = this.deliveryEstimate || this.shippingService.getDeliveryEstimate(this.shipping.state || 'Kerala');
             this.completedOrder = verifyData.order || {
               id: createData.order_id,
               order_number: createData.order_number,
@@ -707,7 +779,12 @@ export class CheckoutComponent implements OnInit {
               city: this.shipping.city,
               state: this.shipping.state,
               pincode: this.shipping.pincode,
+              subtotal: this.summary.subtotal,
+              delivery_charge: createData.delivery_charge != null ? createData.delivery_charge : this.summary.shipping,
               total: Math.round(createData.amount / 100),
+              shipping_region: fallbackDelivery.region,
+              delivery_time_range: fallbackDelivery.timeRange,
+              estimated_delivery_text: fallbackDelivery.dateText,
               payment_status: 'paid',
               payment_reference: paymentResp.razorpay_payment_id
             };

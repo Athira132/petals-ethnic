@@ -79,12 +79,38 @@ import { handleImageError } from '../../core/utils/image.utils';
                   </div>
 
                   <div class="order-summary-footer">
-                    <div class="address-preview">
-                      <strong>Deliver to:</strong> {{ order.customer_name }}, {{ order.address }}, {{ order.city }} - {{ order.pincode }}
+                    <div class="order-delivery-meta">
+                      <div class="address-preview">
+                        <strong>Deliver to:</strong> {{ order.customer_name }}, {{ order.address }}, {{ order.city }}, {{ order.state || '' }} - {{ order.pincode }}
+                      </div>
+                      <div class="delivery-badge-row">
+                        <span class="meta-item">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:middle; margin-right:4px;">
+                            <rect x="1" y="3" width="15" height="13"></rect>
+                            <polygon points="16 8 20 8 23 11 23 16 16 8"></polygon>
+                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                          </svg>
+                          <strong>Region:</strong> {{ order.shipping_region || 'Kerala' }}
+                        </span>
+                        <span class="meta-item" *ngIf="order.estimated_delivery_text">
+                          <strong>Est. Delivery:</strong> {{ order.estimated_delivery_text }} ({{ order.delivery_time_range }})
+                        </span>
+                      </div>
                     </div>
-                    <div class="order-total-box">
-                      <span>Total Amount:</span>
-                      <strong class="total-price">₹{{ order.total | number:'1.0-0' }}</strong>
+                    <div class="order-cost-breakdown">
+                      <div class="cost-line">
+                        <span>Subtotal:</span>
+                        <span>₹{{ (order.subtotal != null ? order.subtotal : (order.total - (order.delivery_charge || 0))) | number:'1.0-0' }}</span>
+                      </div>
+                      <div class="cost-line">
+                        <span>Shipping:</span>
+                        <span>₹{{ (order.delivery_charge != null ? order.delivery_charge : 0) | number:'1.0-0' }}</span>
+                      </div>
+                      <div class="cost-line grand-line">
+                        <span>Total Paid:</span>
+                        <strong class="total-price">₹{{ order.total | number:'1.0-0' }}</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -295,19 +321,70 @@ import { handleImageError } from '../../core/utils/image.utils';
 
     .order-summary-footer {
       border-top: 1px solid var(--color-border-light);
-      padding-top: 16px;
+      padding-top: 18px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      gap: 20px;
       font-size: 13px;
     }
-    @media (max-width: 576px) {
-      .order-summary-footer { flex-direction: column; align-items: flex-start; gap: 12px; }
+    @media (max-width: 768px) {
+      .order-summary-footer { flex-direction: column; align-items: stretch; gap: 16px; }
+    }
+    .order-delivery-meta {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .delivery-badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #78350F;
+      background: #FEF3C7;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #FDE68A;
+      width: fit-content;
+    }
+    .meta-item {
+      display: inline-flex;
+      align-items: center;
+    }
+    .order-cost-breakdown {
+      min-width: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: right;
+    }
+    @media (max-width: 768px) {
+      .order-cost-breakdown {
+        text-align: left;
+        border-top: 1px dashed var(--color-border-light);
+        padding-top: 12px;
+      }
+    }
+    .cost-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--color-muted);
+      font-size: 13px;
+    }
+    .cost-line.grand-line {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid var(--color-border-light);
+      color: var(--color-text-heading);
+      font-weight: 600;
     }
     .total-price {
-      font-size: 18px;
+      font-size: 17px;
       color: #C05676;
-      margin-left: 8px;
     }
 
     .max-w-500 { max-width: 500px; }

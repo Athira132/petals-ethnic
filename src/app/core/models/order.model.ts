@@ -34,6 +34,12 @@ export interface Order {
   payment_status: PaymentStatus;
   order_status: OrderStatus;
   payment_reference?: string | null;
+  shipping_region?: string | null;
+  delivery_time_range?: string | null;
+  estimated_delivery_start?: string | null;
+  estimated_delivery_end?: string | null;
+  estimated_delivery_text?: string | null;
+  razorpay_order_id?: string | null;
   notes?: string | null;
   created_at?: string;
   updated_at?: string;

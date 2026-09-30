@@ -4,10 +4,7 @@ import { CartItem, CartSummary } from '../models/cart.model';
 import { Product, SizeOption } from '../models/product.model';
 import { AuthService, purgeLegacyStorage } from './auth.service';
 import { SupabaseService } from './supabase.service';
-
-// Configurable shipping constants (can be adjusted or fetched dynamically from store settings)
-export const FREE_SHIPPING_THRESHOLD = 0; // ₹0 threshold: all orders qualify for free shipping
-export const STANDARD_SHIPPING_FEE = 0;   // Configured to ₹0 for promotional free shipping
+import { ShippingService } from './shipping.service';
 
 @Injectable({
   providedIn: 'root'
@@ -27,11 +24,13 @@ export class CartService {
   public cartSummary$: Observable<CartSummary> = this.cartSummarySubject.asObservable();
 
   private currentUserId: string | null = null;
+  private currentShippingState = 'Kerala';
   private isSyncingBackend = false;
 
   constructor(
     private authService: AuthService,
-    private supabaseService: SupabaseService
+    private supabaseService: SupabaseService,
+    private shippingService: ShippingService
   ) {
     // Purge any stale legacy global storage keys from previous implementations
     purgeLegacyStorage();
@@ -145,14 +144,15 @@ export class CartService {
     }
   }
 
-  private calculateSummary(items: CartItem[]): void {
+  public calculateSummary(items: CartItem[], state?: string): void {
+    if (state) {
+      this.currentShippingState = state;
+    }
     const subtotal = items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
     const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
 
-    let shipping = 0;
-    if (items.length > 0) {
-      shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
-    }
+    const shippingResult = this.shippingService.calculateShipping(items, this.currentShippingState);
+    const shipping = items.length > 0 ? shippingResult.shippingCharge : 0;
     const discount = 0;
     const grandTotal = items.length > 0 ? (subtotal + shipping - discount) : 0;
 
@@ -166,6 +166,11 @@ export class CartService {
     };
 
     this.cartSummarySubject.next(summary);
+  }
+
+  public setShippingState(state: string): void {
+    this.currentShippingState = state;
+    this.calculateSummary(this.currentItems, state);
   }
 
   get currentItems(): CartItem[] {

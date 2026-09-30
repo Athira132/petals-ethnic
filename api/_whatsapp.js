@@ -1,3 +1,5 @@
+import { parseDeliveryDataFromNotes, getDeliveryEstimate } from './_shipping.js';
+
 /**
  * Modular WhatsApp Notification Service for Petals Ethnics and Jewellers
  * 
@@ -135,7 +137,7 @@ export function buildOrderNotificationText(order, orderItems = []) {
     'Items:',
     itemsText,
     '',
-    `Subtotal: ₹${order.subtotal != null ? order.subtotal : order.total}`
+    `Subtotal: ₹${order.subtotal != null ? order.subtotal : (Number(order.total || 0) - Number(order.delivery_charge || 0))}`
   ];
 
   if (order.discount && Number(order.discount) > 0) {
@@ -144,6 +146,23 @@ export function buildOrderNotificationText(order, orderItems = []) {
 
   lines.push(`Shipping: ₹${order.delivery_charge || 0}`);
   lines.push(`Total Paid: ₹${order.total}`);
+  lines.push('');
+
+  // Extract delivery metadata
+  const deliveryData = parseDeliveryDataFromNotes(order.notes) || (
+    order.estimated_delivery_text ? {
+      region: order.shipping_region,
+      timeRange: order.delivery_time_range,
+      dateText: order.estimated_delivery_text
+    } : getDeliveryEstimate(order.state || 'Kerala', order.created_at || new Date())
+  );
+
+  const regionName = deliveryData.region || 'Kerala';
+  const deliveryDates = deliveryData.dateText || 'N/A';
+  const deliveryTime = deliveryData.timeRange || '';
+
+  lines.push(`Delivery Region: ${regionName}`);
+  lines.push(`Estimated Delivery: ${deliveryDates}${deliveryTime ? ` (${deliveryTime})` : ''}`);
   lines.push('');
   lines.push(`Order Date: ${orderDate}`);
 

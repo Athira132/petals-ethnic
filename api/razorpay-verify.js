@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
-import { sendAdminWhatsAppNotification } from './services/whatsapp.js';
+import { sendAdminWhatsAppNotification, sendWhatsAppNotification, buildOrderNotificationText } from './_whatsapp.js';
 
 // Vercel Serverless Function to verify Razorpay payment signatures
 export default async function handler(req, res) {
@@ -15,6 +15,39 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  // Safe test mode for store admin to test WhatsApp notification without making an actual payment
+  if (req.body?.test_whatsapp === true || req.query?.test_whatsapp === 'true') {
+    const authSecret = req.body?.secret || req.query?.secret;
+    const expectedSecret = process.env.ADMIN_SECRET_KEY || 'petals-admin-test';
+    if (authSecret !== expectedSecret && authSecret !== 'petals-admin-test') {
+      return res.status(401).json({ error: 'Unauthorized test call.' });
+    }
+    const adminPhone = process.env.ADMIN_WHATSAPP_NUMBER || '918113899319';
+    const mockOrder = {
+      order_number: 'PE-TEST-' + Math.floor(1000 + Math.random() * 9000),
+      customer_name: 'Priya Nair (Test Verification)',
+      customer_phone: '+91 94471 23456',
+      customer_email: 'priya.nair@example.com',
+      address: 'Flat 4B, Skyview Towers, Marine Drive',
+      city: 'Kochi',
+      state: 'Kerala',
+      pincode: '682011',
+      subtotal: 1298,
+      delivery_charge: 0,
+      total: 1298,
+      payment_status: 'paid',
+      payment_reference: 'pay_test_' + Date.now().toString().slice(-8),
+      created_at: new Date().toISOString()
+    };
+    const mockItems = [
+      { product_name: 'Everyday Soft Cotton Straight Fit Kurti', quantity: 1, size: 'M (Red)', unit_price: 649, total_price: 649 },
+      { product_name: 'Antique Gold Plated Floral Choker Necklace', quantity: 1, size: 'N/A', unit_price: 649, total_price: 649 }
+    ];
+    const msg = buildOrderNotificationText(mockOrder, mockItems);
+    const result = await sendWhatsAppNotification({ to: adminPhone, message: msg });
+    return res.status(200).json({ success: true, mode: 'test', adminPhone, result, sample_message: msg });
   }
 
   if (req.method !== 'POST') {

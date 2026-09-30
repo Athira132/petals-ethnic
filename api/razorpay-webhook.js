@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
-import { sendAdminWhatsAppNotification } from './services/whatsapp.js';
+import { sendAdminWhatsAppNotification } from './_whatsapp.js';
 
 // Disable default body parser in Vercel to preserve exact raw body buffer for HMAC signature verification
 export const config = {

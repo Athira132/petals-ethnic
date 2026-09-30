@@ -330,18 +330,16 @@ AS $$
   );
 $$;
 
--- Profiles
-CREATE POLICY "Profiles select public" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Profiles insert public" ON public.profiles FOR INSERT WITH CHECK (true);
-CREATE POLICY "Profiles update own" ON public.profiles FOR UPDATE USING (auth.uid() = id OR public.is_admin());
+-- Profiles (Non-recursive policies allowing authenticated users to manage their own profile)
+CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
 -- Categories
-CREATE POLICY "Categories view active" ON public.categories FOR SELECT USING (active = true OR public.is_admin());
-CREATE POLICY "Categories admin manage" ON public.categories FOR ALL USING (public.is_admin());
+CREATE POLICY "Categories view active" ON public.categories FOR SELECT USING (active = true);
 
 -- Products
-CREATE POLICY "Products view active" ON public.products FOR SELECT USING (active = true OR public.is_admin());
-CREATE POLICY "Products admin manage" ON public.products FOR ALL USING (public.is_admin());
+CREATE POLICY "Products view active" ON public.products FOR SELECT USING (active = true);
 
 -- Product Images
 CREATE POLICY "Product images select public" ON public.product_images FOR SELECT USING (true);

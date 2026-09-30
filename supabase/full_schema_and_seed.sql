@@ -321,28 +321,16 @@ CREATE TRIGGER on_profile_update
 -- 15. ROW LEVEL SECURITY (RLS) POLICIES
 -- ---------------------------------------------------------------------
 
--- Profiles
-CREATE POLICY "Profiles select public" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Profiles update own" ON public.profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Profiles admin manage" ON public.profiles FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+-- Profiles (Non-recursive policies allowing authenticated users to manage their own profile)
+CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
 -- Categories
-CREATE POLICY "Categories view active" ON public.categories FOR SELECT USING (active = true OR EXISTS (
-  SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-));
-CREATE POLICY "Categories admin manage" ON public.categories FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Categories view active" ON public.categories FOR SELECT USING (active = true);
 
 -- Products
-CREATE POLICY "Products view active" ON public.products FOR SELECT USING (active = true OR EXISTS (
-  SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-));
-CREATE POLICY "Products admin manage" ON public.products FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Products view active" ON public.products FOR SELECT USING (active = true);
 
 -- Product Images
 CREATE POLICY "Product images select public" ON public.product_images FOR SELECT USING (true);

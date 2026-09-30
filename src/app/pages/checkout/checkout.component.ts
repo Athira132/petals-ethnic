@@ -187,7 +187,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
 
               <div class="summary-row">
                 <span>Shipping</span>
-                <span>{{ summary.shipping === 0 ? 'FREE' : '₹' + summary.shipping }}</span>
+                <span>₹{{ summary.shipping | number:'1.0-0' }}</span>
               </div>
 
               <div class="summary-divider"></div>

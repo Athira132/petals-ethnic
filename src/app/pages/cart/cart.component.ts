@@ -108,11 +108,11 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                 <div class="summary-row">
                   <span>Estimated Delivery</span>
                   <span [class.free-shipping]="summary.shipping === 0">
-                    {{ summary.shipping === 0 ? 'FREE' : '₹' + summary.shipping }}
+                    {{ summary.shipping === 0 ? '₹0' : '₹' + summary.shipping }}
                   </span>
                 </div>
 
-                <div class="free-shipping-progress" *ngIf="summary.subtotal < 1499">
+                <div class="free-shipping-progress" *ngIf="summary.shipping > 0 && summary.subtotal < 1499">
                   <span>Add ₹{{ 1499 - summary.subtotal }} more for <strong>FREE Delivery</strong></span>
                 </div>
 

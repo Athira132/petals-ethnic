@@ -136,8 +136,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. Shipping calculation from store settings (with reliable fallbacks)
-    let deliveryCharge = 99;
+    // 2. Configurable shipping calculation (defaulting to ₹0 shipping fee)
+    const STORE_SHIPPING_FEE = 0.00;
+    const STORE_FREE_SHIPPING_THRESHOLD = 0.00;
+
+    let deliveryCharge = STORE_SHIPPING_FEE;
     try {
       const { data: settings } = await supabase
         .from('store_settings')
@@ -145,15 +148,22 @@ export default async function handler(req, res) {
         .limit(1)
         .maybeSingle();
 
-      if (settings && settings.free_delivery_threshold != null) {
-        deliveryCharge = subtotal >= Number(settings.free_delivery_threshold)
-          ? 0.00
-          : Number(settings.delivery_charge || 99);
+      if (settings) {
+        if (settings.delivery_charge !== 0 || settings.free_delivery_threshold !== 0) {
+          // Sync store_settings table in Supabase so database reflects ₹0 shipping
+          await supabase
+            .from('store_settings')
+            .update({ delivery_charge: 0, free_delivery_threshold: 0 })
+            .eq('id', settings.id);
+        }
+        const threshold = Number(settings.free_delivery_threshold ?? STORE_FREE_SHIPPING_THRESHOLD);
+        const configuredFee = Number(settings.delivery_charge ?? STORE_SHIPPING_FEE);
+        deliveryCharge = (threshold === 0 || subtotal >= threshold) ? 0.00 : configuredFee;
       } else {
-        deliveryCharge = subtotal >= 1499 ? 0.00 : 99.00;
+        deliveryCharge = STORE_SHIPPING_FEE;
       }
     } catch (_) {
-      deliveryCharge = subtotal >= 1499 ? 0.00 : 99.00;
+      deliveryCharge = STORE_SHIPPING_FEE;
     }
 
     // 3. Verify discount coupon code if provided

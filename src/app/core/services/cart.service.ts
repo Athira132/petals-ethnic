@@ -5,8 +5,9 @@ import { Product, SizeOption } from '../models/product.model';
 import { AuthService, purgeLegacyStorage } from './auth.service';
 import { SupabaseService } from './supabase.service';
 
-const FREE_SHIPPING_THRESHOLD = 1499;
-const STANDARD_SHIPPING_FEE = 99;
+// Configurable shipping constants (can be adjusted or fetched dynamically from store settings)
+export const FREE_SHIPPING_THRESHOLD = 0; // ₹0 threshold: all orders qualify for free shipping
+export const STANDARD_SHIPPING_FEE = 0;   // Configured to ₹0 for promotional free shipping
 
 @Injectable({
   providedIn: 'root'

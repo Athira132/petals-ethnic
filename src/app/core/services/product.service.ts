@@ -32,9 +32,13 @@ export class ProductService {
   private cachedCategories: Category[] | null = null;
   private productsInFlight: Promise<Product[]> | null = null;
   private categoriesInFlight: Promise<Category[]> | null = null;
+  private hasLoadedFromNetwork = false;
 
   constructor(private supabaseService: SupabaseService) {
     this.restoreCache();
+    // Proactively fetch live products and categories from Supabase on init
+    this.fetchProductsFromNetwork();
+    this.fetchCategoriesFromNetwork();
   }
 
   private restoreCache() {
@@ -515,7 +519,7 @@ export class ProductService {
   // PRODUCTS MANAGEMENT
   // ==========================================
   async getProducts(options: ProductFilterOptions = {}): Promise<Product[]> {
-    if (!this.cachedProducts || this.cachedProducts.length === 0) {
+    if (!this.hasLoadedFromNetwork || !this.cachedProducts || this.cachedProducts.length === 0) {
       if (this.productsInFlight) {
         await this.productsInFlight;
       } else {
@@ -598,6 +602,7 @@ export class ProductService {
         if (resData.success && resData.products && Array.isArray(resData.products) && resData.products.length > 0) {
           fetched = (resData.products as any[]).map(p => this.parseProductMeta(p));
           this.cachedProducts = fetched;
+          this.hasLoadedFromNetwork = true;
           this.saveCache('petals_products_cache', fetched);
           return fetched;
         }
@@ -621,6 +626,7 @@ export class ProductService {
       if (!error && data && data.length > 0) {
         fetched = data.map(p => this.parseProductMeta(p));
         this.cachedProducts = fetched;
+        this.hasLoadedFromNetwork = true;
         this.saveCache('petals_products_cache', fetched);
         return fetched;
       }
@@ -628,7 +634,10 @@ export class ProductService {
       console.warn('Direct product query fallback error:', e);
     }
 
-    this.cachedProducts = fetched;
+    if (fetched && fetched.length > 0) {
+      this.hasLoadedFromNetwork = true;
+      this.cachedProducts = fetched;
+    }
     return fetched;
   }
 

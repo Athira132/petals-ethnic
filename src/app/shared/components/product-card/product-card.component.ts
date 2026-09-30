@@ -48,9 +48,9 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
           />
         </a>
 
-        <!-- Badges: Only SALE badge when on sale -->
-        <div class="card-badges" *ngIf="isOnSale">
-          <span class="badge badge-sale">SALE</span>
+        <!-- Discount Badge: Only discount percentage when on sale -->
+        <div class="card-badges" *ngIf="isOnSale && discountPercentage > 0">
+          <span class="badge badge-discount">{{ discountPercentage }}% OFF</span>
         </div>
 
         <!-- Quick Add / Enquiry Bar (appears on hover) -->
@@ -92,12 +92,16 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
           <a [routerLink]="['/product', product.slug]">{{ product.name }}</a>
         </h3>
 
+        <!-- Status Information Directly Under Product Name -->
+        <div class="product-status-line" *ngIf="productStatusLine">
+          {{ productStatusLine }}
+        </div>
+
         <!-- Price Display -->
         <div class="product-price">
           <ng-container *ngIf="isOnSale; else regularPrice">
             <span class="sale-price">₹{{ product.sale_price | number:'1.0-0' }}</span>
             <span class="original-price">₹{{ product.price | number:'1.0-0' }}</span>
-            <span class="sale-discount" *ngIf="discountPercentage > 0">({{ discountPercentage }}% off)</span>
           </ng-container>
           <ng-template #regularPrice>
             <span class="regular-price">₹{{ product.price | number:'1.0-0' }}</span>
@@ -293,7 +297,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       letter-spacing: 0.8px;
       text-transform: uppercase;
     }
-    .badge-sale {
+    .badge-discount {
       background: #D81B60;
       color: #FFFFFF;
       box-shadow: 0 2px 6px rgba(216, 27, 96, 0.35);
@@ -316,7 +320,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     .product-title {
       font-size: 15px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       color: var(--color-text-heading);
       line-height: 1.4;
       display: -webkit-box;
@@ -328,6 +332,17 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     }
     .product-title a:hover {
       color: var(--color-pink-dark);
+    }
+    .product-status-line {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #B45309;
+      letter-spacing: 0.3px;
+      margin-bottom: 6px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .product-price {
       display: flex;
@@ -367,7 +382,11 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       .product-title {
         font-size: 13px;
         line-height: 1.3;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
+      }
+      .product-status-line {
+        font-size: 10.5px;
+        margin-bottom: 4px;
       }
       .product-price {
         font-size: 14px;
@@ -457,14 +476,51 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   get isOnSale(): boolean {
-    return Boolean(this.product.sale_price && Number(this.product.sale_price) < Number(this.product.price));
+    return Boolean(
+      this.product.sale_price && 
+      Number(this.product.sale_price) < Number(this.product.price) && 
+      Number(this.product.price) > 0
+    );
   }
 
   get discountPercentage(): number {
-    if (this.product.sale_price && this.product.price > 0) {
-      return Math.round(((this.product.price - this.product.sale_price) / this.product.price) * 100);
+    if (this.product.sale_price && Number(this.product.price) > 0 && Number(this.product.sale_price) < Number(this.product.price)) {
+      return Math.round(((Number(this.product.price) - Number(this.product.sale_price)) / Number(this.product.price)) * 100);
     }
     return 0;
+  }
+
+  get productStatusLine(): string | null {
+    const statuses: string[] = [];
+
+    // 1. New status
+    if (this.product.new_arrival) {
+      statuses.push('New Arrival');
+    } else if ((this.product as any).is_new) {
+      statuses.push('New Product');
+    }
+
+    // 2. Best Seller status
+    if (this.product.best_seller) {
+      statuses.push('Best Seller');
+    }
+
+    // 3. Stock / Availability status
+    if (this.product.stock === 0 || this.product.availability === 'sold_out') {
+      statuses.push('Sold Out');
+    } else if (this.product.stock_display !== 'hide') {
+      if (this.product.stock_display === 'custom' && this.product.custom_stock_message?.trim()) {
+        statuses.push(this.product.custom_stock_message.trim());
+      } else if (this.product.availability === 'few_left' || this.product.stock_display === 'few_left') {
+        statuses.push('Only Few Left');
+      } else if ((this.product.availability as string) === 'limited' || (this.product as any).is_limited) {
+        statuses.push('Limited Stock');
+      } else if (this.isLowStock && this.product.stock > 0) {
+        statuses.push('Only Few Left');
+      }
+    }
+
+    return statuses.length > 0 ? statuses.join(' • ') : null;
   }
 
   get isLowStock(): boolean {
@@ -474,7 +530,7 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   get lowStockBadgeText(): string {
-    return this.product.custom_stock_message || 'Only a Few Left';
+    return this.product.custom_stock_message || 'Only Few Left';
   }
 
   get whatsAppEnquiryUrl(): string {

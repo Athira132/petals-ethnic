@@ -3,31 +3,23 @@ import { environment } from '../../../environments/environment';
 
 declare var Razorpay: any;
 
-export interface RazorpayOptions {
-  key: string;
-  amount: number; // in paise
-  currency: string;
-  name: string;
-  description: string;
-  image?: string;
-  order_id?: string;
-  prefill: {
-    name: string;
-    email: string;
-    contact: string;
-  };
-  notes?: Record<string, string>;
-  theme: {
-    color: string;
-  };
-  handler: (response: {
-    razorpay_payment_id: string;
-    razorpay_order_id?: string;
-    razorpay_signature?: string;
-  }) => void;
-  modal?: {
-    ondismiss: () => void;
-  };
+export interface RazorpayPaymentSuccessResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+export interface RazorpayCheckoutParams {
+  key?: string;
+  razorpayOrderId: string;
+  amountInPaise: number;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  onSuccess: (response: RazorpayPaymentSuccessResponse) => void;
+  onCancel?: () => void;
+  onError?: (error: any) => void;
 }
 
 @Injectable({
@@ -40,7 +32,19 @@ export class PaymentService {
 
   public loadRazorpayScript(): Promise<boolean> {
     return new Promise((resolve) => {
+      if (typeof window === 'undefined') {
+        resolve(false);
+        return;
+      }
+
       if (this.scriptLoaded || (window as any).Razorpay) {
+        this.scriptLoaded = true;
+        resolve(true);
+        return;
+      }
+
+      const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existingScript) {
         this.scriptLoaded = true;
         resolve(true);
         return;
@@ -54,57 +58,69 @@ export class PaymentService {
         resolve(true);
       };
       script.onerror = () => {
-        console.error('Failed to load Razorpay SDK script.');
+        console.error('Failed to load Razorpay Checkout SDK script.');
         resolve(false);
       };
       document.body.appendChild(script);
     });
   }
 
-  public async openRazorpayCheckout(params: {
-    amountInRupees: number;
-    orderId: string;
-    customerName: string;
-    customerEmail: string;
-    customerPhone: string;
-    onSuccess: (paymentId: string) => void;
-    onCancel?: () => void;
-  }): Promise<void> {
+  public async openRazorpayCheckout(params: RazorpayCheckoutParams): Promise<void> {
     const isLoaded = await this.loadRazorpayScript();
-    if (!isLoaded) {
-      alert('Razorpay Payment Gateway could not be loaded. Please check your internet connection.');
-      return;
+    if (!isLoaded || typeof Razorpay === 'undefined') {
+      throw new Error('Razorpay Payment Gateway could not be loaded. Please check your network connection.');
     }
 
-    const options: RazorpayOptions = {
-      key: environment.razorpayKeyId,
-      amount: Math.round(params.amountInRupees * 100), // convert to paise
+    const keyToUse = params.key || environment.razorpayKeyId || 'rzp_test_5113899319';
+
+    const options = {
+      key: keyToUse,
+      order_id: params.razorpayOrderId,
+      amount: params.amountInPaise,
       currency: 'INR',
-      name: 'Petal Ethnics & Jewellers',
-      description: `Order #${params.orderId}`,
+      name: 'Petals Ethnics and Jewellers',
+      description: `Order #${params.orderNumber}`,
       image: 'https://i.ibb.co/d4SMQvxj/Whats-App-Image-2026-08-13-at-10-59-05-AM.jpg',
       prefill: {
-        name: params.customerName,
-        email: params.customerEmail,
-        contact: params.customerPhone
+        name: params.customerName || '',
+        email: params.customerEmail || '',
+        contact: params.customerPhone || ''
       },
       notes: {
-        orderId: params.orderId
+        order_number: params.orderNumber
       },
       theme: {
-        color: '#F8C8D8' // Baby pink accent
+        color: '#C05676' // Petals signature rose pink
       },
-      handler: (response) => {
-        params.onSuccess(response.razorpay_payment_id);
+      handler: (response: any) => {
+        params.onSuccess({
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id || params.razorpayOrderId,
+          razorpay_signature: response.razorpay_signature
+        });
       },
       modal: {
+        backdropclose: false,
+        escape: false,
         ondismiss: () => {
-          if (params.onCancel) params.onCancel();
+          if (params.onCancel) {
+            params.onCancel();
+          }
         }
       }
     };
 
     const rzp = new Razorpay(options);
+
+    if (params.onError) {
+      rzp.on('payment.failed', (response: any) => {
+        console.warn('Razorpay payment failed callback:', response?.error);
+        if (params.onError) {
+          params.onError(response?.error);
+        }
+      });
+    }
+
     rzp.open();
   }
 }

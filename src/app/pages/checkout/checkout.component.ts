@@ -206,7 +206,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                 [disabled]="isProcessing" 
                 class="btn-primary place-order-btn"
               >
-                {{ isProcessing ? 'Connecting to Razorpay...' : 'Pay ₹' + (summary.grandTotal | number:'1.0-0') + ' via Razorpay' }}
+                {{ isProcessing ? (processingMessage || 'Connecting to Razorpay...') : 'Pay ₹' + (summary.grandTotal | number:'1.0-0') + ' via Razorpay' }}
               </button>
 
               <p class="terms-text">
@@ -605,6 +605,7 @@ export class CheckoutComponent implements OnInit {
   };
 
   isProcessing = false;
+  processingMessage = '';
   errorMessage = '';
   completedOrder: Order | null = null;
   whatsappNotificationUrl = '';
@@ -671,67 +672,115 @@ export class CheckoutComponent implements OnInit {
     }
 
     this.isProcessing = true;
+    this.processingMessage = 'Initializing secure payment session...';
     this.errorMessage = '';
-
-    const payload = {
-      ...this.shipping,
-      subtotal: this.summary.subtotal,
-      discount: this.summary.discount,
-      delivery_charge: this.summary.shipping,
-      total: this.summary.grandTotal,
-      payment_method: 'razorpay' as const,
-      items: this.summary.items
-    };
 
     const user = this.authService.currentUser;
 
     try {
-      // 1. Create order record
-      const createdOrder = await this.orderService.createOrder(payload, user?.id);
+      // 1. Call secure serverless API to validate prices and create Razorpay order
+      const createRes = await fetch('/api/razorpay-create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          items: this.summary.items,
+          order_data: {
+            user_id: user?.id || null,
+            customer_name: this.shipping.customer_name.trim(),
+            customer_email: this.shipping.customer_email.trim(),
+            customer_phone: this.shipping.customer_phone.trim(),
+            address: this.shipping.address.trim(),
+            city: this.shipping.city.trim(),
+            state: this.shipping.state.trim(),
+            pincode: this.shipping.pincode.trim(),
+            notes: ''
+          },
+          coupon_code: (this.summary as any).couponCode || null
+        })
+      });
 
-      // 2. Open Razorpay Gateway Modal
+      const createData = await createRes.json();
+      if (!createRes.ok || !createData.success) {
+        throw new Error(createData.error || 'Failed to initialize payment session. Please check item availability.');
+      }
+
+      this.processingMessage = 'Opening Razorpay checkout...';
+
+      // 2. Open official Razorpay Checkout Modal
       await this.paymentService.openRazorpayCheckout({
-        amountInRupees: this.summary.grandTotal,
-        orderId: createdOrder.order_number,
-        customerName: this.shipping.customer_name,
-        customerEmail: this.shipping.customer_email,
-        customerPhone: this.shipping.customer_phone,
-        onSuccess: async (paymentId: string) => {
-          await this.orderService.updatePaymentStatus(createdOrder.id, 'paid', paymentId);
-          createdOrder.payment_status = 'paid';
-          createdOrder.payment_reference = paymentId;
-          this.completedOrder = createdOrder;
+        key: createData.key_id,
+        razorpayOrderId: createData.razorpay_order_id,
+        amountInPaise: createData.amount,
+        orderNumber: createData.order_number,
+        customerName: this.shipping.customer_name.trim(),
+        customerEmail: this.shipping.customer_email.trim(),
+        customerPhone: this.shipping.customer_phone.trim(),
+        onSuccess: async (paymentResp) => {
+          this.processingMessage = 'Verifying payment with bank...';
+          try {
+            // 3. Send signature, payment_id, and order_id to backend for server-side HMAC verification
+            const verifyRes = await fetch('/api/razorpay-verify', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                order_id: createData.order_id,
+                razorpay_payment_id: paymentResp.razorpay_payment_id,
+                razorpay_order_id: paymentResp.razorpay_order_id,
+                razorpay_signature: paymentResp.razorpay_signature
+              })
+            });
 
-          // 3. Format WhatsApp Notification for Store Admin (+91 81138 99319)
-          const itemsList = (this.summary.items || []).map((it) => {
-            let details = `- ${it.product.name} × ${it.quantity}`;
-            if (it.selectedColor) details += `\n  Colour: ${it.selectedColor}`;
-            if (it.selectedSize && it.selectedSize !== 'N/A' && it.selectedSize !== 'One Size') details += `\n  Size: ${it.selectedSize}`;
-            return details;
-          }).join('\n');
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok || !verifyData.success) {
+              throw new Error(verifyData.error || 'Payment signature verification failed.');
+            }
 
-          const waText = `New Order Received\n` +
-            `Order ID: #${createdOrder.order_number}\n` +
-            `Customer: ${this.shipping.customer_name}\n` +
-            `Phone: ${this.shipping.customer_phone}\n` +
-            `Items:\n${itemsList || 'N/A'}\n` +
-            `Total: ₹${this.summary.grandTotal}\n` +
-            `Payment: Razorpay`;
+            // 4. Successful verification: Display confirmed order modal and clear cart
+            this.completedOrder = verifyData.order || {
+              id: createData.order_id,
+              order_number: createData.order_number,
+              customer_name: this.shipping.customer_name,
+              customer_phone: this.shipping.customer_phone,
+              address: this.shipping.address,
+              city: this.shipping.city,
+              state: this.shipping.state,
+              pincode: this.shipping.pincode,
+              total: Math.round(createData.amount / 100),
+              payment_status: 'paid',
+              payment_reference: paymentResp.razorpay_payment_id
+            };
 
-          this.whatsappNotificationUrl = `https://wa.me/918113899319?text=${encodeURIComponent(waText)}`;
-
-          this.cartService.clearCart();
-          this.isProcessing = false;
+            this.whatsappNotificationUrl = verifyData.whatsapp_url || '';
+            this.cartService.clearCart();
+            this.isProcessing = false;
+            this.processingMessage = '';
+          } catch (verifyErr: any) {
+            console.error('Payment verification failed:', verifyErr);
+            this.errorMessage = verifyErr.message || 'Payment verification failed. If money was debited, our store team will confirm your order.';
+            this.isProcessing = false;
+            this.processingMessage = '';
+          }
         },
         onCancel: () => {
           this.isProcessing = false;
-          this.errorMessage = 'Payment was cancelled or closed. You can retry securely.';
+          this.processingMessage = '';
+          this.errorMessage = 'Payment cancelled. Your cart items are saved and you can retry anytime.';
+        },
+        onError: (err: any) => {
+          this.isProcessing = false;
+          this.processingMessage = '';
+          this.errorMessage = err?.description || 'Payment was declined. Please verify your payment details and retry.';
         }
       });
     } catch (err: any) {
       console.error('Checkout error:', err);
       this.errorMessage = err.message || 'Error processing your order. Please try again.';
       this.isProcessing = false;
+      this.processingMessage = '';
     }
   }
 }

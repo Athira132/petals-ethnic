@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { sendAdminWhatsAppNotification } from './services/whatsapp.js';
 
 // Vercel Serverless Function to verify Razorpay payment signatures
 export default async function handler(req, res) {
@@ -136,22 +137,16 @@ export default async function handler(req, res) {
       console.warn('Stock decrement RPC notice:', rpcErr.message);
     }
 
-    // 6. Generate formatted WhatsApp store notification link (+91 81138 99319)
-    const itemsList = (order.order_items || []).map((it) => {
-      let details = `- ${it.product_name} × ${it.quantity}`;
-      if (it.size && it.size !== 'N/A' && it.size !== 'One Size') details += ` (${it.size})`;
-      return details;
-    }).join('\n');
-
-    const whatsappMessage = `New Order Received\n` +
-      `Order ID: #${order.order_number}\n` +
-      `Customer: ${order.customer_name}\n` +
-      `Phone: ${order.customer_phone}\n` +
-      `Items:\n${itemsList || 'N/A'}\n` +
-      `Total: ₹${order.total}\n` +
-      `Payment: Razorpay (${razorpay_payment_id})`;
-
-    const whatsappUrl = `https://wa.me/918113899319?text=${encodeURIComponent(whatsappMessage)}`;
+    // 6. Automatically dispatch WhatsApp notification to store admin server-to-server
+    try {
+      await sendAdminWhatsAppNotification(order.id, {
+        supabase,
+        razorpayPaymentId: razorpay_payment_id,
+        source: 'razorpay-verify'
+      });
+    } catch (waErr) {
+      console.error('Admin WhatsApp notification dispatch notice:', waErr.message);
+    }
 
     order.payment_status = 'paid';
     order.payment_reference = razorpay_payment_id;
@@ -160,9 +155,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       message: 'Razorpay payment verified successfully.',
-      order: order,
-      whatsapp_url: whatsappUrl,
-      whatsapp_message: whatsappMessage
+      order: order
     });
 
   } catch (err) {

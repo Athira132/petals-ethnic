@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { sendAdminWhatsAppNotification } from './services/whatsapp.js';
 
 // Disable default body parser in Vercel to preserve exact raw body buffer for HMAC signature verification
 export const config = {
@@ -147,6 +148,17 @@ export default async function handler(req, res) {
         }
 
         console.log(`Order #${order.order_number} marked PAID successfully via webhook.`);
+
+        // Trigger automated server-to-server WhatsApp notification to store admin (idempotent)
+        try {
+          await sendAdminWhatsAppNotification(order.id, {
+            supabase,
+            razorpayPaymentId: rpPaymentId,
+            source: 'razorpay-webhook'
+          });
+        } catch (waErr) {
+          console.error('Webhook WhatsApp admin notification error:', waErr.message);
+        }
       }
     } else if (event === 'payment.failed') {
       const paymentEntity = payload.payment?.entity;

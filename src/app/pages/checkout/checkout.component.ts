@@ -241,14 +241,6 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
           <p *ngIf="completedOrder.payment_reference"><strong>Payment ID:</strong> {{ completedOrder.payment_reference }}</p>
         </div>
 
-        <!-- WhatsApp Store Notification Backup Button -->
-        <div class="whatsapp-backup-action" *ngIf="whatsappNotificationUrl">
-          <a [href]="whatsappNotificationUrl" target="_blank" rel="noopener" class="btn-whatsapp-notify">
-            <span>Notify Admin on WhatsApp (+91 81138 99319)</span>
-          </a>
-          <small class="whatsapp-hint">Click to send an instant order receipt copy to our store WhatsApp helpline.</small>
-        </div>
-
         <div class="success-actions">
           <a routerLink="/account" class="btn-primary">View My Orders</a>
           <a routerLink="/shop" class="btn-outline">Continue Shopping</a>
@@ -538,39 +530,6 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
       gap: 6px;
     }
 
-    .whatsapp-backup-action {
-      margin-bottom: 24px;
-      padding: 14px;
-      background: #F0FDF4;
-      border: 1px solid #BBF7D0;
-      border-radius: var(--radius-md);
-    }
-    .btn-whatsapp-notify {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: #25D366;
-      color: #FFFFFF;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 14px;
-      padding: 10px 18px;
-      border-radius: var(--radius-sm);
-      transition: background 0.2s ease;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .btn-whatsapp-notify:hover {
-      background: #1EBE5D;
-    }
-    .whatsapp-hint {
-      display: block;
-      font-size: 11px;
-      color: #166534;
-      margin-top: 6px;
-    }
-
     .success-actions {
       display: flex;
       gap: 14px;
@@ -608,7 +567,6 @@ export class CheckoutComponent implements OnInit {
   processingMessage = '';
   errorMessage = '';
   completedOrder: Order | null = null;
-  whatsappNotificationUrl = '';
 
   constructor(
     private cartService: CartService,
@@ -754,7 +712,6 @@ export class CheckoutComponent implements OnInit {
               payment_reference: paymentResp.razorpay_payment_id
             };
 
-            this.whatsappNotificationUrl = verifyData.whatsapp_url || '';
             this.cartService.clearCart();
             this.isProcessing = false;
             this.processingMessage = '';

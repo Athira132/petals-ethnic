@@ -137,6 +137,8 @@ import { Order, OrderStatus, PaymentStatus } from '../../core/models/order.model
               <p><strong>Phone:</strong> {{ selectedOrderModal.customer_phone }}</p>
               <p><strong>Email:</strong> {{ selectedOrderModal.customer_email }}</p>
               <p><strong>Shipping Address:</strong> {{ selectedOrderModal.address }}, {{ selectedOrderModal.city }}, {{ selectedOrderModal.state }} - {{ selectedOrderModal.pincode }}</p>
+              <p><strong>Shipping Region:</strong> {{ selectedOrderModal.shipping_region || 'Kerala' }}</p>
+              <p *ngIf="selectedOrderModal.estimated_delivery_text"><strong>Estimated Delivery:</strong> {{ selectedOrderModal.estimated_delivery_text }} ({{ selectedOrderModal.delivery_time_range }})</p>
               <div class="whatsapp-customer-btn-wrap" *ngIf="selectedOrderModal.customer_phone">
                 <a [href]="getCustomerWhatsAppUrl(selectedOrderModal)" target="_blank" rel="noopener" class="customer-wa-btn">
                   Contact Customer on WhatsApp

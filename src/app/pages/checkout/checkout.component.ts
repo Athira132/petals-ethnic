@@ -770,24 +770,32 @@ export class CheckoutComponent implements OnInit {
 
             // 4. Successful verification: Display confirmed order modal and clear cart
             const fallbackDelivery = this.deliveryEstimate || this.shippingService.getDeliveryEstimate(this.shipping.state || 'Kerala');
-            this.completedOrder = verifyData.order || {
-              id: createData.order_id,
-              order_number: createData.order_number,
-              customer_name: this.shipping.customer_name,
-              customer_phone: this.shipping.customer_phone,
-              address: this.shipping.address,
-              city: this.shipping.city,
-              state: this.shipping.state,
-              pincode: this.shipping.pincode,
-              subtotal: this.summary.subtotal,
-              delivery_charge: createData.delivery_charge != null ? createData.delivery_charge : this.summary.shipping,
-              total: Math.round(createData.amount / 100),
-              shipping_region: fallbackDelivery.region,
-              delivery_time_range: fallbackDelivery.timeRange,
-              estimated_delivery_text: fallbackDelivery.dateText,
-              payment_status: 'paid',
-              payment_reference: paymentResp.razorpay_payment_id
-            };
+            if (verifyData.order) {
+              this.completedOrder = this.orderService.hydrateOrder(verifyData.order);
+            } else {
+              this.completedOrder = {
+                id: createData.order_id,
+                order_number: createData.order_number,
+                customer_name: this.shipping.customer_name,
+                customer_email: this.shipping.customer_email || '',
+                customer_phone: this.shipping.customer_phone,
+                address: this.shipping.address,
+                city: this.shipping.city,
+                state: this.shipping.state,
+                pincode: this.shipping.pincode,
+                subtotal: this.summary.subtotal,
+                discount: this.summary.discount || 0,
+                delivery_charge: createData.delivery_charge != null ? createData.delivery_charge : this.summary.shipping,
+                total: Math.round(createData.amount / 100),
+                payment_method: 'razorpay',
+                payment_status: 'paid',
+                order_status: 'confirmed',
+                shipping_region: fallbackDelivery.region,
+                delivery_time_range: fallbackDelivery.timeRange,
+                estimated_delivery_text: fallbackDelivery.dateText,
+                payment_reference: paymentResp.razorpay_payment_id
+              };
+            }
 
             this.cartService.clearCart();
             this.isProcessing = false;

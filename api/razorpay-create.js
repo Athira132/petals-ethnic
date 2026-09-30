@@ -57,12 +57,31 @@ export default async function handler(req, res) {
 
       const { data: product, error: prodErr } = await supabase
         .from('products')
-        .select('id, name, price, sale_price, availability, stock, has_size, active, product_images(*)')
+        .select('id, name, price, sale_price, availability, stock, active, description, product_images(*)')
         .eq('id', productId)
         .maybeSingle();
 
-      if (prodErr || !product) {
+      if (prodErr) {
+        console.error(`Database error querying product ${productId}:`, prodErr);
+        return res.status(400).json({ error: `Product query failed for ${productId}: ${prodErr.message}` });
+      }
+
+      if (!product) {
         return res.status(400).json({ error: `Product not found or unavailable: ${productId}` });
+      }
+
+      // Check whether product has size using description metadata if available
+      let productHasSize = true;
+      if (product.description && product.description.includes('<!--PRODUCT_META:')) {
+        try {
+          const match = product.description.match(/<!--PRODUCT_META:([\s\S]*?)-->/);
+          if (match && match[1]) {
+            const meta = JSON.parse(match[1]);
+            if (meta.has_size !== undefined) {
+              productHasSize = Boolean(meta.has_size);
+            }
+          }
+        } catch (_) {}
       }
 
       if (product.active === false || product.availability === 'unavailable') {
@@ -74,7 +93,7 @@ export default async function handler(req, res) {
       }
 
       // Check size-specific stock if applicable
-      const requiresSizeCheck = product.has_size !== false && size && !['N/A', 'One Size', 'Standard', 'Free Size'].includes(size);
+      const requiresSizeCheck = productHasSize && size && !['N/A', 'One Size', 'Standard', 'Free Size'].includes(size);
       if (requiresSizeCheck) {
         const { data: sizeRecord } = await supabase
           .from('product_sizes')

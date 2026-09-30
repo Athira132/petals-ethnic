@@ -8,7 +8,11 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL;
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+  const connectionString = (process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || '')
+    .replace('sslmode=require', 'sslmode=no-verify');
+
   if (!connectionString) {
     return res.status(500).json({ error: 'Missing Postgres connection string in environment.' });
   }

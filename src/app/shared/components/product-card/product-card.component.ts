@@ -48,16 +48,9 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
           />
         </a>
 
-        <!-- Badges -->
-        <div class="card-badges">
-          <span *ngIf="product.sale_price && product.sale_price < product.price" class="badge badge-pink">
-            SAVE {{ discountPercentage }}%
-          </span>
-          <span *ngIf="product.new_arrival" class="badge badge-gold">NEW</span>
-          <span *ngIf="product.stock === 0" class="badge badge-dark">SOLD OUT</span>
-          <span *ngIf="isLowStock && product.stock > 0" class="badge badge-few-left">
-            {{ lowStockBadgeText }}
-          </span>
+        <!-- Badges: Only SALE badge when on sale -->
+        <div class="card-badges" *ngIf="isOnSale">
+          <span class="badge badge-sale">SALE</span>
         </div>
 
         <!-- Quick Add / Enquiry Bar (appears on hover) -->
@@ -101,9 +94,10 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
 
         <!-- Price Display -->
         <div class="product-price">
-          <ng-container *ngIf="product.sale_price && product.sale_price < product.price; else regularPrice">
+          <ng-container *ngIf="isOnSale; else regularPrice">
             <span class="sale-price">₹{{ product.sale_price | number:'1.0-0' }}</span>
             <span class="original-price">₹{{ product.price | number:'1.0-0' }}</span>
+            <span class="sale-discount" *ngIf="discountPercentage > 0">({{ discountPercentage }}% off)</span>
           </ng-container>
           <ng-template #regularPrice>
             <span class="regular-price">₹{{ product.price | number:'1.0-0' }}</span>
@@ -294,26 +288,15 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       display: inline-block;
       padding: 4px 8px;
       border-radius: var(--radius-sm);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
     }
-    .badge-pink {
-      background: #E5A9BD;
+    .badge-sale {
+      background: #D81B60;
       color: #FFFFFF;
-    }
-    .badge-gold {
-      background: #C5A059;
-      color: #FFFFFF;
-    }
-    .badge-dark {
-      background: #222222;
-      color: #FFFFFF;
-    }
-    .badge-few-left {
-      background: #E65100;
-      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(216, 27, 96, 0.35);
     }
 
     .card-content {
@@ -349,6 +332,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     .product-price {
       display: flex;
       align-items: baseline;
+      flex-wrap: wrap;
       gap: 8px;
       margin-top: auto;
       font-size: 16px;
@@ -362,6 +346,11 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       color: var(--color-muted);
       text-decoration: line-through;
       font-weight: 400;
+    }
+    .sale-discount {
+      font-size: 12px;
+      color: #2E7D32;
+      font-weight: 600;
     }
     .regular-price {
       color: var(--color-text-heading);
@@ -465,6 +454,10 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
         this.onFullResLoaded();
       }
     }
+  }
+
+  get isOnSale(): boolean {
+    return Boolean(this.product.sale_price && Number(this.product.sale_price) < Number(this.product.price));
   }
 
   get discountPercentage(): number {

@@ -81,24 +81,24 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
               </svg>
             </button>
 
-            <!-- Desktop-Only Account Link & Admin Badge (NOT shown in visible mobile header) -->
+            <!-- Account Link & Admin Badge -->
             <ng-container *ngIf="user$ | async as user; else guestAuth">
-              <a routerLink="/account" class="action-btn user-btn desktop-only" title="My Account">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <a routerLink="/account" class="action-btn user-btn" title="My Account">
+                <svg class="user-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                <span class="nav-label desktop-only">{{ (userProfile$ | async)?.name || 'Account' }}</span>
+                <span class="nav-label user-nav-label">{{ getCleanUserName(userProfile$ | async) }}</span>
               </a>
               <a *ngIf="isAdmin" routerLink="/admin" class="admin-badge desktop-only" title="Admin Dashboard">Admin</a>
             </ng-container>
             <ng-template #guestAuth>
-              <a routerLink="/login" class="action-btn desktop-only" title="Login / Register">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <a routerLink="/login" class="action-btn user-btn guest-btn desktop-only" title="Login / Register">
+                <svg class="user-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                <span class="nav-label desktop-only">Login</span>
+                <span class="nav-label">Login</span>
               </a>
             </ng-template>
 
@@ -353,13 +353,48 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
       background-color: rgba(194, 24, 91, 0.08);
     }
     .user-btn {
-      width: auto;
-      border-radius: 20px;
-      padding: 0 10px;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      width: auto !important;
+      height: 40px !important;
+      border-radius: 20px !important;
+      padding: 0 12px !important;
+      flex-shrink: 0;
+      color: var(--color-text-heading, #0D0D0D);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      vertical-align: middle;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    .user-btn:hover {
+      background-color: rgba(194, 24, 91, 0.08);
+      color: var(--color-pink-dark, #C2185B);
+    }
+    .user-btn.guest-btn {
+      padding: 0 10px !important;
+    }
+    .user-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      display: block;
     }
     .nav-label {
       font-size: 13px;
       font-weight: 500;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .user-nav-label {
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* Notification Badges for Cart & Wishlist */
@@ -382,15 +417,21 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
     }
 
     .admin-badge {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 26px !important;
       background-color: #C5A059;
       color: #FFFFFF;
       font-size: 11px;
       font-weight: 600;
-      padding: 4px 10px;
+      padding: 0 10px;
       border-radius: 20px;
       letter-spacing: 0.5px;
       text-decoration: none;
       margin-left: 2px;
+      vertical-align: middle;
+      flex-shrink: 0;
     }
 
     /* Expandable Search Input (Desktop) */
@@ -577,6 +618,16 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
       .desktop-only {
         display: none !important;
       }
+      .user-btn .user-nav-label {
+        display: none !important;
+      }
+      .user-btn {
+        width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        justify-content: center !important;
+      }
       .mobile-menu-toggle {
         display: flex;
       }
@@ -616,9 +667,9 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
       .nav-actions {
         gap: 3px;
       }
-      .action-btn {
-        width: 36px;
-        height: 36px;
+      .action-btn, .user-btn {
+        width: 36px !important;
+        height: 36px !important;
       }
       .nav-badge {
         top: 1px;
@@ -646,13 +697,13 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
       .nav-actions {
         gap: 2px;
       }
-      .action-btn {
-        width: 33px;
-        height: 33px;
+      .action-btn, .user-btn {
+        width: 33px !important;
+        height: 33px !important;
       }
-      .action-btn svg {
-        width: 18px;
-        height: 18px;
+      .action-btn svg, .user-btn svg {
+        width: 18px !important;
+        height: 18px !important;
       }
       .nav-badge {
         min-width: 14px;
@@ -750,11 +801,6 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/im
     .mobile-link.admin-link {
       color: #C5A059;
     }
-    .nav-pill-icon {
-      font-size: 16px;
-      width: 22px;
-      text-align: center;
-    }
     .drawer-badge {
       margin-left: auto;
       background-color: var(--color-pink-dark, #C2185B);
@@ -845,6 +891,15 @@ export class NavbarComponent implements OnInit {
 
   get isAdmin(): boolean {
     return this.authService.isAdmin;
+  }
+
+  getCleanUserName(profile: UserProfile | null): string {
+    if (!profile || !profile.name) return 'Account';
+    const clean = String(profile.name)
+      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1FA00}-\u{1FAFF}]/gu, '')
+      .trim();
+    if (!clean) return 'Account';
+    return clean.length > 15 ? clean.substring(0, 15) + '…' : clean;
   }
 
   toggleMobileMenu() {

@@ -888,15 +888,15 @@ export class HomeComponent implements OnInit {
       image_url: 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png'
     },
     {
-      id: 'cat-necklaces',
+      id: '18c210a1-f9aa-42a5-a519-727c4b1f1cf1',
       name: 'Necklaces',
-      slug: 'necklaces',
+      slug: 'necklace',
       department: 'jewellery',
       active: true,
-      image_url: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
+      image_url: 'https://i.ibb.co/8DJJBV6q/c11462216cd2.jpg'
     },
     {
-      id: 'cat-earrings',
+      id: '0cb89329-3cc0-4bac-a291-50619a16f282',
       name: 'Earrings',
       slug: 'earrings',
       department: 'jewellery',
@@ -904,9 +904,25 @@ export class HomeComponent implements OnInit {
       image_url: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
     },
     {
-      id: 'cat-bangles',
+      id: '367228ba-afe0-4459-842f-feb9258691f7',
       name: 'Bangles',
       slug: 'bangles',
+      department: 'jewellery',
+      active: true,
+      image_url: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
+    },
+    {
+      id: '726124cb-b9dd-4401-91f7-b0c585eaf705',
+      name: 'Rings',
+      slug: 'rings',
+      department: 'jewellery',
+      active: true,
+      image_url: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
+    },
+    {
+      id: '67c2ef3e-1911-4c09-86e8-17840a655964',
+      name: 'Chains',
+      slug: 'chains',
       department: 'jewellery',
       active: true,
       image_url: 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'

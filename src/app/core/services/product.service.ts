@@ -19,6 +19,22 @@ export interface ProductFilterOptions {
   department?: 'ethnic' | 'jewellery';
 }
 
+export const KNOWN_JEWELLERY_CATEGORY_IDS = new Set<string>([
+  '18c210a1-f9aa-42a5-a519-727c4b1f1cf1', // Necklace
+  '0cb89329-3cc0-4bac-a291-50619a16f282', // Earrings
+  '367228ba-afe0-4459-842f-feb9258691f7', // Bangles
+  '726124cb-b9dd-4401-91f7-b0c585eaf705', // Rings
+  '67c2ef3e-1911-4c09-86e8-17840a655964'  // Chains
+]);
+
+export const JEWELLERY_KEYWORDS = [
+  'jewel', 'jewellery', 'jewelry', 'necklace', 'necklaces', 'earring', 'earrings',
+  'bangle', 'bangles', 'ring', 'rings', 'bracelet', 'bracelets', 'chain', 'chains',
+  'pendant', 'pendants', 'anklet', 'anklets', 'choker', 'chokers', 'haram', 'mala',
+  'jhumka', 'jhumkas', 'kada', 'kadas', 'kangan', 'payal', 'kolusu', 'mangalsutra',
+  'maang', 'tikka', 'nose pin', 'mookuthi', 'ottiyanam', 'kamarbandh', 'temple jewellery', 'antique jewellery'
+];
+
 import { INITIAL_CATEGORIES, INITIAL_PRODUCTS } from '../data/initial-catalog.data';
 
 @Injectable({
@@ -149,6 +165,14 @@ export class ProductService {
       products.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
 
+    if (options.department) {
+      products = products.filter(p => (p.department || 'ethnic') === options.department);
+    }
+
+    if (options.limit && options.limit > 0) {
+      products = products.slice(0, options.limit);
+    }
+
     return products;
   }
 
@@ -161,7 +185,9 @@ export class ProductService {
 
     // Resolve department
     if (!c.department) {
-      if (c.description && c.description.includes('<!--DEPT:')) {
+      if (c.id && KNOWN_JEWELLERY_CATEGORY_IDS.has(c.id)) {
+        c.department = 'jewellery';
+      } else if (c.description && c.description.includes('<!--DEPT:')) {
         const match = c.description.match(/<!--DEPT:(ethnic|jewellery)-->/);
         if (match && match[1]) {
           c.department = match[1] as 'ethnic' | 'jewellery';
@@ -169,9 +195,12 @@ export class ProductService {
         }
       }
       if (!c.department) {
-        const isJewellery = /jewel|necklace|earring|bangle|ring|bracelet|chain|pendant|anklet|choker|antique/i.test((c.slug || '') + ' ' + (c.name || ''));
+        const lowerNameAndSlug = ((c.slug || '') + ' ' + (c.name || '')).toLowerCase();
+        const isJewellery = JEWELLERY_KEYWORDS.some(k => lowerNameAndSlug.includes(k));
         c.department = isJewellery ? 'jewellery' : 'ethnic';
       }
+    } else if (c.id && KNOWN_JEWELLERY_CATEGORY_IDS.has(c.id)) {
+      c.department = 'jewellery';
     }
     return c;
   }
@@ -182,6 +211,11 @@ export class ProductService {
 
     if (p.category) {
       p.category = this.parseCategoryMeta(p.category);
+    } else if (p.category_id && this.cachedCategories) {
+      const matchCat = this.cachedCategories.find(c => c.id === p.category_id);
+      if (matchCat) {
+        p.category = matchCat;
+      }
     }
 
     // Support legacy price fields: original_price, mrp, discount_price
@@ -222,26 +256,40 @@ export class ProductService {
       }
     }
 
-    // Department inference if missing
+    // Department inference if missing or verify with category
     if (!p.department) {
-      if (p.category?.department) {
+      if (p.category_id && KNOWN_JEWELLERY_CATEGORY_IDS.has(p.category_id)) {
+        p.department = 'jewellery';
+      } else if (p.category?.department) {
         p.department = p.category.department;
       } else {
         const catName = (p.category?.name || '').toLowerCase();
         const catSlug = (p.category?.slug || '').toLowerCase();
         const prodName = (p.name || '').toLowerCase();
-        const isJewellery = /jewel|necklace|earring|bangle|ring|bracelet|chain|pendant|anklet|choker|antique/i.test(catName + ' ' + catSlug + ' ' + prodName);
-        p.department = isJewellery ? 'jewellery' : 'ethnic';
+        const isJewellery = JEWELLERY_KEYWORDS.some(k => catName.includes(k) || catSlug.includes(k) || prodName.includes(k));
+        const isClothing = /kurti|saree|anarkali|dress|codeset|kasavu|kurta|midi/i.test(prodName);
+        p.department = (isJewellery && !isClothing) ? 'jewellery' : 'ethnic';
+      }
+    } else if (p.category_id && KNOWN_JEWELLERY_CATEGORY_IDS.has(p.category_id)) {
+      p.department = 'jewellery';
+    }
+
+    // Enforce strict jewellery invariants (no clothing sizes, no size chart)
+    const isJewel = p.department === 'jewellery' || (p.category_id && KNOWN_JEWELLERY_CATEGORY_IDS.has(p.category_id));
+    if (isJewel) {
+      p.department = 'jewellery';
+      p.has_size = false;
+      p.show_size_chart = false;
+      p.size_chart_url = undefined;
+    } else {
+      if (p.has_size === undefined || p.has_size === null) {
+        p.has_size = true;
+      }
+      if (p.show_size_chart === undefined || p.show_size_chart === null) {
+        p.show_size_chart = false;
       }
     }
 
-    // Default fallbacks
-    if (p.has_size === undefined || p.has_size === null) {
-      p.has_size = p.department !== 'jewellery';
-    }
-    if (p.show_size_chart === undefined || p.show_size_chart === null) {
-      p.show_size_chart = false;
-    }
     if (!p.purchase_mode) {
       p.purchase_mode = 'online';
     }
@@ -601,7 +649,7 @@ export class ProductService {
     }
 
     if (options.department) {
-      products = products.filter(p => p.department === options.department);
+      products = products.filter(p => (p.department || 'ethnic') === options.department);
     }
 
     if (options.limit && options.limit > 0) {

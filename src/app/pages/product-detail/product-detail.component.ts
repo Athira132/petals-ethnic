@@ -135,8 +135,8 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               </div>
             </div>
 
-            <!-- Size Selector (Only for Products with Sizes) -->
-            <div class="pd-size-section" *ngIf="product.has_size !== false && sizeList.length > 0">
+            <!-- Size Selector (Only for Ethnic Products with Sizes - NEVER Jewellery) -->
+            <div class="pd-size-section" *ngIf="product.has_size !== false && product.department !== 'jewellery' && sizeList.length > 0">
               <div class="size-header">
                 <div class="size-header-left">
                   <span class="section-label">Select Size:</span>
@@ -1215,7 +1215,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   updateSizesForSelectedColor(isInitial = false) {
-    if (!this.product || this.product.has_size === false) {
+    if (!this.product || this.product.has_size === false || this.product.department === 'jewellery') {
       this.sizeList = [];
       this.selectedSize = 'One Size';
       return;
@@ -1324,7 +1324,7 @@ export class ProductDetailComponent implements OnInit {
     if (this.isSoldOut) {
       return 'Sold Out';
     }
-    if (this.product.has_size !== false && !this.selectedSize) {
+    if (this.product.department !== 'jewellery' && this.product.has_size !== false && !this.selectedSize) {
       return 'Select a Size';
     }
     if (!this.isAvailable) {
@@ -1336,7 +1336,7 @@ export class ProductDetailComponent implements OnInit {
   get isAvailable(): boolean {
     if (!this.product) return false;
     if (this.isSoldOut) return false;
-    if (this.product.has_size !== false) {
+    if (this.product.department !== 'jewellery' && this.product.has_size !== false) {
       if (!this.selectedSize) return false;
       return !!(this.selectedSizeConfig && this.selectedSizeConfig.stock > 0);
     }
@@ -1356,7 +1356,7 @@ export class ProductDetailComponent implements OnInit {
     if (this.product.stock_display === 'few_left') return true;
     if (this.product.stock_display === 'hide') return false;
 
-    if (this.product.has_size !== false) {
+    if (this.product.department !== 'jewellery' && this.product.has_size !== false) {
       return !!(this.selectedSizeConfig && this.selectedSizeConfig.stock > 0 && this.selectedSizeConfig.stock <= 5);
     }
     if (this.product.has_colors && this.colorVariants.length > 0) {
@@ -1383,7 +1383,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   get maxQuantity(): number {
-    if (this.product?.has_size !== false) {
+    if (this.product?.department !== 'jewellery' && this.product?.has_size !== false) {
       return this.selectedSizeConfig ? this.selectedSizeConfig.stock : 1;
     }
     if (this.product?.has_colors && this.colorVariants.length > 0) {
@@ -1407,8 +1407,9 @@ export class ProductDetailComponent implements OnInit {
   get whatsAppEnquiryUrl(): string {
     if (!this.product) return 'https://wa.me/918113899319';
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.petalsethnic.com';
+    const isJewel = this.product.department === 'jewellery';
     const colorText = this.selectedColor ? ` | Color: ${this.selectedColor}` : '';
-    const sizeText = (this.product.has_size !== false && this.selectedSize) ? ` | Size: ${this.selectedSize}` : '';
+    const sizeText = (!isJewel && this.product.has_size !== false && this.selectedSize) ? ` | Size: ${this.selectedSize}` : '';
     const text = encodeURIComponent(
       `Hello Petals Ethnics and Jewellers! I am interested in enquiry for:\n*${this.product.name}* (Price: ₹${this.product.sale_price || this.product.price}${colorText}${sizeText})\nProduct Link: ${origin}/product/${this.product.slug}`
     );
@@ -1435,7 +1436,8 @@ export class ProductDetailComponent implements OnInit {
   addToCart() {
     if (!this.product || !this.isAvailable) return;
     try {
-      const sizeToPass = this.product.has_size !== false ? (this.selectedSize as SizeOption) : undefined;
+      const isJewel = this.product.department === 'jewellery';
+      const sizeToPass = (!isJewel && this.product.has_size !== false) ? (this.selectedSize as SizeOption) : undefined;
       this.cartService.addToCart(this.product, sizeToPass, this.quantity, this.selectedColor || undefined, this.activeImageUrl);
       alert(`Added ${this.quantity} item(s) of ${this.product.name} to cart!`);
     } catch (e: any) {
@@ -1445,7 +1447,8 @@ export class ProductDetailComponent implements OnInit {
 
   buyNow() {
     if (!this.product || !this.isAvailable) return;
-    const sizeToPass = this.product.has_size !== false ? (this.selectedSize as SizeOption) : undefined;
+    const isJewel = this.product.department === 'jewellery';
+    const sizeToPass = (!isJewel && this.product.has_size !== false) ? (this.selectedSize as SizeOption) : undefined;
     this.cartService.addToCart(this.product, sizeToPass, this.quantity, this.selectedColor || undefined, this.activeImageUrl);
     this.router.navigate(['/checkout']);
   }

@@ -1,8 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
 
-const JEWELLERY_KEYWORDS = ['necklace', 'necklaces', 'earring', 'earrings', 'bangle', 'bangles', 'ring', 'rings', 'bracelet', 'bracelets', 'chain', 'chains', 'jewellery', 'jewelry', 'pendant', 'anklet'];
+const JEWELLERY_KEYWORDS = [
+  'jewel', 'jewellery', 'jewelry', 'necklace', 'necklaces', 'earring', 'earrings',
+  'bangle', 'bangles', 'ring', 'rings', 'bracelet', 'bracelets', 'chain', 'chains',
+  'pendant', 'pendants', 'anklet', 'anklets', 'choker', 'chokers', 'haram', 'mala',
+  'jhumka', 'jhumkas', 'kada', 'kadas', 'kangan', 'payal', 'kolusu', 'mangalsutra',
+  'maang', 'tikka', 'nose pin', 'mookuthi', 'ottiyanam', 'kamarbandh', 'temple jewellery', 'antique jewellery'
+];
+
+const KNOWN_JEWELLERY_CATEGORY_IDS = new Set([
+  '18c210a1-f9aa-42a5-a519-727c4b1f1cf1', // Necklace
+  '0cb89329-3cc0-4bac-a291-50619a16f282', // Earrings
+  '367228ba-afe0-4459-842f-feb9258691f7', // Bangles
+  '726124cb-b9dd-4401-91f7-b0c585eaf705', // Rings
+  '67c2ef3e-1911-4c09-86e8-17840a655964'  // Chains
+]);
 
 function detectDepartment(cat) {
+  if (cat.id && KNOWN_JEWELLERY_CATEGORY_IDS.has(cat.id)) {
+    return 'jewellery';
+  }
   if (cat.department && (cat.department === 'jewellery' || cat.department === 'ethnic')) {
     return cat.department;
   }

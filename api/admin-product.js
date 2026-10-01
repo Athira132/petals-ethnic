@@ -16,6 +16,28 @@ const EXTENDED_COLUMNS = [
   'is_sold_out'
 ];
 
+const JEWELLERY_KEYWORDS = [
+  'jewel', 'jewellery', 'jewelry', 'necklace', 'necklaces', 'earring', 'earrings',
+  'bangle', 'bangles', 'ring', 'rings', 'bracelet', 'bracelets', 'chain', 'chains',
+  'pendant', 'pendants', 'anklet', 'anklets', 'choker', 'chokers', 'haram', 'mala',
+  'jhumka', 'jhumkas', 'kada', 'kadas', 'kangan', 'payal', 'kolusu', 'mangalsutra',
+  'maang', 'tikka', 'nose pin', 'mookuthi', 'ottiyanam', 'kamarbandh', 'temple jewellery', 'antique jewellery'
+];
+
+const KNOWN_JEWELLERY_CATEGORY_IDS = new Set([
+  '18c210a1-f9aa-42a5-a519-727c4b1f1cf1', // Necklace
+  '0cb89329-3cc0-4bac-a291-50619a16f282', // Earrings
+  '367228ba-afe0-4459-842f-feb9258691f7', // Bangles
+  '726124cb-b9dd-4401-91f7-b0c585eaf705', // Rings
+  '67c2ef3e-1911-4c09-86e8-17840a655964'  // Chains
+]);
+
+function isJewelleryIdentifier(str) {
+  if (!str) return false;
+  const lower = str.toLowerCase();
+  return JEWELLERY_KEYWORDS.some(k => lower.includes(k));
+}
+
 function extractProductMeta(product) {
   let meta = {};
   let cleanDesc = product.description || '';
@@ -30,12 +52,26 @@ function extractProductMeta(product) {
     }
   }
 
-  // Derive department from category or metadata
-  const dept = product.department || meta.department || (
-    product.category?.department ? product.category.department : (
-      product.category?.slug && ['necklace', 'necklaces', 'earring', 'earrings', 'bangle', 'bangles', 'ring', 'rings', 'bracelet', 'bracelets', 'chain', 'chains', 'jewellery', 'jewelry'].some(k => product.category.slug.toLowerCase().includes(k)) ? 'jewellery' : 'ethnic'
-    )
-  );
+  // Derive department strictly from metadata, category, or keywords
+  let dept = product.department || meta.department;
+  if (!dept) {
+    if (product.category_id && KNOWN_JEWELLERY_CATEGORY_IDS.has(product.category_id)) {
+      dept = 'jewellery';
+    } else if (product.category?.department) {
+      dept = product.category.department;
+    } else if (product.category?.description && product.category.description.includes('<!--DEPT:jewellery-->')) {
+      dept = 'jewellery';
+    } else if (product.category?.description && product.category.description.includes('<!--DEPT:ethnic-->')) {
+      dept = 'ethnic';
+    } else if (isJewelleryIdentifier(product.category?.name) || isJewelleryIdentifier(product.category?.slug)) {
+      dept = 'jewellery';
+    } else if (isJewelleryIdentifier(product.name)) {
+      const isClothing = /kurti|saree|anarkali|dress|codeset|kasavu|kurta|midi/i.test(product.name || '');
+      dept = isClothing ? 'ethnic' : 'jewellery';
+    } else {
+      dept = 'ethnic';
+    }
+  }
 
   const hasSize = product.has_size !== undefined 
     ? Boolean(product.has_size) 
@@ -114,9 +150,6 @@ export default async function handler(req, res) {
       if (category_id) {
         query = query.eq('category_id', category_id);
       }
-      if (department) {
-        query = query.eq('department', department);
-      }
       if (featured === 'true') {
         query = query.eq('featured', true);
       }
@@ -137,7 +170,10 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: error.message });
       }
 
-      const formatted = (data || []).map(p => extractProductMeta(p));
+      let formatted = (data || []).map(p => extractProductMeta(p));
+      if (department) {
+        formatted = formatted.filter(p => (p.department || 'ethnic') === department);
+      }
       res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
       return res.status(200).json({ success: true, products: formatted, count: formatted.length });
     }
@@ -151,11 +187,26 @@ export default async function handler(req, res) {
 
       // Prepare metadata bundle for resilient cross-database storage
       const isManualSoldOut = Boolean(productPayload.is_sold_out || productPayload.availability === 'sold_out');
+      let dept = productPayload.department;
+      if (!dept) {
+        if (productPayload.category_id && KNOWN_JEWELLERY_CATEGORY_IDS.has(productPayload.category_id)) {
+          dept = 'jewellery';
+        } else if (isJewelleryIdentifier(productPayload.name)) {
+          const isClothing = /kurti|saree|anarkali|dress|codeset|kasavu|kurta|midi/i.test(productPayload.name || '');
+          dept = isClothing ? 'ethnic' : 'jewellery';
+        } else {
+          dept = 'ethnic';
+        }
+      }
+      const isJewel = dept === 'jewellery' || (productPayload.category_id && KNOWN_JEWELLERY_CATEGORY_IDS.has(productPayload.category_id));
+      if (isJewel) dept = 'jewellery';
+
+      const hasSize = isJewel ? false : (productPayload.has_size !== undefined ? Boolean(productPayload.has_size) : true);
       const meta = {
-        department: productPayload.department || 'ethnic',
-        has_size: productPayload.has_size !== undefined ? Boolean(productPayload.has_size) : true,
-        show_size_chart: Boolean(productPayload.show_size_chart),
-        size_chart_url: productPayload.size_chart_url || null,
+        department: dept,
+        has_size: hasSize,
+        show_size_chart: isJewel ? false : Boolean(productPayload.show_size_chart),
+        size_chart_url: isJewel ? null : (productPayload.size_chart_url || null),
         purchase_mode: productPayload.purchase_mode || 'online',
         video_url: productPayload.video_url || null,
         has_colors: Boolean(productPayload.has_colors),
@@ -247,11 +298,18 @@ export default async function handler(req, res) {
         ? Boolean(productPayload.is_sold_out) 
         : (productPayload.availability === 'sold_out' ? true : (productPayload.availability !== undefined ? false : undefined));
 
+      let dept = productPayload.department;
+      if (!dept && productPayload.category_id && KNOWN_JEWELLERY_CATEGORY_IDS.has(productPayload.category_id)) {
+        dept = 'jewellery';
+      }
+      const isJewel = dept === 'jewellery' || (productPayload.category_id && KNOWN_JEWELLERY_CATEGORY_IDS.has(productPayload.category_id));
+      if (isJewel) dept = 'jewellery';
+
       const meta = {
-        department: productPayload.department,
-        has_size: productPayload.has_size !== undefined ? Boolean(productPayload.has_size) : undefined,
-        show_size_chart: productPayload.show_size_chart !== undefined ? Boolean(productPayload.show_size_chart) : undefined,
-        size_chart_url: productPayload.size_chart_url !== undefined ? productPayload.size_chart_url : undefined,
+        department: dept,
+        has_size: isJewel ? false : (productPayload.has_size !== undefined ? Boolean(productPayload.has_size) : undefined),
+        show_size_chart: isJewel ? false : (productPayload.show_size_chart !== undefined ? Boolean(productPayload.show_size_chart) : undefined),
+        size_chart_url: isJewel ? null : (productPayload.size_chart_url !== undefined ? productPayload.size_chart_url : undefined),
         purchase_mode: productPayload.purchase_mode !== undefined ? productPayload.purchase_mode : undefined,
         video_url: productPayload.video_url !== undefined ? productPayload.video_url : undefined,
         has_colors: productPayload.has_colors !== undefined ? Boolean(productPayload.has_colors) : undefined,

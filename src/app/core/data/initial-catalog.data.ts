@@ -146,6 +146,58 @@ export const INITIAL_CATEGORIES: Category[] = [
     "updated_at": "2026-09-25T07:54:14.494542+00:00",
     "department": "ethnic"
   }
+,
+  {
+    "id": "0cb89329-3cc0-4bac-a291-50619a16f282",
+    "name": "Earrings",
+    "slug": "earrings",
+    "description": "Handcrafted temple jhumkas, studs, drops, and traditional earrings.",
+    "image_url": "https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png",
+    "active": true,
+    "display_order": 12,
+    "created_at": "2026-10-01T08:00:00.000Z",
+    "updated_at": "2026-10-01T08:00:00.000Z",
+    "department": "jewellery"
+  }
+,
+  {
+    "id": "367228ba-afe0-4459-842f-feb9258691f7",
+    "name": "Bangles",
+    "slug": "bangles",
+    "description": "Classic and antique bangles crafted for elegance and festival charm.",
+    "image_url": "https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png",
+    "active": true,
+    "display_order": 13,
+    "created_at": "2026-10-01T08:00:00.000Z",
+    "updated_at": "2026-10-01T08:00:00.000Z",
+    "department": "jewellery"
+  }
+,
+  {
+    "id": "726124cb-b9dd-4401-91f7-b0c585eaf705",
+    "name": "Rings",
+    "slug": "rings",
+    "description": "Intricate temple and statement rings with traditional motifs.",
+    "image_url": "https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png",
+    "active": true,
+    "display_order": 14,
+    "created_at": "2026-10-01T08:00:00.000Z",
+    "updated_at": "2026-10-01T08:00:00.000Z",
+    "department": "jewellery"
+  }
+,
+  {
+    "id": "67c2ef3e-1911-4c09-86e8-17840a655964",
+    "name": "Chains",
+    "slug": "chains",
+    "description": "Traditional gold tone chains and malas crafted for versatile wear.",
+    "image_url": "https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png",
+    "active": true,
+    "display_order": 15,
+    "created_at": "2026-10-01T08:00:00.000Z",
+    "updated_at": "2026-10-01T08:00:00.000Z",
+    "department": "jewellery"
+  }
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [
@@ -943,5 +995,338 @@ export const INITIAL_PRODUCTS: Product[] = [
     "stock_display": "normal",
     "custom_stock_message": null,
     "return_policy": null
+  }
+,
+  {
+    "id": "9cf2d8b5-a24b-453c-ae63-66f886bc6eab",
+    "name": "Karthika Haram",
+    "slug": "karthika-haram",
+    "description": "Shade: Matta Gold\nMetal: Aluminium & Copper\nTraditional Karthika Haram featuring an intricate antique-style gold finish with a detailed statement pendant and matching jhumka earrings. Suitable for ethnic, festive and traditional occasions.\n<!--PRODUCT_META:{\"department\":\"jewellery\",\"has_size\":false,\"show_size_chart\":false,\"size_chart_url\":null,\"purchase_mode\":\"online\",\"video_url\":\"https://youtube.com/shorts/tRx3LnDm8LQ?si=iieAKFOLMAgjGrco\",\"has_colors\":false,\"color_variants\":[],\"stock_display\":\"few_left\",\"custom_stock_message\":null,\"return_policy\":\"Opening video must \\n\\n\\n*There may be slight color difference due to resolution in each phone*\\n\\n🙏No exchanges/No returns \\n🙏Returns can be claimed only if valid video is given \\n\\nWhat is valid video ??\\nOnce u receive the packet open it before 24 hrs. show the parcel 360 degree (4 sides ). Show the front track id too and then start cutting and don’t stop the video till end. Only returns can be accepted if any thing broken/ missed shown \\nin this valid video. The video must be clear and visible. Pls don’t mange items with one hand while opening which may cause breakage when u twist the long chains.\",\"is_sold_out\":false}-->",
+    "category_id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+    "price": 1100,
+    "sale_price": 790,
+    "sku": "PE-1925",
+    "stock": 5,
+    "low_stock_threshold": 5,
+    "availability": "in_stock",
+    "featured": false,
+    "new_arrival": false,
+    "active": true,
+    "created_at": "2026-10-01T07:45:53.807903+00:00",
+    "updated_at": "2026-10-01T07:45:53.807903+00:00",
+    "department": "jewellery",
+    "has_size": false,
+    "show_size_chart": false,
+    "category": {
+      "id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+      "name": "Necklace",
+      "slug": "necklace",
+      "active": true,
+      "image_url": "https://i.ibb.co/8DJJBV6q/c11462216cd2.jpg",
+      "created_at": "2026-09-25T07:35:52.106294+00:00",
+      "updated_at": "2026-09-25T07:35:52.106294+00:00",
+      "description": "Aluminium and Copper alloy",
+      "display_order": 10
+    },
+    "images": [
+      {
+        "id": "fe193c93-cd88-4609-9017-99ecb16398ba",
+        "image_url": "https://i.ibb.co/fBBm52Y/50bb2e1472c4.jpg",
+        "created_at": "2026-10-01T07:45:54.479585+00:00",
+        "is_primary": true,
+        "product_id": "9cf2d8b5-a24b-453c-ae63-66f886bc6eab",
+        "display_order": 1,
+        "thumbnail_url": null
+      },
+      {
+        "id": "a171bbf0-ae2b-4c51-aaae-0702c1339296",
+        "image_url": "https://i.ibb.co/PGjXTyjX/e9bef7ee5ee1.jpg",
+        "created_at": "2026-10-01T07:45:54.479585+00:00",
+        "is_primary": false,
+        "product_id": "9cf2d8b5-a24b-453c-ae63-66f886bc6eab",
+        "display_order": 2,
+        "thumbnail_url": null
+      }
+    ],
+    "sizes": []
+  }
+,
+  {
+    "id": "aa3ed27c-0974-4fdd-b986-fc4b28f8d582",
+    "name": "Stone Necklace",
+    "slug": "stone-necklace",
+    "description": "Shade: Matta Gold\nMetal: Aluminium & Copper Alloy\nElegant stone necklace featuring a delicate repeating pattern of oval-cut stones with intricate detailing, finished with a beautiful Matta Gold tone. Comes with matching earrings and a small pendant drop for a sophisticated traditional look.\n<!--PRODUCT_META:{\"department\":\"jewellery\",\"has_size\":false,\"show_size_chart\":false,\"size_chart_url\":null,\"purchase_mode\":\"online\",\"video_url\":\"https://youtube.com/shorts/7o0-3mRnCRc?si=HhQ__vwqmSuW8xAk\",\"has_colors\":false,\"color_variants\":[],\"stock_display\":\"normal\",\"custom_stock_message\":null,\"return_policy\":\"Opening video must \\n\\n\\n*There may be slight color difference due to resolution in each phone*\\n\\n🙏No exchanges/No returns \\n🙏Returns can be claimed only if valid video is given \\n\\nWhat is valid video ??\\nOnce u receive the packet open it before 24 hrs. show the parcel 360 degree (4 sides ). Show the front track id too and then start cutting and don’t stop the video till end. Only returns can be accepted if any thing broken/ missed shown \\nin this valid video. The video must be clear and visible. Pls don’t mange items with one hand while opening which may cause breakage when u twist the long chains.\",\"is_sold_out\":false}-->",
+    "category_id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+    "price": 1000,
+    "sale_price": 740,
+    "sku": "PE-3179",
+    "stock": 5,
+    "low_stock_threshold": 5,
+    "availability": "in_stock",
+    "featured": false,
+    "new_arrival": true,
+    "active": true,
+    "created_at": "2026-10-01T07:50:47.526636+00:00",
+    "updated_at": "2026-10-01T07:50:47.526636+00:00",
+    "department": "jewellery",
+    "has_size": false,
+    "show_size_chart": false,
+    "category": {
+      "id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+      "name": "Necklace",
+      "slug": "necklace",
+      "active": true,
+      "image_url": "https://i.ibb.co/8DJJBV6q/c11462216cd2.jpg",
+      "created_at": "2026-09-25T07:35:52.106294+00:00",
+      "updated_at": "2026-09-25T07:35:52.106294+00:00",
+      "description": "Aluminium and Copper alloy",
+      "display_order": 10
+    },
+    "images": [
+      {
+        "id": "3838f312-c01a-48df-88a9-1fa48662524b",
+        "image_url": "https://i.ibb.co/7NrLPdj4/344addf0ffc0.jpg",
+        "created_at": "2026-10-01T07:50:48.217081+00:00",
+        "is_primary": true,
+        "product_id": "aa3ed27c-0974-4fdd-b986-fc4b28f8d582",
+        "display_order": 1,
+        "thumbnail_url": null
+      }
+    ],
+    "sizes": []
+  }
+,
+  {
+    "id": "8558f6b9-7d1f-4f47-9e59-e7989fecb1ed",
+    "name": "Butterfly necklace",
+    "slug": "butterfly-necklace",
+    "description": "Shade: Matta Gold\nMetal: Aluminium & Copper \nFeaturing circular filigree medallions with detailed central butterfly designs and pops of pink and green stones, this set offers a blend of traditional charm and modern flair. Made from a durable yet lightweight aluminium-copper blend, it sits comfortably around the neck for long celebrations.\n<!--PRODUCT_META:{\"department\":\"jewellery\",\"has_size\":false,\"show_size_chart\":false,\"size_chart_url\":null,\"purchase_mode\":\"online\",\"video_url\":\"https://youtube.com/shorts/JBL89pu746M?si=K6SiTMhb1mxDIPao\",\"has_colors\":false,\"color_variants\":[],\"stock_display\":\"normal\",\"custom_stock_message\":null,\"return_policy\":\"Opening video must \\n\\n\\n*There may be slight color difference due to resolution in each phone*\\n\\n🙏No exchanges/No returns \\n🙏Returns can be claimed only if valid video is given \\n\\nWhat is valid video ??\\nOnce u receive the packet open it before 24 hrs. show the parcel 360 degree (4 sides ). Show the front track id too and then start cutting and don’t stop the video till end. Only returns can be accepted if any thing broken/ missed shown \\nin this valid video. The video must be clear and visible. Pls don’t mange items with one hand while opening which may cause breakage when u twist the long chains.\",\"is_sold_out\":false}-->",
+    "category_id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+    "price": 960,
+    "sale_price": 660,
+    "sku": "PE-9597",
+    "stock": 5,
+    "low_stock_threshold": 5,
+    "availability": "in_stock",
+    "featured": false,
+    "new_arrival": true,
+    "active": true,
+    "created_at": "2026-10-01T07:56:20.418334+00:00",
+    "updated_at": "2026-10-01T07:56:20.418334+00:00",
+    "department": "jewellery",
+    "has_size": false,
+    "show_size_chart": false,
+    "category": {
+      "id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+      "name": "Necklace",
+      "slug": "necklace",
+      "active": true,
+      "image_url": "https://i.ibb.co/8DJJBV6q/c11462216cd2.jpg",
+      "created_at": "2026-09-25T07:35:52.106294+00:00",
+      "updated_at": "2026-09-25T07:35:52.106294+00:00",
+      "description": "Aluminium and Copper alloy",
+      "display_order": 10
+    },
+    "images": [
+      {
+        "id": "c36ad343-0cf2-4804-ab6d-39cdd935f710",
+        "image_url": "https://i.ibb.co/231rGy2S/e2b0de467385.jpg",
+        "created_at": "2026-10-01T07:56:21.075663+00:00",
+        "is_primary": true,
+        "product_id": "8558f6b9-7d1f-4f47-9e59-e7989fecb1ed",
+        "display_order": 1,
+        "thumbnail_url": null
+      }
+    ],
+    "sizes": []
+  }
+,
+  {
+    "id": "21962ba9-dc82-4d54-a612-d9fe8e1039b4",
+    "name": "Manga Mala",
+    "slug": "manga-mala",
+    "description": "Shade: Matta Gold\nMetal: Aluminium & Copper \nElegant stone necklace featuring a beautiful sequence of maroon and green oval stones set in a traditional Matta Gold finish. Comes with matching earrings, making it a perfect choice for traditional and festive occasions.\n<!--PRODUCT_META:{\"department\":\"jewellery\",\"has_size\":false,\"show_size_chart\":false,\"size_chart_url\":null,\"purchase_mode\":\"online\",\"video_url\":\"https://youtube.com/shorts/-lP9q6XL_ak?si=CeXjPfkLz6JSA5I3\",\"has_colors\":true,\"color_variants\":[{\"name\":\"Maroon\",\"color_code\":\"#6d0303\",\"images\":[\"https://i.ibb.co/ympnJ5MQ/2042b96d2d81.jpg\"],\"image_urls\":[\"https://i.ibb.co/ympnJ5MQ/2042b96d2d81.jpg\"],\"stock\":5,\"sizes\":[]},{\"name\":\"Green\",\"color_code\":\"#022c0d\",\"images\":[\"https://i.ibb.co/84b7CsWW/6c708c4e6c13.jpg\"],\"image_urls\":[\"https://i.ibb.co/84b7CsWW/6c708c4e6c13.jpg\"],\"stock\":5,\"sizes\":[]}],\"stock_display\":\"normal\",\"custom_stock_message\":null,\"return_policy\":\"Opening video must \\n\\n\\n*There may be slight color difference due to resolution in each phone*\\n\\n🙏No exchanges/No returns \\n🙏Returns can be claimed only if valid video is given \\n\\nWhat is valid video ??\\nOnce u receive the packet open it before 24 hrs. show the parcel 360 degree (4 sides ). Show the front track id too and then start cutting and don’t stop the video till end. Only returns can be accepted if any thing broken/ missed shown \\nin this valid video. The video must be clear and visible. Pls don’t mange items with one hand while opening which may cause breakage when u twist the long chains.\",\"is_sold_out\":false}-->",
+    "category_id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+    "price": 484,
+    "sale_price": 360,
+    "sku": "PE-6471",
+    "stock": 10,
+    "low_stock_threshold": 5,
+    "availability": "in_stock",
+    "featured": false,
+    "new_arrival": false,
+    "active": true,
+    "created_at": "2026-10-01T08:41:43.253841+00:00",
+    "updated_at": "2026-10-01T08:43:02.684+00:00",
+    "department": "jewellery",
+    "has_size": false,
+    "show_size_chart": false,
+    "category": {
+      "id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+      "name": "Necklace",
+      "slug": "necklace",
+      "active": true,
+      "image_url": "https://i.ibb.co/8DJJBV6q/c11462216cd2.jpg",
+      "created_at": "2026-09-25T07:35:52.106294+00:00",
+      "updated_at": "2026-09-25T07:35:52.106294+00:00",
+      "description": "Aluminium and Copper alloy",
+      "display_order": 10
+    },
+    "images": [
+      {
+        "id": "5cd8555b-6e1f-4541-b0da-c16a22009fdc",
+        "image_url": "https://i.ibb.co/84b7CsWW/6c708c4e6c13.jpg",
+        "created_at": "2026-10-01T08:43:06.642627+00:00",
+        "is_primary": true,
+        "product_id": "21962ba9-dc82-4d54-a612-d9fe8e1039b4",
+        "display_order": 1,
+        "thumbnail_url": null
+      },
+      {
+        "id": "3710ab29-aec1-4e8d-8bee-22a0dbd8320b",
+        "image_url": "https://i.ibb.co/DSvfrGk/1a09c06d4e49.jpg",
+        "created_at": "2026-10-01T08:43:06.642627+00:00",
+        "is_primary": false,
+        "product_id": "21962ba9-dc82-4d54-a612-d9fe8e1039b4",
+        "display_order": 2,
+        "thumbnail_url": null
+      }
+    ],
+    "sizes": []
+  }
+,
+  {
+    "id": "e7a64bcb-b212-420f-8b48-e52b93e1e24e",
+    "name": "Lotus Necklace",
+    "slug": "lotus-necklace",
+    "description": "Shade: Matta Gold\nMetal: Aluminium & Copper \nInspired by traditional South Indian temple artistry, this set showcases lotus motifs hand-filled with rich maroon and green enamel. The bottom border is adorned with delicate pearl clusters that drape gracefully along the collarbone. Made from a lightweight aluminium-copper alloy with an antique matte polish, it offers an authentic royal aesthetic for weddings, pujas, and grand celebrations.\n<!--PRODUCT_META:{\"department\":\"jewellery\",\"has_size\":false,\"show_size_chart\":false,\"size_chart_url\":null,\"purchase_mode\":\"online\",\"video_url\":\"https://youtube.com/shorts/A5CbYkEfXFo?si=y0ipd6720J-1N6Rj\",\"has_colors\":false,\"color_variants\":[],\"stock_display\":\"normal\",\"custom_stock_message\":null,\"return_policy\":\"Opening video must \\n\\n\\n*There may be slight color difference due to resolution in each phone*\\n\\n🙏No exchanges/No returns \\n🙏Returns can be claimed only if valid video is given \\n\\nWhat is valid video ??\\nOnce u receive the packet open it before 24 hrs. show the parcel 360 degree (4 sides ). Show the front track id too and then start cutting and don’t stop the video till end. Only returns can be accepted if any thing broken/ missed shown \\nin this valid video. The video must be clear and visible. Pls don’t mange items with one hand while opening which may cause breakage when u twist the long chains.\",\"is_sold_out\":false}-->",
+    "category_id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+    "price": 1600,
+    "sale_price": 1190,
+    "sku": "PE-7202",
+    "stock": 5,
+    "low_stock_threshold": 5,
+    "availability": "in_stock",
+    "featured": false,
+    "new_arrival": true,
+    "active": true,
+    "created_at": "2026-10-01T08:55:24.109705+00:00",
+    "updated_at": "2026-10-01T08:57:05.717+00:00",
+    "department": "jewellery",
+    "has_size": false,
+    "show_size_chart": false,
+    "category": {
+      "id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+      "name": "Necklace",
+      "slug": "necklace",
+      "active": true,
+      "image_url": "https://i.ibb.co/8DJJBV6q/c11462216cd2.jpg",
+      "created_at": "2026-09-25T07:35:52.106294+00:00",
+      "updated_at": "2026-09-25T07:35:52.106294+00:00",
+      "description": "Aluminium and Copper alloy",
+      "display_order": 10
+    },
+    "images": [
+      {
+        "id": "d3c6ca73-76fc-4aa3-af8b-b6f4d78dcab0",
+        "image_url": "https://i.ibb.co/xq1FDhw4/05d0f44c302d.jpg",
+        "created_at": "2026-10-01T08:57:08.618288+00:00",
+        "is_primary": true,
+        "product_id": "e7a64bcb-b212-420f-8b48-e52b93e1e24e",
+        "display_order": 1,
+        "thumbnail_url": null
+      }
+    ],
+    "sizes": []
+  }
+,
+  {
+    "id": "6df8cf3a-db7d-4445-a486-c6e13f94b414",
+    "name": "Renuka Necklace",
+    "slug": "renuka-necklace",
+    "description": "Shade: Matta Gold\nMetal: Aluminium & Copper \nFeaturing detailed floral coin medallions accented with classic red and green stones, this set offers timeless temple-inspired elegance. Crafted from a lightweight aluminium-copper blend with a warm antique matte polish, it pairs seamlessly with silk sarees, festive kurtis, and traditional attire.\n<!--PRODUCT_META:{\"department\":\"jewellery\",\"has_size\":false,\"show_size_chart\":false,\"size_chart_url\":null,\"purchase_mode\":\"online\",\"video_url\":\"https://youtube.com/shorts/JBL89pu746M?si=-H4iCjl8kK5gQQcy\",\"has_colors\":false,\"color_variants\":[],\"stock_display\":\"few_left\",\"custom_stock_message\":null,\"return_policy\":\"Opening video must \\n\\n\\n*There may be slight color difference due to resolution in each phone*\\n\\n🙏No exchanges/No returns \\n🙏Returns can be claimed only if valid video is given \\n\\nWhat is valid video ??\\nOnce u receive the packet open it before 24 hrs. show the parcel 360 degree (4 sides ). Show the front track id too and then start cutting and don’t stop the video till end. Only returns can be accepted if any thing broken/ missed shown \\nin this valid video. The video must be clear and visible. Pls don’t mange items with one hand while opening which may cause breakage when u twist the long chains.\",\"is_sold_out\":false}-->",
+    "category_id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+    "price": 900,
+    "sale_price": 580,
+    "sku": "PE-9012",
+    "stock": 5,
+    "low_stock_threshold": 5,
+    "availability": "in_stock",
+    "featured": false,
+    "new_arrival": false,
+    "active": true,
+    "created_at": "2026-10-01T09:04:50.63035+00:00",
+    "updated_at": "2026-10-01T09:04:50.63035+00:00",
+    "department": "jewellery",
+    "has_size": false,
+    "show_size_chart": false,
+    "category": {
+      "id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+      "name": "Necklace",
+      "slug": "necklace",
+      "active": true,
+      "image_url": "https://i.ibb.co/8DJJBV6q/c11462216cd2.jpg",
+      "created_at": "2026-09-25T07:35:52.106294+00:00",
+      "updated_at": "2026-09-25T07:35:52.106294+00:00",
+      "description": "Aluminium and Copper alloy",
+      "display_order": 10
+    },
+    "images": [
+      {
+        "id": "57d96ee2-b75c-448b-a12d-1cd56ec0a237",
+        "image_url": "https://i.ibb.co/0jhLQPHz/426f98ef2d11.jpg",
+        "created_at": "2026-10-01T09:04:50.873229+00:00",
+        "is_primary": true,
+        "product_id": "6df8cf3a-db7d-4445-a486-c6e13f94b414",
+        "display_order": 1,
+        "thumbnail_url": null
+      }
+    ],
+    "sizes": []
+  }
+,
+  {
+    "id": "85c9515f-ba75-4fcf-9252-8802779d9101",
+    "name": "Coin and lotus  necklace",
+    "slug": "coin-and-lotus-necklace",
+    "description": "Shade: Matta Gold\nMetal: Aluminium & Copper \nDesigned with alternating antique gold coins and vibrant pink-and-green lotus motifs, this set offers a fresh, colorful take on classic South Indian temple jewelry. Made from a lightweight aluminium and copper blend, it pairs effortlessly with sarees, half-sarees, or festive kurtis for long events.\n<!--PRODUCT_META:{\"department\":\"jewellery\",\"has_size\":false,\"show_size_chart\":false,\"size_chart_url\":null,\"purchase_mode\":\"online\",\"video_url\":\"https://youtube.com/shorts/I06Ea1qc4CE?si=1c-MFu8BrYF7rwFe\",\"has_colors\":false,\"color_variants\":[],\"stock_display\":\"normal\",\"custom_stock_message\":null,\"return_policy\":\"Opening video must \\n\\n\\n*There may be slight color difference due to resolution in each phone*\\n\\n🙏No exchanges/No returns \\n🙏Returns can be claimed only if valid video is given \\n\\nWhat is valid video ??\\nOnce u receive the packet open it before 24 hrs. show the parcel 360 degree (4 sides ). Show the front track id too and then start cutting and don’t stop the video till end. Only returns can be accepted if any thing broken/ missed shown \\nin this valid video. The video must be clear and visible. Pls don’t mange items with one hand while opening which may cause breakage when u twist the long chains.\",\"is_sold_out\":false}-->",
+    "category_id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+    "price": 800,
+    "sale_price": 520,
+    "sku": "PE-3621",
+    "stock": 5,
+    "low_stock_threshold": 5,
+    "availability": "in_stock",
+    "featured": false,
+    "new_arrival": false,
+    "active": true,
+    "created_at": "2026-10-01T08:31:35.402956+00:00",
+    "updated_at": "2026-10-01T08:56:42.908+00:00",
+    "department": "jewellery",
+    "has_size": false,
+    "show_size_chart": false,
+    "category": {
+      "id": "18c210a1-f9aa-42a5-a519-727c4b1f1cf1",
+      "name": "Necklace",
+      "slug": "necklace",
+      "active": true,
+      "image_url": "https://i.ibb.co/8DJJBV6q/c11462216cd2.jpg",
+      "created_at": "2026-09-25T07:35:52.106294+00:00",
+      "updated_at": "2026-09-25T07:35:52.106294+00:00",
+      "description": "Aluminium and Copper alloy",
+      "display_order": 10
+    },
+    "images": [
+      {
+        "id": "b2e5a5b5-ba95-4bc5-9258-a987131745ed",
+        "image_url": "https://i.ibb.co/PpYdSch/8fb133fea934.jpg",
+        "created_at": "2026-10-01T08:56:46.115008+00:00",
+        "is_primary": true,
+        "product_id": "85c9515f-ba75-4fcf-9252-8802779d9101",
+        "display_order": 1,
+        "thumbnail_url": null
+      }
+    ],
+    "sizes": []
   }
 ];

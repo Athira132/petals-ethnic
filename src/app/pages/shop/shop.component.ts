@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, combineLatest, takeUntil } from 'rxjs';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { ProductService, ProductFilterOptions } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
@@ -703,41 +703,35 @@ export class ShopComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // 1. Detect department from route data or URL
-    this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
-      if (data && data['department']) {
-        this.currentDepartment = data['department'];
-      } else {
-        const url = this.router.url.toLowerCase();
-        if (url.includes('/jewellery')) {
-          this.currentDepartment = 'jewellery';
+    combineLatest([this.route.data, this.route.params, this.route.queryParams])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async ([data, params, queryParams]) => {
+        let newDepartment: DepartmentType = 'ethnic';
+        if (data && data['department']) {
+          newDepartment = data['department'];
         } else {
-          this.currentDepartment = 'ethnic';
+          const url = (this.router.url || '').toLowerCase();
+          newDepartment = url.includes('/jewellery') ? 'jewellery' : 'ethnic';
         }
-      }
-      this.updateSeo();
-    });
 
-    // 2. React to path parameters (e.g. /ethnics/:category)
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      if (params['category']) {
-        this.selectedCategorySlug = params['category'];
+        // If department switched, reset department-specific filters
+        if (this.currentDepartment !== newDepartment) {
+          this.currentDepartment = newDepartment;
+          this.selectedSize = '';
+        }
+
+        this.selectedCategorySlug = params['category'] || queryParams['category'] || '';
+        this.searchQuery = queryParams['search'] || '';
+        if (this.currentDepartment === 'ethnic') {
+          this.selectedSize = (queryParams['size'] as SizeOption) || '';
+        } else {
+          this.selectedSize = '';
+        }
+
+        this.trySyncCachedProducts();
+        await this.loadInitialData();
         this.updateSeo();
-      }
-    });
-
-    // 3. React to query parameters
-    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(async params => {
-      if (params['category'] !== undefined) {
-        this.selectedCategorySlug = params['category'] || '';
-      }
-      this.searchQuery = params['search'] || '';
-      this.selectedSize = (params['size'] as SizeOption) || '';
-      
-      this.trySyncCachedProducts();
-      await this.loadInitialData();
-      this.updateSeo();
-    });
+      });
   }
 
   ngOnDestroy() {
@@ -749,6 +743,18 @@ export class ShopComponent implements OnInit, OnDestroy {
     return this.allCategories.filter(c => (c.department || 'ethnic') === this.currentDepartment);
   }
 
+  private findActiveCategory(): Category | undefined {
+    if (!this.selectedCategorySlug) return undefined;
+    const slugLower = this.selectedCategorySlug.toLowerCase().trim();
+    return this.displayedCategories.find(c => {
+      const cSlug = (c.slug || '').toLowerCase().trim();
+      return cSlug === slugLower || 
+             cSlug + 's' === slugLower || 
+             cSlug === slugLower + 's' ||
+             cSlug.replace(/-/g, '') === slugLower.replace(/-/g, '');
+    });
+  }
+
   get heroTagline(): string {
     return this.currentDepartment === 'jewellery' 
       ? 'PETALS ETHNICS AND JEWELLERS • EXQUISITE DESIGNS' 
@@ -756,30 +762,24 @@ export class ShopComponent implements OnInit, OnDestroy {
   }
 
   get activeCategoryName(): string {
-    if (this.selectedCategorySlug) {
-      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
-      if (found) return found.name;
-    }
+    const found = this.findActiveCategory();
+    if (found) return found.name;
     return this.currentDepartment === 'jewellery' 
       ? 'Handcrafted Jewellery Collection' 
       : 'Ethnic Wear & Boutique Collection';
   }
 
   get activeCategoryDescription(): string {
-    if (this.selectedCategorySlug) {
-      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
-      if (found && found.description) return found.description;
-    }
+    const found = this.findActiveCategory();
+    if (found && found.description) return found.description;
     return this.currentDepartment === 'jewellery' 
       ? 'Discover temple necklaces, earrings, bangles, and rings crafted with timeless artistry.'
       : 'Explore handcrafted Kurtis, Sarees, Anarkalis, Co-ord Sets, and Midi Dresses.';
   }
 
   get activeCategoryBannerImage(): string {
-    if (this.selectedCategorySlug && this.displayedCategories.length > 0) {
-      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
-      if (found && found.image_url) return found.image_url;
-    }
+    const found = this.findActiveCategory();
+    if (found && found.image_url) return found.image_url;
     return this.currentDepartment === 'jewellery' 
       ? 'https://i.ibb.co/0yhmLfnt/Chat-GPT-Image-Aug-13-2026-11-59-23-AM.png'
       : 'https://i.ibb.co/TD42QpNd/Chat-GPT-Image-Aug-13-2026-12-50-56-PM.png';
@@ -797,12 +797,10 @@ export class ShopComponent implements OnInit, OnDestroy {
   }
 
   private updateSeo() {
-    if (this.selectedCategorySlug && this.displayedCategories.length > 0) {
-      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
-      if (found) {
-        this.seoService.setCategorySeo(found, this.currentDepartment);
-        return;
-      }
+    const found = this.findActiveCategory();
+    if (found) {
+      this.seoService.setCategorySeo(found, this.currentDepartment);
+      return;
     }
     this.seoService.setDepartmentSeo(this.currentDepartment);
   }
@@ -824,12 +822,13 @@ export class ShopComponent implements OnInit, OnDestroy {
 
   private getFilterOptions(): ProductFilterOptions {
     let catId: string | undefined = undefined;
-    if (this.selectedCategorySlug && this.displayedCategories.length > 0) {
-      const found = this.displayedCategories.find(c => c.slug === this.selectedCategorySlug);
-      if (found) catId = found.id;
+    const found = this.findActiveCategory();
+    if (found) {
+      catId = found.id;
     }
     return {
       categoryId: catId,
+      department: this.currentDepartment,
       searchQuery: this.searchQuery,
       size: (this.currentDepartment === 'ethnic') ? (this.selectedSize || undefined) : undefined,
       minPrice: this.minPrice || undefined,

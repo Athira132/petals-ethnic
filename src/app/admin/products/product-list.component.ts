@@ -140,6 +140,9 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
                   <span class="badge" [class.badge-pink]="prod.active" [class.badge-dark]="!prod.active">
                     {{ prod.active ? 'ACTIVE' : 'INACTIVE' }}
                   </span>
+                  <div *ngIf="prod.availability === 'sold_out' || prod.is_sold_out" style="margin-top: 4px;">
+                    <span class="badge" style="background: #111827; color: #FFFFFF; font-weight: 700;">SOLD OUT</span>
+                  </div>
                 </td>
                 <td>
                   <div class="action-btn-group">
@@ -235,7 +238,20 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
 
             <!-- SECTION 2: PRICING & PURCHASE MODE -->
             <div class="form-section">
-              <h3 class="section-title">2. Pricing & Purchase Mode</h3>
+              <h3 class="section-title">2. Pricing, Status & Purchase Mode</h3>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label">Product Status / Availability *</label>
+                  <select [(ngModel)]="formProductStatus" name="product_status" class="form-control" style="font-weight: 600;">
+                    <option value="available">Available (In Stock)</option>
+                    <option value="sold_out">Sold Out (Mark as Sold Out)</option>
+                  </select>
+                  <small class="help-text">
+                    Select "Sold Out" to mark this product as sold out on the store (displays a SOLD OUT badge and disables Add to Cart/Buy Now).
+                  </small>
+                </div>
+              </div>
 
               <div class="form-row">
                 <div class="form-group flex-1">
@@ -1051,6 +1067,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   availableSizeOptions: SizeOption[] = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 
+  formProductStatus: 'available' | 'sold_out' = 'available';
+
   formColorVariants: {
     name: string;
     color_code: string;
@@ -1086,7 +1104,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   get formFilteredCategories(): Category[] {
     const dept = this.formProduct.department || 'ethnic';
-    return this.categories.filter(c => (c.department || 'ethnic') === dept);
+    return this.categories.filter(c => (c.department || 'ethnic') === dept || c.id === this.formProduct.category_id);
   }
 
   getDeptCount(dept: 'ethnic' | 'jewellery'): number {
@@ -1281,6 +1299,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   async openCreateModal() {
     this.editingProduct = null;
+    this.formProductStatus = 'available';
 
     // Refresh categories from backend/cache immediately so newly created categories appear without reload
     try {
@@ -1349,13 +1368,42 @@ export class ProductListComponent implements OnInit, OnDestroy {
       console.warn('Category refresh notice:', e);
     }
 
-    const dept = prod.department || 'ethnic';
+    let dept = prod.department;
+    if (!dept) {
+      if (prod.category?.department) {
+        dept = prod.category.department;
+      } else {
+        const catName = (prod.category?.name || '').toLowerCase();
+        const catSlug = (prod.category?.slug || '').toLowerCase();
+        const prodName = (prod.name || '').toLowerCase();
+        const isJewellery = /jewel|necklace|earring|bangle|ring|bracelet|chain|pendant|anklet|choker|antique/i.test(catName + ' ' + catSlug + ' ' + prodName);
+        dept = isJewellery ? 'jewellery' : 'ethnic';
+      }
+    }
+
+    const isNoSize = dept === 'jewellery' || /saree/i.test((prod.name || '') + ' ' + (prod.category?.name || ''));
+    const hasSize = prod.has_size !== undefined && prod.has_size !== null 
+      ? Boolean(prod.has_size) 
+      : !isNoSize;
+
+    this.formProductStatus = (prod.availability === 'sold_out' || (prod as any).is_sold_out) ? 'sold_out' : 'available';
+
+    const regularPrice = prod.price || (prod as any).mrp || (prod as any).original_price || 0;
+    const salePrice = prod.sale_price !== undefined && prod.sale_price !== null 
+      ? prod.sale_price 
+      : ((prod as any).discount_price !== undefined && (prod as any).discount_price !== null ? (prod as any).discount_price : null);
+
+    const existingStock = prod.stock !== undefined && prod.stock !== null ? Number(prod.stock) : 10;
+
     this.formProduct = { 
       ...prod,
       department: dept,
-      has_size: prod.has_size !== undefined ? prod.has_size : (dept !== 'jewellery'),
+      has_size: hasSize,
       show_size_chart: Boolean(prod.show_size_chart),
-      purchase_mode: 'online',
+      price: regularPrice,
+      sale_price: salePrice,
+      stock: existingStock,
+      purchase_mode: prod.purchase_mode || 'online',
       stock_display: prod.stock_display || 'normal',
       has_colors: Boolean(prod.has_colors),
       return_policy: prod.return_policy || this.returnPolicyPresets[0].text
@@ -1381,6 +1429,19 @@ export class ProductListComponent implements OnInit, OnDestroy {
         const found = prod.sizes?.find(s => s.size === sz);
         return { size: sz as SizeOption, stock: found ? found.stock : 0 };
       });
+    } else if (hasSize && existingStock > 0) {
+      // Distribute or assign existing inventory so stock isn't wiped out to 0
+      const perSize = Math.max(1, Math.floor(existingStock / 3));
+      const rem = existingStock - (perSize * 2);
+      this.formSizes = [
+        { size: 'XS', stock: 0 },
+        { size: 'S', stock: perSize },
+        { size: 'M', stock: perSize },
+        { size: 'L', stock: Math.max(0, rem) },
+        { size: 'XL', stock: 0 },
+        { size: 'XXL', stock: 0 },
+        { size: '3XL', stock: 0 }
+      ];
     } else {
       this.formSizes = [
         { size: 'XS', stock: 0 },
@@ -1401,12 +1462,16 @@ export class ProductListComponent implements OnInit, OnDestroy {
             size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
             stock: Number(s.stock) || 0
           }));
-        } else if (prod.has_size && prod.sizes && prod.sizes.length > 0) {
-          // Backward compatibility fallback: populate with base product sizes
+        } else if (hasSize && prod.sizes && prod.sizes.length > 0) {
           cvSizes = prod.sizes.map(s => ({
             size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
             stock: Number(s.stock) || 0
           }));
+        } else if (hasSize && existingStock > 0) {
+          cvSizes = [
+            { size: 'S' as SizeOption, stock: Math.max(1, Math.floor(existingStock / 2)) },
+            { size: 'M' as SizeOption, stock: Math.max(1, Math.ceil(existingStock / 2)) }
+          ];
         }
 
         return {
@@ -1416,7 +1481,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
             ? [...cv.images]
             : (Array.isArray(cv.image_urls) ? [...cv.image_urls] : []),
           sizes: cvSizes,
-          stock: cv.stock !== undefined ? Number(cv.stock) : (prod.stock || 10)
+          stock: cv.stock !== undefined ? Number(cv.stock) : existingStock
         };
       });
     } else {
@@ -1496,6 +1561,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
       best_seller: false,
       active: true
     };
+    this.formProductStatus = 'available';
     this.productImagesList = [];
     this.formColorVariants = [];
     this.uploadStatusText = '';
@@ -1596,6 +1662,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
       this.formProduct.color_variants = colorVariants;
       this.formProduct.purchase_mode = 'online';
 
+      const isSoldOut = this.formProductStatus === 'sold_out';
+      this.formProduct.availability = isSoldOut ? 'sold_out' : 'in_stock';
+      this.formProduct.is_sold_out = isSoldOut;
+
       // Format sizes list
       let sizesList: { size: SizeOption; stock: number }[] = [];
       if (this.formProduct.has_size) {
@@ -1614,12 +1684,17 @@ export class ProductListComponent implements OnInit, OnDestroy {
           sizesList = order
             .filter(sz => sizeStockMap.has(sz))
             .map(sz => ({ size: sz, stock: sizeStockMap.get(sz)! }));
+          this.formProduct.stock = sizesList.reduce((acc, curr) => acc + curr.stock, 0);
         } else {
           sizesList = this.formSizes.map(sz => ({
             size: (sz.size === 'XXL' ? '2XL' : sz.size) as SizeOption,
             stock: Math.max(0, Number(sz.stock) || 0)
           }));
+          this.formProduct.stock = sizesList.reduce((acc, curr) => acc + curr.stock, 0);
         }
+      } else {
+        sizesList = [];
+        this.formProduct.stock = Math.max(0, Number(this.formProduct.stock) || 0);
       }
 
       let savedProduct: Product;

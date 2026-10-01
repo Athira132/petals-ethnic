@@ -94,7 +94,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               <ng-container *ngIf="product.sale_price && product.sale_price < product.price; else regularPrice">
                 <span class="sale-price">₹{{ product.sale_price | number:'1.0-0' }}</span>
                 <span class="original-price">₹{{ product.price | number:'1.0-0' }}</span>
-                <span class="discount-badge">SAVE {{ discountPercentage }}%</span>
+                <span class="discount-badge" *ngIf="!isSoldOut">SAVE {{ discountPercentage }}%</span>
               </ng-container>
               <ng-template #regularPrice>
                 <span class="regular-price">₹{{ product.price | number:'1.0-0' }}</span>
@@ -109,7 +109,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
             </div>
 
             <div class="out-of-stock-banner" *ngIf="!isAvailable">
-              <span>Currently Out of Stock</span>
+              <span>{{ isSoldOut ? 'Sold Out' : 'Currently Out of Stock' }}</span>
             </div>
 
             <!-- Color Variations (if configured) -->
@@ -1314,8 +1314,16 @@ export class ProductDetailComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
 
+  get isSoldOut(): boolean {
+    if (!this.product) return false;
+    return this.product.availability === 'sold_out' || Boolean(this.product.is_sold_out) || this.product.stock === 0;
+  }
+
   get addToCartButtonText(): string {
     if (!this.product) return 'Add to Cart';
+    if (this.isSoldOut) {
+      return 'Sold Out';
+    }
     if (this.product.has_size !== false && !this.selectedSize) {
       return 'Select a Size';
     }
@@ -1327,6 +1335,7 @@ export class ProductDetailComponent implements OnInit {
 
   get isAvailable(): boolean {
     if (!this.product) return false;
+    if (this.isSoldOut) return false;
     if (this.product.has_size !== false) {
       if (!this.selectedSize) return false;
       return !!(this.selectedSizeConfig && this.selectedSizeConfig.stock > 0);

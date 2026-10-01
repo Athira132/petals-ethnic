@@ -184,6 +184,18 @@ export class ProductService {
       p.category = this.parseCategoryMeta(p.category);
     }
 
+    // Support legacy price fields: original_price, mrp, discount_price
+    if (p.sale_price === undefined || p.sale_price === null) {
+      if ((p as any).discount_price !== undefined && (p as any).discount_price !== null) {
+        p.sale_price = Number((p as any).discount_price);
+      }
+    }
+    if ((p as any).mrp !== undefined && (p as any).mrp !== null && !p.price) {
+      p.price = Number((p as any).mrp);
+    } else if ((p as any).original_price !== undefined && (p as any).original_price !== null && !p.price) {
+      p.price = Number((p as any).original_price);
+    }
+
     // Parse fallback <!--PRODUCT_META:...--> tag from description if exists
     if (p.description && p.description.includes('<!--PRODUCT_META:')) {
       try {
@@ -201,6 +213,7 @@ export class ProductService {
           if (!p.custom_stock_message && meta.custom_stock_message) p.custom_stock_message = meta.custom_stock_message;
           if (!p.return_policy && meta.return_policy) p.return_policy = meta.return_policy;
           if (!p.department && meta.department) p.department = meta.department;
+          if (p.is_sold_out === undefined && meta.is_sold_out !== undefined) p.is_sold_out = Boolean(meta.is_sold_out);
 
           p.description = p.description.replace(/<!--PRODUCT_META:[\s\S]*?-->/, '').trim();
         }
@@ -249,6 +262,14 @@ export class ProductService {
     }
     if (!p.stock_display) {
       p.stock_display = 'normal';
+    }
+
+    const isSoldOut = p.availability === 'sold_out' || Boolean(p.is_sold_out);
+    p.is_sold_out = isSoldOut;
+    if (isSoldOut) {
+      p.availability = 'sold_out';
+    } else if (!p.availability) {
+      p.availability = (p.stock !== undefined && p.stock > 0) ? 'in_stock' : 'sold_out';
     }
 
     return p;
@@ -795,6 +816,8 @@ export class ProductService {
       totalStock = sizes.reduce((acc, curr) => acc + (Number(curr.stock) || 0), 0);
     }
 
+    const isManualSoldOut = Boolean(productData.is_sold_out) || productData.availability === 'sold_out';
+
     const productPayload: any = {
       name: rawName,
       slug: rawSlug,
@@ -819,7 +842,8 @@ export class ProductService {
       best_seller: Boolean(productData.best_seller),
       active: productData.active !== false,
       stock: totalStock,
-      availability: totalStock > 0 ? 'in_stock' : 'sold_out'
+      is_sold_out: isManualSoldOut,
+      availability: isManualSoldOut ? 'sold_out' : (totalStock > 0 ? 'in_stock' : 'sold_out')
     };
 
     // 1. Try direct Supabase insert
@@ -958,9 +982,26 @@ export class ProductService {
     if (productData.best_seller !== undefined) productPayload.best_seller = Boolean(productData.best_seller);
     if (productData.active !== undefined) productPayload.active = Boolean(productData.active);
 
+    const isManualSoldOut = productData.is_sold_out !== undefined 
+      ? Boolean(productData.is_sold_out) 
+      : (productData.availability === 'sold_out');
+
+    if (productData.is_sold_out !== undefined) productPayload.is_sold_out = Boolean(productData.is_sold_out);
+    if (productData.availability !== undefined) productPayload.availability = productData.availability;
+
     if (totalStock !== undefined) {
       productPayload.stock = totalStock;
-      productPayload.availability = totalStock > 0 ? 'in_stock' : 'sold_out';
+      if (isManualSoldOut) {
+        productPayload.availability = 'sold_out';
+        productPayload.is_sold_out = true;
+      } else if (productData.availability !== undefined) {
+        productPayload.availability = productData.availability;
+      } else {
+        productPayload.availability = totalStock > 0 ? 'in_stock' : 'sold_out';
+      }
+    } else if (isManualSoldOut) {
+      productPayload.availability = 'sold_out';
+      productPayload.is_sold_out = true;
     }
 
     // 1. Try direct Supabase update

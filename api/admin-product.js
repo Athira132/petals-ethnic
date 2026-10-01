@@ -12,7 +12,8 @@ const EXTENDED_COLUMNS = [
   'stock_display',
   'custom_stock_message',
   'return_policy',
-  'best_seller'
+  'best_seller',
+  'is_sold_out'
 ];
 
 function extractProductMeta(product) {
@@ -40,6 +41,8 @@ function extractProductMeta(product) {
     ? Boolean(product.has_size) 
     : (meta.has_size !== undefined ? Boolean(meta.has_size) : (dept !== 'jewellery'));
 
+  const isSoldOut = product.availability === 'sold_out' || Boolean(product.is_sold_out) || Boolean(meta.is_sold_out);
+
   return {
     ...product,
     description: cleanDesc || null,
@@ -53,7 +56,9 @@ function extractProductMeta(product) {
     color_variants: product.color_variants || meta.color_variants || [],
     stock_display: product.stock_display || meta.stock_display || 'normal',
     custom_stock_message: product.custom_stock_message || meta.custom_stock_message || null,
-    return_policy: product.return_policy || meta.return_policy || null
+    return_policy: product.return_policy || meta.return_policy || null,
+    availability: isSoldOut ? 'sold_out' : (product.availability || 'in_stock'),
+    is_sold_out: isSoldOut
   };
 }
 
@@ -145,6 +150,7 @@ export default async function handler(req, res) {
       }
 
       // Prepare metadata bundle for resilient cross-database storage
+      const isManualSoldOut = Boolean(productPayload.is_sold_out || productPayload.availability === 'sold_out');
       const meta = {
         department: productPayload.department || 'ethnic',
         has_size: productPayload.has_size !== undefined ? Boolean(productPayload.has_size) : true,
@@ -156,7 +162,8 @@ export default async function handler(req, res) {
         color_variants: productPayload.color_variants || [],
         stock_display: productPayload.stock_display || 'normal',
         custom_stock_message: productPayload.custom_stock_message || null,
-        return_policy: productPayload.return_policy || null
+        return_policy: productPayload.return_policy || null,
+        is_sold_out: isManualSoldOut
       };
 
       let baseDesc = (productPayload.description || '').replace(/<!--PRODUCT_META:[\s\S]*?-->/g, '').trim();
@@ -164,6 +171,7 @@ export default async function handler(req, res) {
 
       let payload = {
         ...productPayload,
+        availability: isManualSoldOut ? 'sold_out' : (productPayload.availability || 'in_stock'),
         description: descWithMeta,
         ...meta
       };
@@ -235,6 +243,10 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Product ID is required for update.' });
       }
 
+      const isManualSoldOut = productPayload.is_sold_out !== undefined 
+        ? Boolean(productPayload.is_sold_out) 
+        : (productPayload.availability === 'sold_out' ? true : (productPayload.availability !== undefined ? false : undefined));
+
       const meta = {
         department: productPayload.department,
         has_size: productPayload.has_size !== undefined ? Boolean(productPayload.has_size) : undefined,
@@ -246,7 +258,8 @@ export default async function handler(req, res) {
         color_variants: productPayload.color_variants !== undefined ? productPayload.color_variants : undefined,
         stock_display: productPayload.stock_display !== undefined ? productPayload.stock_display : undefined,
         custom_stock_message: productPayload.custom_stock_message !== undefined ? productPayload.custom_stock_message : undefined,
-        return_policy: productPayload.return_policy !== undefined ? productPayload.return_policy : undefined
+        return_policy: productPayload.return_policy !== undefined ? productPayload.return_policy : undefined,
+        is_sold_out: isManualSoldOut
       };
 
       // Filter defined meta keys
@@ -263,6 +276,10 @@ export default async function handler(req, res) {
         description: descWithMeta,
         ...cleanMeta
       };
+
+      if (isManualSoldOut !== undefined) {
+        payload.availability = isManualSoldOut ? 'sold_out' : (productPayload.availability || 'in_stock');
+      }
 
       delete payload.image_url;
       delete payload.additional_image_urls;

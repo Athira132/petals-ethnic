@@ -48,13 +48,19 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
           />
         </a>
 
-        <!-- Discount Badge: Only discount percentage when on sale -->
-        <div class="card-badges" *ngIf="isOnSale && discountPercentage > 0">
-          <span class="badge badge-discount">{{ discountPercentage }}% OFF</span>
+        <!-- Top Badge: Priority: SOLD OUT > Discount > None -->
+        <div class="card-badges" *ngIf="topBadge">
+          <span 
+            class="badge" 
+            [class.badge-sold-out]="topBadge.type === 'sold_out'"
+            [class.badge-discount]="topBadge.type === 'discount'"
+          >
+            {{ topBadge.text }}
+          </span>
         </div>
 
         <!-- Quick Add / Enquiry Bar (appears on hover) -->
-        <div class="size-quick-bar" *ngIf="product.stock > 0">
+        <div class="size-quick-bar" *ngIf="!isSoldOut && product.stock > 0">
           <ng-container *ngIf="product.purchase_mode === 'enquiry'; else normalQuickBar">
             <a [href]="whatsAppEnquiryUrl" target="_blank" rel="noopener" class="quick-enquiry-btn">
               Enquire on WhatsApp
@@ -93,8 +99,11 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
         </h3>
 
         <!-- Status Information Directly Under Product Name -->
-        <div class="product-status-line" *ngIf="productStatusLine">
-          {{ productStatusLine }}
+        <div class="product-status-line" *ngIf="productStatuses.length > 0">
+          <ng-container *ngFor="let st of productStatuses; let last = last">
+            <span [class.status-red]="st.isRed">{{ st.text }}</span>
+            <span class="status-sep" *ngIf="!last"> • </span>
+          </ng-container>
         </div>
 
         <!-- Price Display -->
@@ -302,6 +311,12 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       color: #FFFFFF;
       box-shadow: 0 2px 6px rgba(216, 27, 96, 0.35);
     }
+    .badge-sold-out {
+      background: #111827;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+      letter-spacing: 1px;
+    }
 
     .card-content {
       padding: 16px;
@@ -343,6 +358,14 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .status-red {
+      color: #DC2626 !important;
+      font-weight: 700;
+    }
+    .status-sep {
+      color: #D1D5DB;
+      margin: 0 4px;
     }
     .product-price {
       display: flex;
@@ -475,6 +498,10 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
+  get isSoldOut(): boolean {
+    return this.product.availability === 'sold_out' || Boolean(this.product.is_sold_out) || this.product.stock === 0;
+  }
+
   get isOnSale(): boolean {
     return Boolean(
       this.product.sale_price && 
@@ -490,37 +517,47 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
     return 0;
   }
 
-  get productStatusLine(): string | null {
-    const statuses: string[] = [];
+  get topBadge(): { type: 'sold_out' | 'discount'; text: string } | null {
+    if (this.isSoldOut) {
+      return { type: 'sold_out', text: 'SOLD OUT' };
+    }
+    if (this.isOnSale && this.discountPercentage > 0) {
+      return { type: 'discount', text: `${this.discountPercentage}% OFF` };
+    }
+    return null;
+  }
+
+  get productStatuses(): { text: string; isRed?: boolean }[] {
+    const list: { text: string; isRed?: boolean }[] = [];
 
     // 1. New status
     if (this.product.new_arrival) {
-      statuses.push('New Arrival');
+      list.push({ text: 'New Arrival' });
     } else if ((this.product as any).is_new) {
-      statuses.push('New Product');
+      list.push({ text: 'New Product' });
     }
 
     // 2. Best Seller status
     if (this.product.best_seller) {
-      statuses.push('Best Seller');
+      list.push({ text: 'Best Seller' });
     }
 
-    // 3. Stock / Availability status
-    if (this.product.stock === 0 || this.product.availability === 'sold_out') {
-      statuses.push('Sold Out');
-    } else if (this.product.stock_display !== 'hide') {
+    // 3. Stock / Availability status (Only shown if NOT already sold out, since SOLD OUT is on top)
+    if (this.product.stock_display !== 'hide' && !this.isSoldOut) {
       if (this.product.stock_display === 'custom' && this.product.custom_stock_message?.trim()) {
-        statuses.push(this.product.custom_stock_message.trim());
+        const msg = this.product.custom_stock_message.trim();
+        const isFew = /few left|low stock/i.test(msg);
+        list.push({ text: msg, isRed: isFew });
       } else if (this.product.availability === 'few_left' || this.product.stock_display === 'few_left') {
-        statuses.push('Only Few Left');
+        list.push({ text: 'Only Few Left', isRed: true });
       } else if ((this.product.availability as string) === 'limited' || (this.product as any).is_limited) {
-        statuses.push('Limited Stock');
+        list.push({ text: 'Limited Stock' });
       } else if (this.isLowStock && this.product.stock > 0) {
-        statuses.push('Only Few Left');
+        list.push({ text: 'Only Few Left', isRed: true });
       }
     }
 
-    return statuses.length > 0 ? statuses.join(' • ') : null;
+    return list;
   }
 
   get isLowStock(): boolean {
@@ -583,6 +620,7 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   onQuickAdd(size?: SizeOption) {
+    if (this.isSoldOut) return;
     this.quickAdd.emit({ product: this.product, size });
   }
 }

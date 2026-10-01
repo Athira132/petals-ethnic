@@ -51,6 +51,7 @@ export interface Product {
   stock: number;
   low_stock_threshold?: number;
   availability: 'in_stock' | 'few_left' | 'sold_out' | 'unavailable';
+  is_sold_out?: boolean;
   featured: boolean;
   new_arrival: boolean;
   best_seller?: boolean;

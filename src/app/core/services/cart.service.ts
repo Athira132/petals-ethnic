@@ -182,6 +182,11 @@ export class CartService {
   }
 
   public addToCart(product: Product, size?: SizeOption | string, quantity = 1, color?: string, customImage?: string): void {
+    if (product.availability === 'sold_out' || Boolean(product.is_sold_out) || product.stock === 0) {
+      console.warn('Cannot add sold-out product to cart:', product.name);
+      return;
+    }
+
     const items = [...this.currentItems];
     const resolvedSize = size || (product.has_size === false ? 'One Size' : 'Standard');
     const colorKey = color ? `_${color}` : '';

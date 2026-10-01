@@ -82,7 +82,6 @@ export interface CardMediaItem {
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                       allowfullscreen
                       loading="lazy"
-                      title="Product Video"
                     ></iframe>
                   </ng-container>
                   <ng-template #directVideo>
@@ -102,7 +101,7 @@ export interface CardMediaItem {
                 <div class="video-poster" *ngIf="currentSlideIndex !== i">
                   <img 
                     [src]="primaryImageUrl" 
-                    [alt]="product.name + ' - Video Preview'"
+                    [alt]="product.name"
                     class="product-img slide-img" 
                     loading="lazy" 
                     width="320"
@@ -153,7 +152,7 @@ export interface CardMediaItem {
             [class.active]="currentSlideIndex === i"
             [class.video-dot]="item.type === 'video'"
             (click)="goToSlide($event, i)"
-            [attr.aria-label]="item.type === 'video' ? 'Product Video' : 'Slide ' + (i + 1)"
+            [attr.aria-label]="'Slide ' + (i + 1)"
           >
             <span *ngIf="item.type === 'video'" class="dot-play-icon">▶</span>
           </button>

@@ -8,8 +8,14 @@ import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { WishlistService } from '../../core/services/wishlist.service';
 import { SeoService } from '../../core/services/seo.service';
-import { Product, ProductImage, SizeOption, ColorVariant } from '../../core/models/product.model';
-import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageItem, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
+import { Product, SizeOption, ColorVariant } from '../../core/models/product.model';
+import { extractProductImages, handleImageError, ImageItem, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image.utils';
+
+export interface GalleryMediaItem {
+  type: 'image' | 'video';
+  url: string;
+  display_order: number;
+}
 
 @Component({
   selector: 'app-product-detail',
@@ -31,17 +37,22 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
         </nav>
 
         <div class="pd-grid">
-          <!-- Image Gallery Column -->
+          <!-- Integrated Media Gallery Column: Photos + Video as Natural Final Slide -->
           <div class="pd-gallery">
-            <div class="main-image-box">
+            <div 
+              class="main-image-box"
+              (touchstart)="onGalleryTouchStart($event)"
+              (touchmove)="onGalleryTouchMove($event)"
+              (touchend)="onGalleryTouchEnd($event)"
+            >
               <!-- Shimmer Skeleton Placeholder -->
-              <div class="image-skeleton" [class.hidden]="isMainLoaded"></div>
+              <div class="image-skeleton" [class.hidden]="isMainLoaded || activeMedia?.type === 'video'"></div>
 
-              <!-- High-Resolution Primary Product Photo -->
+              <!-- 1. Active Photo Slide -->
               <img 
-                *ngIf="activeImageUrl"
-                [src]="activeImageUrl" 
-                [alt]="product.name + ' - ' + (product.category?.name || 'Ethnic Wear') + ' | Petals Ethnics and Jewellers'" 
+                *ngIf="activeMedia?.type === 'image'"
+                [src]="activeMedia!.url" 
+                [alt]="product.name + ' - View ' + (activeMediaIndex + 1) + ' | Petals Ethnics and Jewellers'" 
                 class="pd-main-img full-res-img"
                 [class.loaded]="isMainLoaded"
                 loading="eager"
@@ -52,32 +63,102 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                 (load)="isMainLoaded = true"
                 (error)="onImageError($event); isMainLoaded = true"
               />
+
+              <!-- 2. Active Video Slide (Integrated seamlessly in the main gallery) -->
+              <ng-container *ngIf="activeMedia?.type === 'video'">
+                <ng-container *ngIf="isEmbedVideo(activeMedia!.url); else directGalleryVideo">
+                  <iframe 
+                    [src]="getSafeVideoUrl(activeMedia!.url)" 
+                    class="pd-video-frame"
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen
+                    playsinline
+                  ></iframe>
+                </ng-container>
+                <ng-template #directGalleryVideo>
+                  <video 
+                    [src]="activeMedia!.url" 
+                    autoplay 
+                    muted 
+                    loop 
+                    controls
+                    playsinline 
+                    preload="metadata" 
+                    class="pd-video-player"
+                  ></video>
+                </ng-template>
+              </ng-container>
+
+              <!-- Gallery Prev / Next Navigation Arrows (if multiple media items) -->
+              <button 
+                *ngIf="galleryItems.length > 1" 
+                type="button" 
+                class="gallery-arrow prev-arrow" 
+                (click)="prevMedia($event)" 
+                aria-label="Previous image"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+
+              <button 
+                *ngIf="galleryItems.length > 1" 
+                type="button" 
+                class="gallery-arrow next-arrow" 
+                (click)="nextMedia($event)" 
+                aria-label="Next image"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
             </div>
 
-            <!-- Thumbnail List -->
-            <div class="thumbnail-row" *ngIf="images.length > 1">
+            <!-- Thumbnail List (Images + Video thumbnail as final item) -->
+            <div class="thumbnail-row" *ngIf="galleryItems.length > 1">
               <button 
-                *ngFor="let img of images"
+                *ngFor="let item of galleryItems; let i = index"
+                type="button"
                 class="thumb-btn"
-                [class.active]="img.image_url === activeImageUrl"
-                (click)="activeImageUrl = img.image_url; isMainLoaded = false"
-                [attr.aria-label]="'View image ' + img.display_order"
+                [class.active]="activeMediaIndex === i"
+                [class.video-thumb]="item.type === 'video'"
+                (click)="selectMedia(i)"
+                [attr.aria-label]="item.type === 'video' ? 'Product Video' : 'View image ' + (i + 1)"
               >
                 <img 
-                  [src]="img.image_url" 
-                  [alt]="product.name + ' - View ' + img.display_order + ' | Petals Ethnics and Jewellers'" 
+                  *ngIf="item.type === 'image'"
+                  [src]="item.url" 
+                  [alt]="product.name + ' - Thumbnail ' + (i + 1)" 
                   class="thumb-img" 
-                  loading="lazy"
-                  decoding="async"
-                  width="64"
-                  height="64"
+                  loading="lazy" 
+                  decoding="async" 
+                  width="64" 
+                  height="64" 
                   (error)="onImageError($event)" 
                 />
+
+                <div *ngIf="item.type === 'video'" class="thumb-video-poster">
+                  <img 
+                    [src]="primaryThumbUrl" 
+                    [alt]="product.name + ' - Video'" 
+                    class="thumb-img" 
+                    loading="lazy" 
+                    width="64" 
+                    height="64" 
+                  />
+                  <div class="thumb-play-overlay">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF">
+                      <polygon points="6,4 20,12 6,20"></polygon>
+                    </svg>
+                  </div>
+                </div>
               </button>
             </div>
           </div>
 
-          <!-- Product Details Column -->
+          <!-- Product Details Column: Compact, Balanced, and Seamlessly Aligned -->
           <div class="pd-info">
             <!-- Brand & Category Badges -->
             <div class="brand-badge-row">
@@ -85,13 +166,22 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               <span class="pd-category" *ngIf="product.category">{{ product.category.name }}</span>
             </div>
 
+            <!-- Product Title -->
             <h1 class="pd-title">{{ product.name }}</h1>
+
+            <!-- Product Status Line: New Arrival, Best Seller, Only Few Left in RED -->
+            <div class="pd-status-line" *ngIf="productStatuses.length > 0">
+              <ng-container *ngFor="let st of productStatuses; let last = last">
+                <span [class.status-red]="st.isRed">{{ st.text }}</span>
+                <span class="status-sep" *ngIf="!last"> • </span>
+              </ng-container>
+            </div>
             
             <div class="pd-sku" *ngIf="product.sku">SKU: {{ product.sku }}</div>
 
-            <!-- Pricing -->
+            <!-- Pricing: DARK PINK #9F3D62 -->
             <div class="pd-pricing">
-              <ng-container *ngIf="product.sale_price && product.sale_price < product.price; else regularPrice">
+              <ng-container *ngIf="isOnSale; else regularPrice">
                 <span class="sale-price">₹{{ product.sale_price | number:'1.0-0' }}</span>
                 <span class="original-price">₹{{ product.price | number:'1.0-0' }}</span>
                 <span class="discount-badge" *ngIf="!isSoldOut">SAVE {{ discountPercentage }}%</span>
@@ -102,17 +192,12 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               <span class="tax-info">(Inclusive of all taxes)</span>
             </div>
 
-            <!-- Availability & Low Stock Notice -->
-            <div class="stock-status-banner" *ngIf="isLowStock && isAvailable">
-              <span class="pulse-dot"></span>
-              <span class="status-msg">{{ lowStockMessage }}</span>
-            </div>
-
+            <!-- Out of Stock / Sold Out Banner -->
             <div class="out-of-stock-banner" *ngIf="!isAvailable">
               <span>{{ isSoldOut ? 'Sold Out' : 'Currently Out of Stock' }}</span>
             </div>
 
-            <!-- Color Variations (if configured) -->
+            <!-- Color Variations (Completely collapsed when not present) -->
             <div class="pd-colors-section" *ngIf="product.has_colors && colorVariants.length > 0">
               <div class="section-header-row">
                 <span class="section-label">Select Color:</span>
@@ -121,6 +206,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               <div class="color-options-row">
                 <button 
                   *ngFor="let col of colorVariants" 
+                  type="button"
                   class="color-chip-btn"
                   [class.active]="selectedColor === col.name"
                   (click)="selectColorVariant(col)"
@@ -135,7 +221,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               </div>
             </div>
 
-            <!-- Size Selector (Only for Ethnic Products with Sizes - NEVER Jewellery) -->
+            <!-- Size Selector (Completely collapsed when no sizes exist or for jewellery) -->
             <div class="pd-size-section" *ngIf="product.has_size !== false && product.department !== 'jewellery' && sizeList.length > 0">
               <div class="size-header">
                 <div class="size-header-left">
@@ -146,6 +232,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                 <!-- Size Chart Trigger -->
                 <button 
                   *ngIf="product.show_size_chart !== false" 
+                  type="button"
                   (click)="isSizeChartOpen = true" 
                   class="size-chart-trigger-btn"
                 >
@@ -156,6 +243,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               <div class="size-options-grid">
                 <button 
                   *ngFor="let sz of sizeList"
+                  type="button"
                   class="pd-size-btn"
                   [class.active]="selectedSize === sz.size"
                   [class.disabled]="sz.stock === 0"
@@ -172,13 +260,14 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               <div class="pd-actions-row">
                 <!-- Quantity Stepper -->
                 <div class="quantity-stepper" *ngIf="isAvailable">
-                  <button (click)="decreaseQty()" [disabled]="quantity <= 1" class="step-btn" aria-label="Decrease quantity">-</button>
+                  <button type="button" (click)="decreaseQty()" [disabled]="quantity <= 1" class="step-btn" aria-label="Decrease quantity">-</button>
                   <span class="qty-num">{{ quantity }}</span>
-                  <button (click)="increaseQty()" [disabled]="quantity >= maxQuantity" class="step-btn" aria-label="Increase quantity">+</button>
+                  <button type="button" (click)="increaseQty()" [disabled]="quantity >= maxQuantity" class="step-btn" aria-label="Increase quantity">+</button>
                 </div>
 
-                <!-- Add to Cart -->
+                <!-- Add to Cart (Luxury Dark #1A1A1A) -->
                 <button 
+                  type="button"
                   class="btn-primary flex-1" 
                   [disabled]="!isAvailable"
                   (click)="addToCart()"
@@ -186,8 +275,9 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
                   {{ addToCartButtonText }}
                 </button>
 
-                <!-- Buy Now -->
+                <!-- Buy Now (Luxury Dark #262626) -->
                 <button 
+                  type="button"
                   class="btn-gold flex-1" 
                   [disabled]="!isAvailable"
                   (click)="buyNow()"
@@ -197,6 +287,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
 
                 <!-- Wishlist Toggle -->
                 <button 
+                  type="button"
                   class="btn-wishlist" 
                   (click)="toggleWishlist()"
                   [class.active]="isWishlisted()"
@@ -210,13 +301,13 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               </div>
             </div>
 
-            <!-- Description (Conditional) -->
+            <!-- Description (Collapsed when not available) -->
             <div class="pd-description" *ngIf="product.description">
               <h3 class="desc-heading">Product Overview</h3>
               <p>{{ product.description }}</p>
             </div>
 
-            <!-- Return Policy (Conditional) -->
+            <!-- Return Policy (Collapsed when not available) -->
             <div class="pd-policy-box" *ngIf="productReturnPolicy">
               <div class="policy-header" (click)="isPolicyOpen = !isPolicyOpen">
                 <div class="policy-title">
@@ -226,33 +317,6 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
               </div>
               <div class="policy-body" *ngIf="isPolicyOpen">
                 <p>{{ productReturnPolicy }}</p>
-              </div>
-            </div>
-
-            <!-- Embedded Product Video (Conditional) -->
-            <div class="product-video-card" *ngIf="activeVideoUrl">
-              <div class="video-header">
-                <span class="video-title">Product Video Showcase</span>
-              </div>
-              <div class="video-container">
-                <ng-container *ngIf="isEmbedVideo(activeVideoUrl); else directVideo">
-                  <iframe 
-                    [src]="getSafeVideoUrl(activeVideoUrl)" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen
-                    class="video-frame"
-                  ></iframe>
-                </ng-container>
-                <ng-template #directVideo>
-                  <video 
-                    [src]="activeVideoUrl" 
-                    controls 
-                    playsinline 
-                    preload="metadata" 
-                    class="video-player"
-                  ></video>
-                </ng-template>
               </div>
             </div>
 
@@ -287,12 +351,11 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     </div>
 
     <!-- Size Chart Modal -->
-    <!-- Size Chart Modal with 3XL standard table and custom image if available -->
     <div class="modal-backdrop" *ngIf="isSizeChartOpen" (click)="isSizeChartOpen = false">
       <div class="modal-card size-chart-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Size Chart</h3>
-          <button class="close-modal-btn" (click)="isSizeChartOpen = false" aria-label="Close">&times;</button>
+          <button type="button" class="close-modal-btn" (click)="isSizeChartOpen = false" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body">
           <div *ngIf="product?.size_chart_url" class="custom-chart-wrapper">
@@ -357,7 +420,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       text-decoration: none;
     }
     .breadcrumbs a:hover {
-      color: var(--color-pink-dark);
+      color: #9F3D62;
     }
 
     .pd-grid {
@@ -374,11 +437,11 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       }
     }
 
-    /* Gallery */
+    /* Gallery Column */
     .pd-gallery {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       width: 100%;
       max-width: 500px;
       margin: 0 auto;
@@ -393,6 +456,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       overflow: hidden;
       border: 1px solid var(--color-border-light);
       margin: 0 auto;
+      touch-action: pan-y pinch-zoom;
     }
     .image-skeleton {
       position: absolute;
@@ -429,16 +493,70 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       opacity: 1;
     }
 
+    /* Embedded Video within the Main Image Box */
+    .pd-video-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #000000;
+      z-index: 2;
+    }
+    .pd-video-player {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000000;
+      z-index: 2;
+    }
+
+    /* Gallery Navigation Arrows */
+    .gallery-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+      transition: all 0.2s ease;
+      opacity: 0.85;
+    }
+    .gallery-arrow:hover {
+      background: #FFFFFF;
+      opacity: 1;
+      transform: translateY(-50%) scale(1.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .gallery-arrow.prev-arrow {
+      left: 10px;
+    }
+    .gallery-arrow.next-arrow {
+      right: 10px;
+    }
+
+    /* Thumbnail List */
     .thumbnail-row {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       overflow-x: auto;
-      padding-bottom: 6px;
+      padding-bottom: 4px;
       justify-content: flex-start;
     }
     .thumb-btn {
-      width: 72px;
-      height: 72px;
+      width: 68px;
+      height: 68px;
       aspect-ratio: 1 / 1;
       border-radius: var(--radius-sm);
       overflow: hidden;
@@ -448,51 +566,43 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       cursor: pointer;
       flex-shrink: 0;
       transition: all 0.2s ease;
+      position: relative;
     }
     .thumb-btn.active {
-      border-color: var(--color-pink-dark);
-      box-shadow: 0 2px 8px rgba(192, 86, 118, 0.3);
+      border-color: #9F3D62;
+      box-shadow: 0 2px 8px rgba(159, 61, 98, 0.3);
     }
     .thumb-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
 
-    /* Product Video Showcase */
-    .product-video-card {
-      margin-top: 16px;
-      background: #FFFFFF;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--color-border-light);
-      overflow: hidden;
-    }
-    .video-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      background: #FDF9F6;
-      border-bottom: 1px solid var(--color-border-light);
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--color-text-heading);
-    }
-    .video-container {
+    /* Video Thumbnail Styling */
+    .thumb-video-poster {
       position: relative;
       width: 100%;
-      padding-top: 56.25%; /* 16:9 Aspect Ratio */
+      height: 100%;
       background: #000000;
     }
-    .video-frame, .video-player {
+    .thumb-play-overlay {
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+    }
+    .thumb-play-overlay svg {
+      margin-left: 2px;
     }
 
-    /* Info Column */
+    /* Details Column */
+    .pd-info {
+      display: flex;
+      flex-direction: column;
+    }
     .brand-badge-row {
       display: flex;
       align-items: center;
@@ -507,7 +617,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       padding: 3px 8px;
       border-radius: 4px;
       background: #FFF0F4;
-      color: var(--color-pink-dark);
+      color: #9F3D62;
     }
     .pd-category {
       font-size: 12px;
@@ -518,24 +628,42 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     }
     .pd-title {
       font-family: var(--font-serif);
-      font-size: 30px;
+      font-size: 28px;
       font-weight: 600;
       color: var(--color-text-heading);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       line-height: 1.3;
     }
+
+    /* Status Line */
+    .pd-status-line {
+      font-size: 13px;
+      font-weight: 600;
+      color: #B45309;
+      letter-spacing: 0.3px;
+      margin-bottom: 8px;
+    }
+    .status-red {
+      color: #DC2626 !important;
+      font-weight: 700;
+    }
+    .status-sep {
+      color: #D1D5DB;
+      margin: 0 6px;
+    }
+
     .pd-sku {
       font-size: 12px;
       color: var(--color-muted);
-      margin-bottom: 16px;
+      margin-bottom: 10px;
     }
 
-    /* Pricing */
+    /* Pricing: DARK PINK #9F3D62 */
     .pd-pricing {
       display: flex;
       align-items: baseline;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .sale-price {
       font-size: 28px;
@@ -565,34 +693,6 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       color: var(--color-muted);
     }
 
-    /* Stock Banner (No Numbers) */
-    .stock-status-banner {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #FFFBEB;
-      border: 1px solid #FDE68A;
-      padding: 6px 14px;
-      border-radius: 20px;
-      margin-bottom: 16px;
-    }
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #D97706;
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(1.3); }
-    }
-    .status-msg {
-      font-size: 12px;
-      font-weight: 600;
-      color: #B45309;
-      letter-spacing: 0.3px;
-    }
     .out-of-stock-banner {
       display: inline-block;
       background: #FEE2E2;
@@ -601,21 +701,22 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       border-radius: 20px;
       font-size: 12px;
       font-weight: 600;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
+      width: fit-content;
     }
 
     .pd-description {
       font-size: 14px;
       line-height: 1.7;
       color: var(--color-text-main);
-      margin-bottom: 24px;
-      padding-bottom: 20px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
       border-bottom: 1px solid var(--color-border-light);
     }
 
     /* Color Swatches */
     .pd-colors-section {
-      margin-bottom: 22px;
+      margin-bottom: 18px;
     }
     .section-header-row {
       display: flex;
@@ -633,7 +734,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     .selected-val-label {
       font-size: 13px;
       font-weight: 700;
-      color: var(--color-pink-dark);
+      color: #9F3D62;
     }
     .color-options-row {
       display: flex;
@@ -652,12 +753,12 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       transition: all 0.2s ease;
     }
     .color-chip-btn:hover {
-      border-color: var(--color-pink-dark);
+      border-color: #9F3D62;
     }
     .color-chip-btn.active {
-      border-color: var(--color-pink-dark);
+      border-color: #9F3D62;
       background: #FFF5F7;
-      box-shadow: 0 2px 8px rgba(192, 86, 118, 0.2);
+      box-shadow: 0 2px 8px rgba(159, 61, 98, 0.2);
     }
     .color-swatch-circle {
       width: 16px;
@@ -674,7 +775,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
 
     /* Size Section */
     .pd-size-section {
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .size-header {
       display: flex;
@@ -690,7 +791,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     .size-chart-trigger-btn {
       font-size: 12px;
       font-weight: 600;
-      color: var(--color-pink-dark);
+      color: #9F3D62;
       background: transparent;
       border: none;
       cursor: pointer;
@@ -715,11 +816,12 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       transition: all 0.2s ease;
     }
     .pd-size-btn:hover:not(.disabled) {
-      border-color: var(--color-pink-dark);
+      border-color: #1A1A1A;
+      background: #F5F5F5;
     }
     .pd-size-btn.active {
-      background-color: var(--color-pink-dark);
-      border-color: var(--color-pink-dark);
+      background-color: #1A1A1A;
+      border-color: #1A1A1A;
       color: #FFFFFF;
     }
     .pd-size-btn.disabled {
@@ -730,7 +832,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
 
     /* Actions */
     .pd-actions-wrapper {
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
     .pd-actions-row {
       display: flex;
@@ -758,6 +860,8 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       font-weight: 600;
       font-size: 15px;
     }
+
+    /* Buttons: DARK AESTHETIC (#1A1A1A) */
     .btn-primary {
       height: 48px;
       background-color: #1A1A1A;
@@ -833,12 +937,12 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     }
     .btn-wishlist:hover {
       background: #FFF0F4;
-      border-color: var(--color-pink-dark);
+      border-color: #9F3D62;
       transform: translateY(-1px);
     }
     .btn-wishlist.active {
       background: #FFF0F4;
-      border-color: var(--color-pink-dark);
+      border-color: #9F3D62;
     }
 
     /* Policy Accordion */
@@ -846,7 +950,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       background: #FFFFFF;
       border: 1px solid var(--color-border-light);
       border-radius: var(--radius-sm);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       overflow: hidden;
     }
     .policy-header {
@@ -886,7 +990,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       font-size: 13px;
       color: var(--color-muted);
       border-top: 1px solid var(--color-border-light);
-      padding-top: 20px;
+      padding-top: 18px;
     }
     .perk-item {
       display: flex;
@@ -894,7 +998,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       gap: 8px;
     }
     .perk-item a {
-      color: var(--color-pink-dark);
+      color: #9F3D62;
       text-decoration: underline;
     }
 
@@ -1005,7 +1109,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     }
     .size-guide-table th {
       background: #FDF4F6;
-      color: var(--color-pink-dark);
+      color: #9F3D62;
       padding: 9px 8px;
       font-weight: 600;
       border: 1px solid #EAE6E1;
@@ -1024,7 +1128,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     .size-guide-table tr.highlight-row td {
       background-color: #FFF5F7;
       font-weight: 600;
-      color: var(--color-pink-dark);
+      color: #9F3D62;
     }
     .size-guide-note {
       font-size: 12px;
@@ -1041,8 +1145,8 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     .spinner {
       width: 40px;
       height: 40px;
-      border: 3px solid rgba(192, 86, 118, 0.2);
-      border-top-color: var(--color-pink-dark);
+      border: 3px solid rgba(159, 61, 98, 0.2);
+      border-top-color: #9F3D62;
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 16px auto;
@@ -1061,8 +1165,8 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
         border-radius: 8px;
       }
       .thumb-btn {
-        width: 60px;
-        height: 60px;
+        width: 58px;
+        height: 58px;
       }
       .pd-title {
         font-size: 22px;
@@ -1094,7 +1198,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       .pd-pricing {
         flex-wrap: wrap;
         gap: 8px;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
       }
       .sale-price {
         font-size: 22px;
@@ -1113,17 +1217,13 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       .quantity-stepper {
         flex: 1;
       }
-      .btn-wishlist {
-        flex-shrink: 0;
-      }
     }
   `]
 })
 export class ProductDetailComponent implements OnInit {
   product: Product | null = null;
-  images: ImageItem[] = [];
-  activeImageUrl = '';
-  activeVideoUrl: string | null = null;
+  galleryItems: GalleryMediaItem[] = [];
+  activeMediaIndex = 0;
   isMainLoaded = false;
   
   sizeList: { size: SizeOption; stock: number }[] = [];
@@ -1139,6 +1239,13 @@ export class ProductDetailComponent implements OnInit {
   relatedProducts: Product[] = [];
 
   readonly defaultReturnPolicy = '7-Day Hassle-Free Returns & Exchanges. Items must be in original condition with tags and boutique packaging intact. Contact our support team for quick assistance.';
+
+  private galleryTouchStartX = 0;
+  private galleryTouchStartY = 0;
+  private galleryTouchMoved = false;
+
+  private cachedSafeVideoUrl: SafeResourceUrl | null = null;
+  private cachedRawVideoUrl: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -1162,9 +1269,8 @@ export class ProductDetailComponent implements OnInit {
 
   async loadProductDetails(slug: string) {
     this.product = null;
-    this.images = [];
-    this.activeImageUrl = '';
-    this.activeVideoUrl = null;
+    this.galleryItems = [];
+    this.activeMediaIndex = 0;
     this.isMainLoaded = false;
     this.relatedProducts = [];
     this.quantity = 1;
@@ -1179,33 +1285,33 @@ export class ProductDetailComponent implements OnInit {
 
     this.product = targetProduct;
     this.seoService.setProductSeo(this.product);
-    this.activeVideoUrl = this.product.video_url || null;
+
+    let images: ImageItem[] = [];
+    let videoUrl = this.product.video_url || null;
 
     // Load Colors
     this.colorVariants = this.product.color_variants || [];
     if (this.product.has_colors && this.colorVariants.length > 0) {
       this.selectedColor = this.colorVariants[0].name;
-      // If the first color variant has specific images, load them
       const variantImgs = this.colorVariants[0].images || this.colorVariants[0].image_urls || [];
       if (variantImgs.length > 0) {
-        this.images = variantImgs.map((url: string, i: number) => ({
+        images = variantImgs.map((url: string, i: number) => ({
           image_url: url,
           is_primary: i === 0,
           display_order: i + 1
         }));
       } else {
-        this.images = extractProductImages(this.product);
+        images = extractProductImages(this.product);
       }
       if (this.colorVariants[0].video_url) {
-        this.activeVideoUrl = this.colorVariants[0].video_url;
+        videoUrl = this.colorVariants[0].video_url;
       }
     } else {
-      this.images = extractProductImages(this.product);
+      images = extractProductImages(this.product);
     }
 
-    if (this.images.length > 0) {
-      this.activeImageUrl = this.images[0].image_url;
-    }
+    // Build the integrated gallery: Images + Video as natural final slide
+    this.buildGalleryMedia(images, videoUrl);
 
     // Build Sizes (if product has sizes)
     this.updateSizesForSelectedColor(true);
@@ -1223,6 +1329,114 @@ export class ProductDetailComponent implements OnInit {
     }
   }
 
+  buildGalleryMedia(imagesList: ImageItem[], videoUrl: string | null | undefined) {
+    const list: GalleryMediaItem[] = imagesList.map((img, i) => ({
+      type: 'image' as const,
+      url: img.image_url,
+      display_order: i + 1
+    }));
+
+    if (list.length === 0) {
+      list.push({ type: 'image' as const, url: DEFAULT_FALLBACK_IMAGE, display_order: 1 });
+    }
+
+    const cleanVideo = videoUrl?.trim();
+    if (cleanVideo) {
+      list.push({
+        type: 'video' as const,
+        url: cleanVideo,
+        display_order: list.length + 1
+      });
+    }
+
+    this.galleryItems = list;
+    this.activeMediaIndex = 0;
+    this.isMainLoaded = false;
+    this.cdr.markForCheck();
+  }
+
+  get activeMedia(): GalleryMediaItem | null {
+    if (this.galleryItems.length === 0) return null;
+    if (this.activeMediaIndex < 0 || this.activeMediaIndex >= this.galleryItems.length) {
+      return this.galleryItems[0];
+    }
+    return this.galleryItems[this.activeMediaIndex];
+  }
+
+  get activeImageUrl(): string {
+    const current = this.activeMedia;
+    if (current && current.type === 'image') return current.url;
+    const firstImg = this.galleryItems.find(item => item.type === 'image');
+    return firstImg ? firstImg.url : DEFAULT_FALLBACK_IMAGE;
+  }
+
+  get primaryThumbUrl(): string {
+    const firstImg = this.galleryItems.find(item => item.type === 'image');
+    return firstImg ? firstImg.url : DEFAULT_FALLBACK_IMAGE;
+  }
+
+  selectMedia(index: number) {
+    if (index >= 0 && index < this.galleryItems.length) {
+      this.activeMediaIndex = index;
+      this.isMainLoaded = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  prevMedia(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (this.galleryItems.length <= 1) return;
+    this.activeMediaIndex = (this.activeMediaIndex - 1 + this.galleryItems.length) % this.galleryItems.length;
+    this.isMainLoaded = false;
+    this.cdr.markForCheck();
+  }
+
+  nextMedia(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (this.galleryItems.length <= 1) return;
+    this.activeMediaIndex = (this.activeMediaIndex + 1) % this.galleryItems.length;
+    this.isMainLoaded = false;
+    this.cdr.markForCheck();
+  }
+
+  onGalleryTouchStart(e: TouchEvent) {
+    if (this.galleryItems.length <= 1) return;
+    this.galleryTouchStartX = e.changedTouches[0].clientX;
+    this.galleryTouchStartY = e.changedTouches[0].clientY;
+    this.galleryTouchMoved = false;
+  }
+
+  onGalleryTouchMove(e: TouchEvent) {
+    if (this.galleryItems.length <= 1) return;
+    const diffX = Math.abs(e.changedTouches[0].clientX - this.galleryTouchStartX);
+    const diffY = Math.abs(e.changedTouches[0].clientY - this.galleryTouchStartY);
+    if (diffX > 8 && diffX > diffY) {
+      this.galleryTouchMoved = true;
+    }
+  }
+
+  onGalleryTouchEnd(e: TouchEvent) {
+    if (this.galleryItems.length <= 1 || !this.galleryTouchMoved) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const diffX = endX - this.galleryTouchStartX;
+    const diffY = endY - this.galleryTouchStartY;
+
+    if (Math.abs(diffX) > 30 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        this.prevMedia();
+      } else {
+        this.nextMedia();
+      }
+    }
+  }
+
   updateSizesForSelectedColor(isInitial = false) {
     if (!this.product || this.product.has_size === false || this.product.department === 'jewellery') {
       this.sizeList = [];
@@ -1230,7 +1444,6 @@ export class ProductDetailComponent implements OnInit {
       return;
     }
 
-    // 1. Find active color variant if colors are enabled
     let activeVariant: ColorVariant | undefined;
     if (this.product.has_colors && this.colorVariants.length > 0) {
       activeVariant = this.colorVariants.find(
@@ -1238,14 +1451,12 @@ export class ProductDetailComponent implements OnInit {
       );
     }
 
-    // 2. Determine sizeList for this color
     if (activeVariant && activeVariant.sizes && activeVariant.sizes.length > 0) {
       this.sizeList = activeVariant.sizes.map(s => ({
         size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
         stock: Number(s.stock) || 0
       }));
     } else if (this.product.sizes && this.product.sizes.length > 0) {
-      // Fallback to base product sizes
       this.sizeList = this.product.sizes.map(s => ({
         size: (s.size === 'XXL' ? '2XL' : s.size) as SizeOption,
         stock: Number(s.stock) || 0
@@ -1255,7 +1466,6 @@ export class ProductDetailComponent implements OnInit {
       this.sizeList = defaultSizes.map(size => ({ size, stock: this.product!.stock > 0 ? 5 : 0 }));
     }
 
-    // 3. Selection behavior:
     if (isInitial) {
       const inStock = this.sizeList.find(s => s.stock > 0);
       if (inStock) {
@@ -1266,9 +1476,6 @@ export class ProductDetailComponent implements OnInit {
         this.selectedSize = '';
       }
     } else {
-      // Color changed:
-      // If current selectedSize exists in the new color's sizeList, keep it;
-      // otherwise, clear it!
       const matchingSize = this.sizeList.find(s => s.size === this.selectedSize);
       if (!matchingSize) {
         this.selectedSize = '';
@@ -1278,54 +1485,99 @@ export class ProductDetailComponent implements OnInit {
 
   selectColorVariant(variant: ColorVariant) {
     this.selectedColor = variant.name;
-    // Swap images immediately without page reload!
     const variantImgs = variant.images || variant.image_urls || [];
+    let imgs: ImageItem[] = [];
     if (variantImgs.length > 0) {
-      this.images = variantImgs.map((url: string, i: number) => ({
+      imgs = variantImgs.map((url: string, i: number) => ({
         image_url: url,
         is_primary: i === 0,
         display_order: i + 1
       }));
-      this.activeImageUrl = this.images[0].image_url;
-      this.isMainLoaded = false;
     } else {
-      // Fallback to base product images
-      this.images = extractProductImages(this.product!);
-      if (this.images.length > 0) {
-        this.activeImageUrl = this.images[0].image_url;
-      }
+      imgs = extractProductImages(this.product!);
     }
 
-    // Swap video if variant has its own video
-    if (variant.video_url) {
-      this.activeVideoUrl = variant.video_url;
-    } else {
-      this.activeVideoUrl = this.product?.video_url || null;
-    }
+    const video = variant.video_url || this.product?.video_url;
+    this.buildGalleryMedia(imgs, video);
 
-    // Dynamically update sizes for selected color
     this.updateSizesForSelectedColor(false);
-
     this.cdr.markForCheck();
   }
 
   isEmbedVideo(url: string): boolean {
+    if (!url) return false;
     return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
   }
 
   getSafeVideoUrl(url: string): SafeResourceUrl {
-    let embedUrl = url;
-    if (url.includes('youtube.com/watch?v=')) {
-      embedUrl = url.replace('watch?v=', 'embed/');
-    } else if (url.includes('youtu.be/')) {
-      embedUrl = url.replace('youtu.be/', 'www.youtube.com/embed/');
+    if (!url) return this.sanitizer.bypassSecurityTrustResourceUrl('');
+    if (this.cachedRawVideoUrl === url && this.cachedSafeVideoUrl) {
+      return this.cachedSafeVideoUrl;
     }
-    return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+
+    let embedUrl = url;
+    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+    if (ytMatch && ytMatch[1]) {
+      const videoId = ytMatch[1];
+      embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`;
+    } else {
+      const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+      if (vimeoMatch && vimeoMatch[1]) {
+        embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&muted=1&loop=1`;
+      }
+    }
+
+    this.cachedRawVideoUrl = url;
+    this.cachedSafeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+    return this.cachedSafeVideoUrl;
   }
 
   get isSoldOut(): boolean {
     if (!this.product) return false;
     return this.product.availability === 'sold_out' || Boolean(this.product.is_sold_out) || this.product.stock === 0;
+  }
+
+  get isOnSale(): boolean {
+    return Boolean(
+      this.product?.sale_price && 
+      this.product.price && 
+      Number(this.product.sale_price) < Number(this.product.price) && 
+      Number(this.product.price) > 0
+    );
+  }
+
+  get productStatuses(): { text: string; isRed?: boolean }[] {
+    if (!this.product) return [];
+    const list: { text: string; isRed?: boolean }[] = [];
+
+    // 1. New status
+    if (this.product.new_arrival) {
+      list.push({ text: 'New Arrival' });
+    } else if ((this.product as any).is_new) {
+      list.push({ text: 'New Product' });
+    }
+
+    // 2. Best Seller
+    if (this.product.best_seller) {
+      list.push({ text: 'Best Seller' });
+    }
+
+    // 3. Stock / Availability status
+    if (this.product.stock_display !== 'hide' && !this.isSoldOut) {
+      if (this.product.stock_display === 'custom' && this.product.custom_stock_message?.trim()) {
+        const msg = this.product.custom_stock_message.trim();
+        const isFew = /few left|low stock/i.test(msg);
+        list.push({ text: msg, isRed: isFew });
+      } else if (this.product.availability === 'few_left' || this.product.stock_display === 'few_left') {
+        list.push({ text: 'Only Few Left', isRed: true });
+      } else if ((this.product.availability as string) === 'limited' || (this.product as any).is_limited) {
+        list.push({ text: 'Limited Stock' });
+      } else if (this.isLowStock && this.product.stock > 0) {
+        list.push({ text: 'Only Few Left', isRed: true });
+      }
+    }
+
+    return list;
   }
 
   get addToCartButtonText(): string {

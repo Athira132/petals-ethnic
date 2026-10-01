@@ -540,7 +540,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     .sale-price {
       font-size: 28px;
       font-weight: 700;
-      color: var(--color-pink-dark);
+      color: #9F3D62;
     }
     .original-price {
       font-size: 18px;
@@ -549,7 +549,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     }
     .discount-badge {
       background: #FFF0F4;
-      color: var(--color-pink-dark);
+      color: #9F3D62;
       font-size: 12px;
       font-weight: 700;
       padding: 4px 8px;
@@ -558,7 +558,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     .regular-price {
       font-size: 28px;
       font-weight: 700;
-      color: var(--color-text-heading);
+      color: #9F3D62;
     }
     .tax-info {
       font-size: 12px;
@@ -760,9 +760,9 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     }
     .btn-primary {
       height: 48px;
-      background-color: var(--color-pink-dark);
+      background-color: #1A1A1A;
       color: #FFFFFF;
-      border: none;
+      border: 1px solid #1A1A1A;
       border-radius: var(--radius-sm);
       font-weight: 600;
       font-size: 14px;
@@ -773,7 +773,11 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       justify-content: center;
     }
     .btn-primary:hover:not(:disabled) {
-      background-color: var(--color-pink);
+      background-color: #2D2D2D;
+      border-color: #2D2D2D;
+      color: #FFFFFF;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
     .btn-primary:disabled {
       opacity: 0.5;
@@ -781,9 +785,9 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
     }
     .btn-gold {
       height: 48px;
-      background-color: #B28742;
+      background-color: #262626;
       color: #FFFFFF;
-      border: none;
+      border: 1px solid #262626;
       border-radius: var(--radius-sm);
       font-weight: 600;
       font-size: 14px;
@@ -794,7 +798,11 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       justify-content: center;
     }
     .btn-gold:hover:not(:disabled) {
-      background-color: #9A7233;
+      background-color: #383838;
+      border-color: #383838;
+      color: #FFFFFF;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
     .btn-gold:disabled {
       opacity: 0.5;
@@ -1090,6 +1098,7 @@ import { extractProductImages, handleImageError, getResponsiveImageUrl, ImageIte
       }
       .sale-price {
         font-size: 22px;
+        color: #9F3D62;
       }
       .original-price {
         font-size: 15px;

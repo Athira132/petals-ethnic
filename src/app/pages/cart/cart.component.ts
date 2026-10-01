@@ -283,7 +283,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
 
     .cart-item-total {
       font-weight: 700;
-      color: #C05676;
+      color: #9F3D62;
     }
 
     .remove-btn {
@@ -333,7 +333,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
     }
     .free-shipping-progress {
       background-color: var(--color-pink-light);
-      color: #C05676;
+      color: #9F3D62;
       font-size: 12px;
       padding: 8px 12px;
       border-radius: var(--radius-sm);
@@ -351,13 +351,27 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
       color: var(--color-text-heading);
     }
     .grand-price {
-      color: #C05676;
+      color: #9F3D62;
       font-size: 22px;
     }
     .checkout-btn {
       width: 100%;
       margin-top: 24px;
       padding: 16px;
+      background-color: #1A1A1A;
+      color: #FFFFFF;
+      border: 1px solid #1A1A1A;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: var(--transition);
+    }
+    .checkout-btn:hover {
+      background-color: #2D2D2D;
+      border-color: #2D2D2D;
+      color: #FFFFFF;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
     }
     .payment-badges {
       margin-top: 16px;

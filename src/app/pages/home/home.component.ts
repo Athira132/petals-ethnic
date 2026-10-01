@@ -499,9 +499,9 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       justify-content: center;
       gap: 6px;
       padding: 9px 18px;
-      border: 1.5px solid #9F3D62;
-      color: #9F3D62;
-      background: transparent;
+      border: 1.5px solid #1A1A1A;
+      color: #FFFFFF;
+      background: #1A1A1A;
       border-radius: 4px;
       font-size: 13px;
       font-weight: 600;
@@ -511,9 +511,10 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
       transition: all 0.25s ease;
     }
     .btn-new-arrivals:hover {
-      background: #9F3D62;
+      background: #2D2D2D;
+      border-color: #2D2D2D;
       color: #FFFFFF;
-      box-shadow: 0 4px 12px rgba(159, 61, 98, 0.25);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
     @media (max-width: 576px) {
       .new-arrivals-header {
@@ -672,20 +673,22 @@ import { handleImageError, getResponsiveImageUrl } from '../../core/utils/image.
     .btn-story-primary {
       display: inline-flex;
       align-items: center;
-      background-color: #9F3D62;
+      background-color: #1A1A1A;
       color: #FFFFFF !important;
+      border: 1px solid #1A1A1A;
       padding: 13px 30px;
       border-radius: var(--radius-full);
       font-weight: 600;
       font-size: 14px;
       text-decoration: none;
       transition: var(--transition);
-      box-shadow: 0 4px 16px rgba(159, 61, 98, 0.4);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
     .btn-story-primary:hover {
-      background-color: #7F2A4C;
+      background-color: #2D2D2D;
+      border-color: #2D2D2D;
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(127, 42, 76, 0.5);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
     }
     @media (max-width: 480px) {
       .btn-story-primary {

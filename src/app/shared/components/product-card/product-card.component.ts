@@ -1,9 +1,15 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, AfterViewInit, SimpleChanges, ViewChild, ElementRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Product, SizeOption } from '../../../core/models/product.model';
 import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../../core/utils/image.utils';
 import { ImageLoaderService } from '../../../core/services/image-loader.service';
+
+export interface CardMediaItem {
+  type: 'image' | 'video';
+  url: string;
+}
 
 @Component({
   selector: 'app-product-card',
@@ -12,41 +18,146 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="product-card" [class.out-of-stock]="product.stock === 0" (mouseenter)="onCardHover()">
-      <!-- Product Image Container with 3:4 Aspect Ratio -->
-      <div class="card-media">
-        <a [routerLink]="['/product', product.slug]">
+      <!-- Product Media Container with 3:4 Aspect Ratio -->
+      <div 
+        class="card-media"
+        (touchstart)="onTouchStart($event)"
+        (touchmove)="onTouchMove($event)"
+        (touchend)="onTouchEnd($event)"
+      >
+        <a [routerLink]="['/product', product.slug]" (click)="onCardClick($event)" class="media-link" tabindex="-1">
           <!-- Shimmer Skeleton Placeholder for THIS product card -->
           <div class="image-skeleton" *ngIf="!isFullLoaded"></div>
 
-          <!-- Real Product Image (fades in smoothly when loaded) -->
-          <img 
-            #fullImg
-            [src]="primaryImageUrl" 
-            [alt]="product.name + ' - ' + (product.category?.name || 'Ethnic Wear') + ' | Petals Ethnics and Jewellers'" 
-            class="product-img full-res-img"
-            [class.loaded]="isFullLoaded"
-            [attr.loading]="priority ? 'eager' : 'lazy'"
-            [attr.fetchpriority]="priority ? 'high' : 'auto'"
-            decoding="async"
-            width="320"
-            height="426"
-            (load)="onFullResLoaded()"
-            (error)="onFullResError($event)"
-          />
+          <!-- Slider Track for Smooth Transitions -->
+          <div 
+            class="slider-track" 
+            [style.transform]="'translateX(-' + (currentSlideIndex * 100) + '%)'"
+          >
+            <div 
+              *ngFor="let item of mediaItems; let i = index" 
+              class="slide-item" 
+              [class.image-slide]="item.type === 'image'"
+              [class.video-slide]="item.type === 'video'"
+            >
+              <!-- 1. IMAGE SLIDE -->
+              <ng-container *ngIf="item.type === 'image'">
+                <img 
+                  *ngIf="i === 0"
+                  #fullImg
+                  [src]="item.url" 
+                  [alt]="product.name + ' - ' + (product.category?.name || 'Ethnic Wear') + ' | Petals Ethnics and Jewellers'" 
+                  class="product-img full-res-img"
+                  [class.loaded]="isFullLoaded"
+                  [attr.loading]="priority ? 'eager' : 'lazy'"
+                  [attr.fetchpriority]="priority ? 'high' : 'auto'"
+                  decoding="async"
+                  width="320"
+                  height="426"
+                  (load)="onFullResLoaded()"
+                  (error)="onFullResError($event)"
+                />
+                <img 
+                  *ngIf="i > 0"
+                  [src]="item.url" 
+                  [alt]="product.name + ' - View ' + (i + 1) + ' | Petals Ethnics and Jewellers'" 
+                  class="product-img slide-img"
+                  loading="lazy"
+                  decoding="async"
+                  width="320"
+                  height="426"
+                  (error)="onImageError($event)"
+                />
+              </ng-container>
 
-          <!-- Secondary Hover Image (loaded ONLY on desktop mouse hover to save 50% bandwidth) -->
-          <img 
-            *ngIf="showHoverImage && secondaryImageUrl" 
-            [src]="secondaryImageUrl" 
-            [alt]="product.name + ' - Alternate View | Petals Ethnics and Jewellers'" 
-            class="product-img hover-img" 
-            loading="lazy"
-            decoding="async"
-            width="320"
-            height="426"
-            (error)="onImageError($event)"
-          />
+              <!-- 2. PRODUCT VIDEO SLIDE (Appears after all product images) -->
+              <ng-container *ngIf="item.type === 'video'">
+                <!-- Play video ONLY when this slide is active (lazy loaded, zero audio interference) -->
+                <ng-container *ngIf="currentSlideIndex === i">
+                  <ng-container *ngIf="isEmbedVideo(item.url); else directVideo">
+                    <iframe 
+                      [src]="getSafeVideoUrl(item.url)" 
+                      class="product-video-frame"
+                      frameborder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowfullscreen
+                      loading="lazy"
+                      title="Product Video"
+                    ></iframe>
+                  </ng-container>
+                  <ng-template #directVideo>
+                    <video 
+                      [src]="item.url" 
+                      autoplay 
+                      muted 
+                      loop 
+                      playsinline 
+                      preload="metadata" 
+                      class="product-video-element"
+                    ></video>
+                  </ng-template>
+                </ng-container>
+
+                <!-- When NOT active, display placeholder poster with video play badge -->
+                <div class="video-poster" *ngIf="currentSlideIndex !== i">
+                  <img 
+                    [src]="primaryImageUrl" 
+                    [alt]="product.name + ' - Video Preview'"
+                    class="product-img slide-img" 
+                    loading="lazy" 
+                    width="320"
+                    height="426"
+                  />
+                  <div class="video-play-badge">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF">
+                      <polygon points="6,4 20,12 6,20"></polygon>
+                    </svg>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
         </a>
+
+        <!-- Slider Navigation Controls (Desktop hover arrows) -->
+        <button 
+          *ngIf="mediaItems.length > 1" 
+          type="button"
+          class="slider-btn prev-btn" 
+          (click)="prevSlide($event)" 
+          aria-label="Previous slide"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <button 
+          *ngIf="mediaItems.length > 1" 
+          type="button"
+          class="slider-btn next-btn" 
+          (click)="nextSlide($event)" 
+          aria-label="Next slide"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        <!-- Slider Indicator Dots -->
+        <div class="slider-dots" *ngIf="mediaItems.length > 1">
+          <button 
+            *ngFor="let item of mediaItems; let i = index" 
+            type="button"
+            class="slider-dot"
+            [class.active]="currentSlideIndex === i"
+            [class.video-dot]="item.type === 'video'"
+            (click)="goToSlide($event, i)"
+            [attr.aria-label]="item.type === 'video' ? 'Product Video' : 'Slide ' + (i + 1)"
+          >
+            <span *ngIf="item.type === 'video'" class="dot-play-icon">▶</span>
+          </button>
+        </div>
 
         <!-- Top Badge: Priority: SOLD OUT > Discount > None -->
         <div class="card-badges" *ngIf="topBadge">
@@ -72,6 +183,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
               <div class="size-chips">
                 <button 
                   *ngFor="let sizeOpt of availableSizes" 
+                  type="button"
                   class="size-chip"
                   [class.disabled]="sizeOpt.stock === 0"
                   [disabled]="sizeOpt.stock === 0"
@@ -83,7 +195,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
               </div>
             </ng-container>
             <ng-template #singleQuickAdd>
-              <button class="quick-single-add-btn" (click)="onQuickAdd()">
+              <button type="button" class="quick-single-add-btn" (click)="onQuickAdd()">
                 + Quick Add to Cart
               </button>
             </ng-template>
@@ -106,7 +218,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
           </ng-container>
         </div>
 
-        <!-- Price Display -->
+        <!-- Price Display (DARK PINK #9F3D62) -->
         <div class="product-price">
           <ng-container *ngIf="isOnSale; else regularPrice">
             <span class="sale-price">₹{{ product.sale_price | number:'1.0-0' }}</span>
@@ -134,7 +246,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
     .product-card:hover {
       box-shadow: var(--shadow-md);
       transform: translateY(-4px);
-      border-color: var(--color-pink);
+      border-color: #E5A9BD;
     }
     .product-card.out-of-stock {
       opacity: 0.75;
@@ -145,6 +257,39 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       width: 100%;
       aspect-ratio: 3 / 4;
       overflow: hidden;
+      background-color: var(--color-bg-alt, #FAF8F6);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: pan-y pinch-zoom;
+    }
+
+    .media-link {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      text-decoration: none;
+    }
+
+    /* Slider track */
+    .slider-track {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+      will-change: transform;
+    }
+
+    .slide-item {
+      position: relative;
+      flex: 0 0 100%;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    .slide-item.image-slide {
       background-color: var(--color-bg-alt, #FAF8F6);
     }
 
@@ -178,28 +323,157 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       object-position: top center;
     }
 
-    /* Direct Product Image: Fades in smoothly as soon as THIS SPECIFIC IMAGE completes loading */
+    /* Direct Product Image: Fades in smoothly as soon as primary image completes loading */
     .full-res-img {
       z-index: 2;
       opacity: 0;
-      transition: opacity 300ms ease-in-out, transform 0.3s ease;
+      transition: opacity 300ms ease-in-out, transform 0.35s ease;
     }
     .full-res-img.loaded {
       opacity: 1;
     }
 
-    /* Secondary Hover Image */
-    .hover-img {
-      opacity: 0;
-      z-index: 3;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    .product-card:hover .full-res-img.loaded {
-      transform: scale(1.05);
-    }
-    .product-card:hover .hover-img {
+    .slide-img {
       opacity: 1;
-      transform: scale(1.05);
+      transition: transform 0.35s ease;
+    }
+
+    .product-card:hover .image-slide .product-img {
+      transform: scale(1.04);
+    }
+
+    /* Video Player Elements */
+    .product-video-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      pointer-events: none;
+    }
+
+    .product-video-element {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .video-poster {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-play-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .video-play-badge svg {
+      margin-left: 2px;
+    }
+
+    /* Slider Navigation Arrows */
+    .slider-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 6;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    }
+    .slider-btn:hover {
+      background: #FFFFFF;
+      transform: translateY(-50%) scale(1.08);
+    }
+    .slider-btn.prev-btn {
+      left: 8px;
+    }
+    .slider-btn.next-btn {
+      right: 8px;
+    }
+    .product-card:hover .slider-btn {
+      opacity: 1;
+    }
+
+    /* Slider Dots */
+    .slider-dots {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      z-index: 6;
+      pointer-events: auto;
+    }
+    .slider-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .slider-dot.active {
+      background: #FFFFFF;
+      width: 14px;
+      border-radius: 3px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    }
+    .slider-dot.video-dot {
+      background: rgba(255, 255, 255, 0.85);
+      font-size: 7px;
+      color: #1A1A1A;
+    }
+    .slider-dot.video-dot.active {
+      background: #FFFFFF;
+      width: 16px;
+      border-radius: 3px;
+      color: #9F3D62;
+    }
+    .dot-play-icon {
+      font-size: 7px;
+      line-height: 1;
+      display: block;
+      margin-left: 1px;
     }
 
     .card-badges {
@@ -210,6 +484,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       flex-direction: column;
       gap: 6px;
       z-index: 4;
+      pointer-events: none;
     }
 
     .size-quick-bar {
@@ -226,7 +501,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       gap: 6px;
       transform: translateY(100%);
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 5;
+      z-index: 7;
     }
     .product-card:hover .size-quick-bar {
       transform: translateY(0);
@@ -256,20 +531,22 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       transition: var(--transition);
     }
     .size-chip:hover:not(.disabled) {
-      border-color: var(--color-pink-dark);
-      background: var(--color-pink-light);
-      color: var(--color-pink-dark);
+      border-color: #1A1A1A;
+      background: #1A1A1A;
+      color: #FFFFFF;
     }
     .size-chip.disabled {
       opacity: 0.4;
       cursor: not-allowed;
       text-decoration: line-through;
     }
+
+    /* DARK QUICK ADD BUTTON */
     .quick-single-add-btn {
       width: 100%;
-      background: var(--color-pink-dark);
+      background: #1A1A1A;
       color: #FFFFFF;
-      border: none;
+      border: 1px solid #1A1A1A;
       padding: 8px 12px;
       font-size: 12px;
       font-weight: 600;
@@ -278,7 +555,9 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       transition: var(--transition);
     }
     .quick-single-add-btn:hover {
-      background: var(--color-pink);
+      background: #2D2D2D;
+      border-color: #2D2D2D;
+      transform: translateY(-1px);
     }
     .quick-enquiry-btn {
       width: 100%;
@@ -307,9 +586,9 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       text-transform: uppercase;
     }
     .badge-discount {
-      background: #D81B60;
+      background: #9F3D62;
       color: #FFFFFF;
-      box-shadow: 0 2px 6px rgba(216, 27, 96, 0.35);
+      box-shadow: 0 2px 6px rgba(159, 61, 98, 0.35);
     }
     .badge-sold-out {
       background: #111827;
@@ -346,7 +625,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       min-height: 42px;
     }
     .product-title a:hover {
-      color: var(--color-pink-dark);
+      color: #9F3D62;
     }
     .product-status-line {
       font-size: 11.5px;
@@ -367,6 +646,8 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       color: #D1D5DB;
       margin: 0 4px;
     }
+
+    /* Price Display: Customer facing prices in DARK PINK (#9F3D62) */
     .product-price {
       display: flex;
       align-items: baseline;
@@ -377,7 +658,7 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       font-weight: 700;
     }
     .sale-price {
-      color: #D81B60;
+      color: #9F3D62;
     }
     .original-price {
       font-size: 13px;
@@ -385,16 +666,16 @@ import { ImageLoaderService } from '../../../core/services/image-loader.service'
       text-decoration: line-through;
       font-weight: 400;
     }
-    .sale-discount {
-      font-size: 12px;
-      color: #2E7D32;
-      font-weight: 600;
-    }
     .regular-price {
-      color: var(--color-text-heading);
+      color: #9F3D62;
     }
 
     @media (max-width: 768px) {
+      .slider-btn {
+        opacity: 0.85;
+        width: 26px;
+        height: 26px;
+      }
       .card-content {
         padding: 12px;
       }
@@ -446,9 +727,21 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   primaryImageUrl: string = DEFAULT_FALLBACK_IMAGE;
   secondaryImageUrl: string | null = null;
 
+  mediaItems: CardMediaItem[] = [];
+  currentSlideIndex = 0;
+
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchMoved = false;
+  private isSwiping = false;
+
+  private cachedSafeVideoUrl: SafeResourceUrl | null = null;
+  private cachedRawVideoUrl: string | null = null;
+
   constructor(
     private imageLoader: ImageLoaderService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit() {
@@ -467,6 +760,7 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   onCardHover() {
+    // If not hovered yet and has secondary image
     if (!this.showHoverImage && this.secondaryImageUrl) {
       this.showHoverImage = true;
       this.cdr.markForCheck();
@@ -480,6 +774,22 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
 
     this.primaryImageUrl = primary;
     this.secondaryImageUrl = secondary;
+
+    const media: CardMediaItem[] = images.map(img => ({ type: 'image' as const, url: img.image_url }));
+    if (media.length === 0) {
+      media.push({ type: 'image' as const, url: DEFAULT_FALLBACK_IMAGE });
+    }
+
+    // Append video as the final slide item if present
+    const rawVideoUrl = this.product.video_url?.trim();
+    if (rawVideoUrl) {
+      media.push({ type: 'video' as const, url: rawVideoUrl });
+    }
+
+    this.mediaItems = media;
+    if (this.currentSlideIndex >= this.mediaItems.length) {
+      this.currentSlideIndex = 0;
+    }
 
     if (this.imageLoader.isLoaded(primary)) {
       this.isFullLoaded = true;
@@ -496,6 +806,106 @@ export class ProductCardComponent implements OnInit, OnChanges, AfterViewInit {
         this.onFullResLoaded();
       }
     }
+  }
+
+  prevSlide(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (this.mediaItems.length <= 1) return;
+    this.currentSlideIndex = (this.currentSlideIndex - 1 + this.mediaItems.length) % this.mediaItems.length;
+    this.cdr.markForCheck();
+  }
+
+  nextSlide(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (this.mediaItems.length <= 1) return;
+    this.currentSlideIndex = (this.currentSlideIndex + 1) % this.mediaItems.length;
+    this.cdr.markForCheck();
+  }
+
+  goToSlide(event: Event, index: number) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (index >= 0 && index < this.mediaItems.length) {
+      this.currentSlideIndex = index;
+      this.cdr.markForCheck();
+    }
+  }
+
+  onTouchStart(e: TouchEvent) {
+    if (this.mediaItems.length <= 1) return;
+    this.touchStartX = e.changedTouches[0].clientX;
+    this.touchStartY = e.changedTouches[0].clientY;
+    this.touchMoved = false;
+  }
+
+  onTouchMove(e: TouchEvent) {
+    if (this.mediaItems.length <= 1) return;
+    const diffX = Math.abs(e.changedTouches[0].clientX - this.touchStartX);
+    const diffY = Math.abs(e.changedTouches[0].clientY - this.touchStartY);
+    if (diffX > 8 && diffX > diffY) {
+      this.touchMoved = true;
+    }
+  }
+
+  onTouchEnd(e: TouchEvent) {
+    if (this.mediaItems.length <= 1 || !this.touchMoved) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const diffX = endX - this.touchStartX;
+    const diffY = endY - this.touchStartY;
+
+    if (Math.abs(diffX) > 30 && Math.abs(diffX) > Math.abs(diffY)) {
+      this.isSwiping = true;
+      if (diffX > 0) {
+        this.prevSlide();
+      } else {
+        this.nextSlide();
+      }
+      setTimeout(() => {
+        this.isSwiping = false;
+      }, 300);
+    }
+  }
+
+  onCardClick(event: MouseEvent) {
+    if (this.isSwiping) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  isEmbedVideo(url: string): boolean {
+    if (!url) return false;
+    return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
+  }
+
+  getSafeVideoUrl(url: string): SafeResourceUrl {
+    if (!url) return this.sanitizer.bypassSecurityTrustResourceUrl('');
+    if (this.cachedRawVideoUrl === url && this.cachedSafeVideoUrl) {
+      return this.cachedSafeVideoUrl;
+    }
+
+    let embedUrl = url;
+    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+    if (ytMatch && ytMatch[1]) {
+      const videoId = ytMatch[1];
+      embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`;
+    } else {
+      const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+      if (vimeoMatch && vimeoMatch[1]) {
+        embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&muted=1&loop=1&background=1`;
+      }
+    }
+
+    this.cachedRawVideoUrl = url;
+    this.cachedSafeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+    return this.cachedSafeVideoUrl;
   }
 
   get isSoldOut(): boolean {

@@ -4,6 +4,7 @@
   --color-pink-light: #FDF2F5;
   --color-pink: #F8C8D8;
   --color-pink-dark: #E5A9BD;
+  --color-dark-pink: #9F3D62;
   --color-gold: #C5A059;
   --color-gold-light: #F9F5EC;
   --color-text: #1A1A1A;
@@ -97,11 +98,11 @@ input, select, textarea {
 }
 
 .btn-primary:hover {
-  background-color: var(--color-pink-dark);
-  border-color: var(--color-pink-dark);
+  background-color: #2D2D2D;
+  border-color: #2D2D2D;
   color: #FFFFFF;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(229, 169, 189, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .btn-secondary {

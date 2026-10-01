@@ -434,12 +434,18 @@ import { handleImageError, DEFAULT_FALLBACK_IMAGE } from '../../core/utils/image
     .btn-primary {
       display: inline-block;
       margin-top: 14px;
-      background: var(--color-pink-dark);
+      background: #1A1A1A;
       color: #FFFFFF;
+      border: 1px solid #1A1A1A;
       padding: 10px 20px;
       border-radius: var(--radius-sm);
       text-decoration: none;
       font-weight: 600;
+      transition: var(--transition);
+    }
+    .btn-primary:hover {
+      background: #2D2D2D;
+      border-color: #2D2D2D;
     }
   `]
 })

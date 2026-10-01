@@ -624,17 +624,18 @@ import { handleImageError } from '../../core/utils/image.utils';
       margin-bottom: 24px;
     }
     .btn-primary {
-      background-color: var(--color-pink-dark);
+      background-color: #1A1A1A;
       color: #FFFFFF;
       padding: 12px 24px;
       border-radius: var(--radius-sm);
-      border: none;
+      border: 1px solid #1A1A1A;
       font-weight: 600;
       cursor: pointer;
       transition: var(--transition);
     }
     .btn-primary:hover {
-      background-color: var(--color-pink);
+      background-color: #2D2D2D;
+      border-color: #2D2D2D;
     }
 
     /* Skeleton Placeholder Cards */

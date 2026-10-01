@@ -462,7 +462,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
     }
     .mini-price {
       font-weight: 600;
-      color: var(--color-pink-dark);
+      color: #9F3D62;
     }
 
     .summary-divider {
@@ -481,7 +481,7 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
       font-weight: 700;
     }
     .grand-price {
-      color: var(--color-pink-dark);
+      color: #9F3D62;
       font-size: 22px;
     }
     .checkout-error {
@@ -498,6 +498,17 @@ import { extractProductImages, handleImageError, DEFAULT_FALLBACK_IMAGE } from '
       padding: 16px;
       font-size: 15px;
       font-weight: 700;
+      background-color: #1A1A1A;
+      color: #FFFFFF;
+      border: 1px solid #1A1A1A;
+      transition: var(--transition);
+    }
+    .place-order-btn:hover:not(:disabled) {
+      background-color: #2D2D2D;
+      border-color: #2D2D2D;
+      color: #FFFFFF;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
     }
     .terms-text {
       font-size: 11px;
